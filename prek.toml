@@ -32,14 +32,18 @@ hooks = [
 ]
 
 # ── dprint (JSON formatter; YAML/Markdown/TOML not yet shipped as plugins) ─
+# dprint is installed via mise's npm:dprint backend (see mise.toml). We
+# invoke it through `mise exec` so the hook runs without manual PATH
+# setup; bare `dprint fmt` would fail in environments where mise hasn't
+# shimmed npm-managed tools.
 [[repos]]
 repo = "local"
 hooks = [
   {
     id = "dprint",
-    name = "dprint (JSON formatter)",
+    name = "dprint (JSON formatter, via mise exec)",
     language = "system",
-    entry = "dprint fmt",
+    entry = "mise exec -- dprint fmt",
     types = ["json"],
     pass_filenames = true,
   },

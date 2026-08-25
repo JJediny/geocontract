@@ -1,0 +1,618 @@
+# ODCS v3.1.0 Data Contract — Full Field Coverage Example
+#
+# This contract exists for one purpose: to exercise every primitive and
+# every supported sub-field in the canonical ODCS v3.1.0 JSON Schema.
+# The validator (`geocontract-validate`) and the upstream `datacontract
+# lint` CLI both pass against this file, which means it doubles as a
+# regression test for schema additions.
+#
+# Treat the values as illustrative. The two production contracts
+# (`nepa-exclusions.datacontract.yaml` and `pic-standards.datacontract.yaml`)
+# are the canonical geocontracts; this file is the reference shape.
+
+apiVersion: v3.1.0
+kind: DataContract
+id: geocontract-full-coverage-example
+name: "ODCS v3.1.0 Full-Coverage Reference Contract"
+version: 1.0.0
+status: active
+tenant: us-federal-geocontract
+domain: environmental-review
+# Deprecated in v3.1; included here to exercise the field. Will be
+# removed in ODCS v4.0.
+dataProduct: "Full-coverage reference dataset"
+
+# ── Description (nested object, not a string) ────────────────────────────────
+description:
+  purpose: "Demonstrate every ODCS v3.1.0 supported field in one place."
+  usage: "Reference contract for CI validation; not a real dataset."
+  limitations: "Synthetic; do not use in production."
+  authoritativeDefinitions:
+    - url: "https://bitol-io.github.io/open-data-contract-standard/"
+      type: documentation
+      description: "ODCS v3.1.0 canonical specification."
+  customProperties:
+    - property: exampleTier
+      value: reference
+      description: "Marks this contract as the full-coverage reference."
+
+# ── Tags (top-level + nested) ────────────────────────────────────────────────
+tags:
+  - geocontract
+  - reference
+  - full-coverage
+  - example
+
+# ── Servers (one per ODCS-recognised kind, exercising every ServerSource) ───
+servers:
+  # api: needs `location` (URI)
+  - server: reference-api
+    type: api
+    location: "https://api.example.gov/v1"
+    environment: production
+    description: "Public REST endpoint."
+
+  # local: needs `path` + `format`
+  - server: reference-local
+    type: local
+    path: "./data/example.parquet"
+    format: parquet
+    environment: production
+    description: "Local file-based sample."
+
+  # postgres: needs host, port, database, schema
+  - server: reference-postgres
+    type: postgres
+    host: db.example.gov
+    port: 5432
+    database: geocontract_examples
+    schema: public
+    environment: production
+    description: "PostgreSQL reference database."
+
+  # kafka: needs host
+  - server: reference-kafka
+    type: kafka
+    host: kafka.example.gov:9092
+    format: avro
+    environment: production
+    description: "Kafka topic reference."
+
+  # s3: needs `location` (s3:// URI)
+  - server: reference-s3
+    type: s3
+    location: "s3://geocontract-reference/example/{model}/*.parquet"
+    environment: production
+    description: "S3-backed parquet archive."
+
+  # snowflake: host, port, account, database, schema
+  - server: reference-snowflake
+    type: snowflake
+    host: acme.snowflakecomputing.com
+    port: 443
+    account: acme
+    database: REFERENCE
+    schema: PUBLIC
+    environment: production
+    description: "Snowflake warehouse."
+
+  # bigquery: project + dataset
+  - server: reference-bigquery
+    type: bigquery
+    project: acme-geocontract
+    dataset: reference
+    environment: production
+    description: "BigQuery dataset."
+
+  # redshift: host, database, schema, region
+  - server: reference-redshift
+    type: redshift
+    host: acme-redshift.example.gov
+    database: reference
+    schema: public
+    region: us-east-1
+    environment: production
+    description: "Redshift warehouse."
+
+  # athena: stagingDir + schema
+  - server: reference-athena
+    type: athena
+    stagingDir: "s3://acme-athena-staging/results/"
+    schema: reference_db
+    catalog: awsdatacatalog
+    regionName: us-east-1
+    environment: production
+    description: "Athena over S3."
+
+  # glue: account + database + location
+  - server: reference-glue
+    type: glue
+    account: "1234-5678-9012"
+    database: reference_db
+    location: "s3://acme-glue/reference/"
+    environment: production
+    description: "AWS Glue catalog."
+
+  # custom: catch-all
+  - server: reference-custom
+    type: custom
+    dataset: acme/reference
+    delimiter: ","
+    environment: production
+    description: "Custom integration."
+
+# ── Schema: exercise every primitive type and every quality kind ────────────
+schema:
+  # ── Object #1: covers logicalType=object with primaryKey, examples,
+  # logicalTypeOptions (with format), all quality variants, relationships,
+  # customProperties, authoritativeDefinitions, tags, encryptedName,
+  # transformSourceObjects, transformLogic, transformDescription,
+  # criticalDataElement, partitioned, unique.
+  - name: CoverageObject
+    physicalName: coverage_object
+    logicalType: object
+    description: "Reference object exercising every SchemaObject/SchemaProperty primitive."
+    dataGranularityDescription: "One row per coverage test case."
+    authoritativeDefinitions:
+      - url: "https://bitol-io.github.io/open-data-contract-standard/"
+        type: documentation
+        description: "ODCS v3.1.0 specification."
+    tags:
+      - reference
+      - coverage
+    customProperties:
+      - property: schemaTier
+        value: reference
+        description: "Marks this object as a full-coverage example."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions:
+          format: i64
+          minimum: 1
+        physicalType: BIGINT
+        required: true
+        unique: true
+        partitioned: true
+        partitionKeyPosition: 1
+        classification: public
+        criticalDataElement: true
+        description: "Primary key."
+        examples:
+          - 1
+          - 42
+          - 2105
+        encryptedName: id_encrypted
+        transformSourceObjects:
+          - source_system_x
+          - source_system_y
+        transformLogic: "COALESCE(source_x.id, source_y.id)"
+        transformDescription: "Pick the first non-null id across sources."
+        businessName: "Coverage Object ID"
+        authoritativeDefinitions:
+          - url: "https://en.wikipedia.org/wiki/Surrogate_key"
+            type: documentation
+            description: "Surrogate-key definition."
+        tags:
+          - identifier
+          - pii-low
+        customProperties:
+          - property: indexHint
+            value: btree
+            description: "PostgreSQL index type."
+        # Quality — every variant of DataQuality.
+        quality:
+          # 1) library metric with operator
+          - type: library
+            dimension: uniqueness
+            metric: duplicateValues
+            description: "ids must be globally unique."
+            businessImpact: operational
+            severity: error
+            unit: rows
+            schedule: "0 * * * *"
+            scheduler: cron
+            mustBe: 0
+          # 2) sql query
+          - type: sql
+            dimension: completeness
+            description: "No id may be NULL."
+            businessImpact: regulatory
+            severity: error
+            unit: rows
+            query: "SELECT COUNT(*) FROM ${table} WHERE ${column} IS NULL"
+            mustBe: 0
+          # 3) custom (Soda / Great Expectations / Monte Carlo / dbt)
+          - type: custom
+            dimension: accuracy
+            description: "Cross-check id against upstream register."
+            businessImpact: operational
+            severity: warning
+            engine: great-expectations
+            implementation:
+              expectation_type: expect_column_values_to_be_unique
+              column: id
+          # 4) text (human-readable)
+          - type: text
+            description: "Every id should be unique across the catalogue."
+            businessImpact: operational
+
+      - name: code
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 64
+          pattern: "^[A-Z0-9-]+$"
+          format: code
+        physicalType: VARCHAR(64)
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Short uppercase code."
+        examples:
+          - "AFRH"
+          - "DHS"
+          - "DHS - FEMA"
+        quality:
+          - type: library
+            dimension: conformity
+            metric: invalidValues
+            description: "code must match ^[A-Z0-9-]+$ pattern."
+            mustBe: 0
+            severity: warning
+        relationships:
+          - to: CoverageRef.code
+            type: foreignKey
+            customProperties:
+              - property: cardinality
+                value: many-to-one
+
+      # Number / float
+      - name: latitude
+        logicalType: number
+        logicalTypeOptions:
+          format: f64
+          multipleOf: 0.000001
+          minimum: -90
+          maximum: 90
+        physicalType: DOUBLE PRECISION
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Latitude in WGS84 decimal degrees."
+        examples:
+          - 38.9072
+          - -33.8688
+        quality:
+          - type: library
+            dimension: accuracy
+            metric: invalidValues
+            description: "latitude must be in [-90, 90]."
+            mustBe: 0
+
+      - name: longitude
+        logicalType: number
+        logicalTypeOptions:
+          format: f64
+          multipleOf: 0.000001
+          minimum: -180
+          maximum: 180
+        physicalType: DOUBLE PRECISION
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Longitude in WGS84 decimal degrees."
+        examples:
+          - -77.0369
+          - 151.2093
+
+      # Date (DateTimeFormatter)
+      - name: eventDate
+        logicalType: date
+        logicalTypeOptions:
+          format: "yyyy-MM-dd"
+          minimum: "1900-01-01"
+          maximum: "2100-12-31"
+        physicalType: DATE
+        required: false
+        classification: public
+        description: "Event date (ISO 8601 calendar date)."
+        examples:
+          - "2025-08-07"
+
+      # Timestamp (timezone-aware)
+      - name: eventTimestamp
+        logicalType: timestamp
+        logicalTypeOptions:
+          format: "yyyy-MM-dd'T'HH:mm:ss[.SSS]XXX"
+          timezone: true
+          defaultTimezone: "Etc/UTC"
+          minimum: "1900-01-01T00:00:00Z"
+          maximum: "2100-12-31T23:59:59Z"
+        physicalType: TIMESTAMP WITH TIME ZONE
+        required: false
+        classification: public
+        description: "Event timestamp with timezone."
+        examples:
+          - "2025-08-07T14:23:11.123Z"
+
+      # Time-of-day
+      - name: eventTime
+        logicalType: time
+        logicalTypeOptions:
+          format: "HH:mm:ss"
+        physicalType: TIME
+        required: false
+        classification: public
+        description: "Event time-of-day (ISO 8601)."
+
+      # Boolean
+      - name: isActive
+        logicalType: boolean
+        physicalType: BOOLEAN
+        required: false
+        classification: public
+        description: "Active flag."
+        examples:
+          - true
+          - false
+
+      # Array (with logicalTypeOptions for maxItems, uniqueItems)
+      - name: tagsArray
+        logicalType: array
+        logicalTypeOptions:
+          maxItems: 32
+          minItems: 0
+          uniqueItems: true
+        items:
+          name: tag
+          logicalType: string
+          logicalTypeOptions:
+            minLength: 1
+            maxLength: 64
+          required: true
+          description: "Single tag."
+        physicalType: TEXT[]
+        required: false
+        classification: public
+        description: "Tag array."
+        examples:
+          - ["alpha", "beta"]
+
+      # Nested object (with required[] and maxProperties)
+      - name: nestedObject
+        logicalType: object
+        logicalTypeOptions:
+          maxProperties: 8
+          minProperties: 1
+          required:
+            - inner_id
+        physicalType: JSONB
+        required: false
+        classification: public
+        description: "Nested object."
+        examples:
+          - {
+              "inner_id": 1,
+              "value": "x"
+            }
+        properties:
+          - name: inner_id
+            logicalType: integer
+            required: true
+            description: "Inner id."
+          - name: value
+            logicalType: string
+            required: false
+            description: "Inner value."
+
+    # Object-level quality (different from per-property)
+    quality:
+      - type: library
+        dimension: coverage
+        metric: rowCount
+        description: "CoverageObject must contain at least one row in production."
+        mustBeGreaterThan: 0
+        severity: error
+    # Object-level relationships
+    relationships:
+      - from: CoverageObject.id
+        to: CoverageRef.code
+        type: foreignKey
+        customProperties:
+          - property: cardinality
+            value: one-to-one
+
+  # ── Object #2: minimal, to exercise an object with no quality at all ──────
+  - name: CoverageRef
+    physicalName: coverage_ref
+    logicalType: object
+    description: "Lookup reference object."
+    properties:
+      - name: code
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 64
+        physicalType: VARCHAR(64)
+        required: true
+        unique: true
+        description: "Reference code (FK target)."
+
+# ── Support channels — exercise every `tool` enum value ─────────────────────
+support:
+  - channel: permits@innovation.gov
+    tool: email
+    url: "mailto:permits@innovation.gov"
+    description: "Email support."
+  - channel: "#permits-pic"
+    tool: slack
+    url: "https://slack.com/app_redirect?channel=permits-pic"
+    description: "Slack channel."
+  - channel: permits-pic-teams
+    tool: teams
+    url: "https://teams.microsoft.com/l/channel/permits-pic"
+    description: "MS Teams channel."
+  - channel: permits-pic-discord
+    tool: discord
+    url: "https://discord.com/channels/permits-pic"
+    description: "Discord server."
+  - channel: permits-pic-issues
+    tool: ticket
+    url: "https://github.com/JJediny/geocontract/issues"
+    description: "GitHub issue tracker."
+  - channel: permits-pic-googlechat
+    tool: googlechat
+    url: "https://chat.google.com/room/permits-pic"
+    description: "Google Chat space."
+  - channel: other-channel
+    tool: other
+    url: "https://example.gov/permits-pic"
+    description: "Other channel."
+
+# ── Pricing ────────────────────────────────────────────────────────────────
+price:
+  priceCurrency: USD
+  priceAmount: 0.00
+  priceUnit: dataset
+
+# ── Team ──────────────────────────────────────────────────────────────────
+team:
+  id: team-permits-pic
+  name: Permitting Innovation Center
+  description: "Cross-agency federal team responsible for the geocontract."
+  tags:
+    - geocontract
+    - permits-pic
+  members:
+    - id: member-owner
+      username: permits@innovation.gov
+      name: Permitting Innovation Center
+      description: Publishing team owner.
+      role: owner
+      dateIn: "2024-01-01"
+      tags:
+        - owner
+        - publishes
+      customProperties:
+        - property: gsaRole
+          value: PIC Lead
+    - id: member-steward
+      username: jj@example.gov
+      name: J. Jediny
+      description: Data steward for geocontract.
+      role: steward
+      dateIn: "2024-06-01"
+      dateOut: "2026-06-01"
+      replacedByUsername: next-steward@example.gov
+      tags:
+        - steward
+  customProperties:
+    - property: gsaOffice
+      value: "Permitting Innovation Center"
+  authoritativeDefinitions:
+    - url: "https://permitting.innovation.gov/"
+      type: documentation
+      description: "PIC programme page."
+
+# ── Roles (IAM) ───────────────────────────────────────────────────────────
+roles:
+  - id: role-public
+    role: Public
+    description: "Anonymous read access."
+    access: read
+  - id: role-editor
+    role: NEPAEditor
+    description: "Editor role with write access."
+    access: write
+    firstLevelApprovers: PIC-Steward
+    secondLevelApprovers: PIC-Director
+  - id: role-admin
+    role: NEPAAdmin
+    description: "Admin role with full access."
+    access: read-write-delete
+    firstLevelApprovers: PIC-Director
+    secondLevelApprovers: GSA-OCSO
+
+# ── SLA: contract-wide default element ────────────────────────────────────
+slaDefaultElement: "freshness"
+
+# ── SLA: per-property SLAs (full key set) ─────────────────────────────────
+# Note: ServiceLevelAgreementProperty has additionalProperties=false,
+# so structured threshold metadata belongs in customProperties at the
+# top-level DataContract or per-CoverageObject, not here.
+slaProperties:
+  - id: sla-freshness
+    property: freshness
+    value: "<= 30 days since last_updated"
+    # valueExt is a scalar per ODCS (string|number|integer|boolean|null).
+    valueExt: 30
+    unit: days
+    element: lastUpdated
+    driver: operational
+    description: "Records must be refreshed at least every 30 days."
+    scheduler: cron
+    schedule: "0 6 * * *"
+  - id: sla-latency
+    property: latency
+    value: "p95 < 250ms"
+    valueExt: 250
+    unit: ms
+    element: "*"
+    driver: analytics
+    description: "API p95 latency budget for read paths."
+    scheduler: cron
+    schedule: "*/5 * * * *"
+  - id: sla-availability
+    property: availability
+    value: "99.9%"
+    valueExt: 99.9
+    unit: percent
+    driver: regulatory
+    description: "Monthly availability budget (≈43 min downtime / month)."
+    scheduler: cron
+    schedule: "*/5 * * * *"
+
+# ── Authoritative definitions (top-level) ──────────────────────────────────
+authoritativeDefinitions:
+  - id: def-odcs
+    url: "https://bitol-io.github.io/open-data-contract-standard/"
+    type: documentation
+    description: "ODCS v3.1.0 canonical specification."
+  - id: def-datacontract
+    url: "https://datacontract.com/"
+    type: documentation
+    description: "datacontract.com homepage."
+  - id: def-jsonschema-x-graphql
+    url: "https://github.com/json-schema-x-graphql/json-schema-x-graphql"
+    type: sourceCode
+    description: "json-schema-x-graphql upstream project."
+  - id: def-pic
+    url: "https://github.com/permits/pyper/tree/main/pic-standards"
+    type: sourceCode
+    description: "PIC NEPA Data Standard upstream project."
+
+# ── Custom properties (top-level) ──────────────────────────────────────────
+customProperties:
+  - property: geocontractTier
+    value: reference
+    description: "Marks this as the full-coverage reference contract."
+  - property: geocontractPrimitivesCovered
+    value: 100
+    description: "Percentage of ODCS primitives exercised by this file."
+  - property: geocontractSchemaVersion
+    value: v3.1.0
+  - property: x-graphql-federation-keys
+    value: "id"
+    description: "Bridge to json-schema-x-graphql metadata."
+  - property: x-graphql-field-strategy
+    value: GRAPHQL_IDIOMATIC
+    description: "Field-name case strategy for downstream SDL conversion."
+
+# ── Creation timestamp ────────────────────────────────────────────────────
+contractCreatedTs: "2026-08-24T00:00:00Z"

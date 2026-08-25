@@ -41,6 +41,7 @@ CONTRACT_FILES = [
     "contracts/odcs-v3.1.0-template.yaml",
     "contracts/nepa-exclusions.datacontract.yaml",
     "contracts/pic-standards.datacontract.yaml",
+    "contracts/examples/full-coverage.datacontract.yaml",
 ]
 
 SHIM_FILES = [
@@ -55,6 +56,96 @@ def test_contract_validates(relpath: str) -> None:
     path = REPO_ROOT / relpath
     errors = validate_odcs_yaml(path, schema)
     assert errors == [], f"{relpath} failed validation:\n" + "\n".join(errors)
+
+
+def test_full_coverage_exercises_every_top_level_key() -> None:
+    """Regression sentinel: the full-coverage example must touch every
+    top-level ODCS v3.1.0 key. If someone drops a section, this fails."""
+    import yaml
+
+    path = REPO_ROOT / "contracts/examples/full-coverage.datacontract.yaml"
+    doc = yaml.safe_load(path.read_text())
+
+    # The full set of optional-but-supported ODCS v3.1.0 top-level keys.
+    # The required keys (version, apiVersion, kind, id, status) are already
+    # guaranteed by the validator; we check the optionals here.
+    expected_optional = {
+        "tenant", "tags", "servers", "dataProduct", "description",
+        "domain", "schema", "support", "price", "team", "roles",
+        "slaDefaultElement", "slaProperties", "authoritativeDefinitions",
+        "customProperties", "contractCreatedTs",
+    }
+    missing = expected_optional - set(doc.keys())
+    assert not missing, f"full-coverage example missing top-level keys: {missing}"
+
+
+def test_full_coverage_exercises_every_support_tool() -> None:
+    """All seven ODCS SupportItem.tool enum values should appear."""
+    import yaml
+
+    path = REPO_ROOT / "contracts/examples/full-coverage.datacontract.yaml"
+    doc = yaml.safe_load(path.read_text())
+    tools = {s.get("tool") for s in doc.get("support", [])}
+    expected = {"email", "slack", "teams", "discord", "ticket", "googlechat", "other"}
+    missing = expected - tools
+    assert not missing, f"support tools not covered: {missing}"
+
+
+def test_full_coverage_exercises_every_quality_type() -> None:
+    """library, sql, custom, text — each must appear at least once."""
+    import yaml
+
+    path = REPO_ROOT / "contracts/examples/full-coverage.datacontract.yaml"
+    doc = yaml.safe_load(path.read_text())
+
+    found = set()
+    for obj in doc.get("schema", []):
+        for k in ("quality",):
+            for q in obj.get(k, []):
+                if "type" in q:
+                    found.add(q["type"])
+        for prop in obj.get("properties", []):
+            for q in prop.get("quality", []):
+                if "type" in q:
+                    found.add(q["type"])
+    expected = {"library", "sql", "custom", "text"}
+    missing = expected - found
+    assert not missing, f"quality types not covered: {missing}"
+
+
+def test_full_coverage_exercises_every_logical_type() -> None:
+    """string, integer, number, boolean, date, timestamp, time, object, array."""
+    import yaml
+
+    path = REPO_ROOT / "contracts/examples/full-coverage.datacontract.yaml"
+    doc = yaml.safe_load(path.read_text())
+
+    found = set()
+    for obj in doc.get("schema", []):
+        if obj.get("logicalType"):
+            found.add(obj["logicalType"])
+        for prop in obj.get("properties", []):
+            if prop.get("logicalType"):
+                found.add(prop["logicalType"])
+    expected = {"string", "integer", "number", "boolean", "date", "timestamp", "time", "object", "array"}
+    missing = expected - found
+    assert not missing, f"logicalType values not covered: {missing}"
+
+
+def test_full_coverage_exercises_every_server_type() -> None:
+    """api, local, postgres, kafka, s3, snowflake, bigquery, redshift,
+    athena, glue, custom — each at least one server entry."""
+    import yaml
+
+    path = REPO_ROOT / "contracts/examples/full-coverage.datacontract.yaml"
+    doc = yaml.safe_load(path.read_text())
+    types = {s.get("type") for s in doc.get("servers", [])}
+    expected = {
+        "api", "local", "postgres", "kafka", "s3", "snowflake",
+        "bigquery", "redshift", "athena", "glue", "custom",
+    }
+    missing = expected - types
+    assert not missing, f"server types not covered: {missing}"
 
 
 @pytest.mark.parametrize("relpath", SHIM_FILES)
