@@ -1,0 +1,8 @@
+{
+  "apiVersion": "v3.1.0",
+  "kind": "DataContract",
+  "id": "geocontract-example-minimal",
+  "name": "Minimal ODCS v3.1.0 example",
+  "version": "0.0.1",
+  "status": "draft"
+}

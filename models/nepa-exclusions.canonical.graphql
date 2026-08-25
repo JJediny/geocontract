@@ -1,0 +1,91 @@
+# Canonical subgraph for the NEPA Categorical Exclusions source.
+#
+# Composition of:
+#   1. The SDL produced by the json-schema-x-graphql converter
+#      (jxql) when run over templates/nepa-exclusions.template.schema.json
+#   2. Hand-authored `@mapFrom(path: …)` annotations cross-referencing
+#      maps/nepa-exclusions.field-mapping.json
+#   3. Hand-authored Query root, derived from the template's
+#      `x-graphql-operations.queries` block
+#
+# Regenerate (1) with:
+#   jxql --input templates/nepa-exclusions.template.schema.json \
+#        --output models/nepa-exclusions.canonical.graphql \
+#        --descriptions --preserve-order \
+#        --federation-version 2 --naming-convention GRAPHQL_IDIOMATIC \
+#        --id-strategy NONE \
+#        --output-format SDL_WITH_FEDERATION_METADATA
+# then re-apply the `@mapFrom` annotations and the Query root below.
+
+directive @mapFrom(path: String!) on FIELD_DEFINITION
+directive @mapHint(note: String) on FIELD_DEFINITION
+
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.9"
+    import: ["@key", "@shareable", "@interfaceObject", "@external", "@requires", "@provides", "@override", "@authenticated", "@requiresScopes", "@policy"]
+  )
+
+"""
+A single categorical exclusion (CATEX) record published by a federal
+agency. Sourced from the exclusions catalogue at
+https://ce.permitting.innovation.gov/data/exclusions.json.
+"""
+type Exclusion implements Node @key(fields: "id") @shareable {
+  """Database id (catalog-internal integer)."""
+  id: ID! @mapFrom(path: "/exclusions/*/id")
+  """Hierarchical structured identifier, e.g. `AFRH--1-1-1`."""
+  structuredId: String! @mapFrom(path: "/exclusions/*/structuredID")
+  """Agency unit code (e.g. `AFRH`, `CPSC`, `DHS`)."""
+  unit: String! @mapFrom(path: "/exclusions/*/unit")
+  """Long-form agency unit name (e.g. `Armed Forces Retirement Home`)."""
+  longUnit: String! @mapFrom(path: "/exclusions/*/longUnit")
+  """Display/sort order for the unit."""
+  unitOrder: String @mapFrom(path: "/exclusions/*/unitOrder")
+  """Human-readable origin list (e.g. `Bureau of Indian Affairs's Categorical Exclusions`)."""
+  origin: String! @mapFrom(path: "/exclusions/*/origin")
+  """Canonical URL to the published CFR / eCFR source list."""
+  originUrl: String @mapFrom(path: "/exclusions/*/originUrl")
+  """Section heading under which the exclusion is catalogued (e.g. `A.3   CATEXs—Requires No Documentation`)."""
+  context: String @mapFrom(path: "/exclusions/*/context")
+  """Free-text body of the section heading describing the class of exclusions."""
+  additionalContext: String @mapFrom(path: "/exclusions/*/additionalContext")
+  """Extraordinary-circumstances clause that must be considered before applying the exclusion. Often `Not Catalogued`."""
+  circumstances: String @mapFrom(path: "/exclusions/*/circumstances")
+  """Verbatim exclusion text, including the leading letter/number clause (e.g. `(a) Granting a lease...`)."""
+  exclusion: String! @mapFrom(path: "/exclusions/*/exclusion")
+}
+
+"""
+Provenance envelope for the entire exclusions catalogue release.
+"""
+type ExclusionsVersion @key(fields: "date") {
+  """Catalogue release date (YYYY-MM-DD)."""
+  date: Date @mapFrom(path: "/version/date")
+  """Semantic version of the catalogue payload (e.g. 2.0.0)."""
+  version: String @mapFrom(path: "/version/version")
+}
+
+"""ISO 8601 calendar date (YYYY-MM-DD)."""
+scalar Date
+
+interface Node @key(fields: "id") {
+  id: ID!
+}
+
+type Query {
+  """Look up a single categorical exclusion by its database id."""
+  exclusion(id: ID!): Exclusion
+
+  """Look up a single categorical exclusion by its hierarchical structured id."""
+  exclusionByStructuredId(structuredId: String!): Exclusion
+
+  """List categorical exclusions, optionally filtered by agency unit."""
+  exclusions(unit: String, limit: Int = 100): [Exclusion!]!
+
+  """List all exclusions published under a given CFR origin URL."""
+  exclusionsByOriginUrl(originUrl: String!): [Exclusion!]!
+
+  """The catalogue release envelope (date + semantic version)."""
+  exclusionsVersion: ExclusionsVersion
+}

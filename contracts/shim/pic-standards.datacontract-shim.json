@@ -1,0 +1,137 @@
+{
+  "version": "1.0",
+  "schema": { "source": "../../templates/pic-standards.template.schema.json" },
+  "contract": {
+    "name": "PIC NEPA Data Standard v1.2",
+    "description": "Structured schema for environmental-review data collected under NEPA. 13 entity types with v1.2 provenance properties.",
+    "version": "1.2.0",
+    "status": "active",
+    "domain": "environmental-review"
+  },
+  "ownership": {
+    "team": "Permitting Innovation Center",
+    "contact": "permits@innovation.gov",
+    "slack": "#permits-pic",
+    "oncall": "permits-oncall",
+    "docs_url": "https://permitting.innovation.gov/resources/data-standard/"
+  },
+  "quality": [
+    {
+      "metric": "completeness",
+      "field": "#/definitions/project/properties/title",
+      "threshold": 1.0,
+      "description": "Every Project must have a title (required field)."
+    },
+    {
+      "metric": "completeness",
+      "field": "#/definitions/project/properties/description",
+      "threshold": 1.0,
+      "description": "Every Project must have a description (required field)."
+    },
+    {
+      "metric": "uniqueness",
+      "field": "#/definitions/project/properties/id",
+      "threshold": 1.0,
+      "description": "Project ids must be globally unique."
+    },
+    {
+      "metric": "conformity",
+      "field": "#/definitions/project/properties/current_status",
+      "threshold": "pre-application|underway|paused|completed",
+      "description": "current_status must be one of the four enum values."
+    },
+    {
+      "metric": "rowCount",
+      "field": "#/definitions/project",
+      "threshold": 1,
+      "description": "Projects table must contain at least one record in production."
+    },
+    {
+      "metric": "freshness",
+      "field": "#/definitions/project/properties/last_updated",
+      "threshold": "180d",
+      "description": "Project records must have last_updated within the last 180 days."
+    },
+    {
+      "metric": "completeness",
+      "field": "#/definitions/comment/properties/content_text",
+      "threshold": 0.99,
+      "description": "99% of comments must have content_text populated."
+    },
+    {
+      "metric": "missingValues",
+      "field": "#/definitions/comment/properties/public_acess",
+      "threshold": 0.0,
+      "description": "No records may use the misspelled 'public_acess' (correct field is public_access)."
+    }
+  ],
+  "sla": [
+    { "name": "reference-data-availability", "target": "99.5%", "window": "monthly" },
+    { "name": "reference-data-freshness", "target": "<= 180 days since version", "window": "rolling-180d" }
+  ],
+  "lineage": {
+    "upstream": [
+      { "source": "https://www.ecfr.gov/", "type": "api", "endpoint": "graphql://eCFR/v1" },
+      {
+        "source": "https://www.federalregister.gov/",
+        "type": "api",
+        "endpoint": "https://www.federalregister.gov/api/v1"
+      }
+    ],
+    "downstream": [
+      { "consumer": "permitting-portal", "type": "graphql", "endpoint": "graphql://permitting-portal/v1" },
+      { "consumer": "eis-search-index", "type": "kafka", "topic": "nepa.documents.cdc", "format": "avro" }
+    ]
+  },
+  "retention": {
+    "policy": "permanent-federal-record",
+    "description": "NEPA review records are permanent federal records per NARA General Records Schedule 6.5.",
+    "delete_after": "never",
+    "archive_after": "never",
+    "partition_strategy": "date"
+  },
+  "access": {
+    "classification": "mixed",
+    "pii_fields": ["#/definitions/comment/properties/commenter_entity"],
+    "compliance": [
+      { "regulation": "FOIA", "justification": "Most records are public; comment author identity may be restricted." },
+      {
+        "regulation": "Privacy Act of 1974",
+        "justification": "Commenter identity is a Privacy Act system of records when agency-maintained."
+      },
+      { "regulation": "NEPA (42 U.S.C. §§ 4321 et seq.)", "justification": "Statutory basis for the data standard." }
+    ]
+  },
+  "lifecycle": {
+    "created": "2024-01-01",
+    "last_modified": "2025-08-07",
+    "sunset_date": null,
+    "changelog": [
+      { "version": "1.0.0", "date": "2024-01-01", "summary": "Initial release of the NEPA Data Standard." },
+      { "version": "1.1.0", "date": "2024-09-15", "summary": "Added SQL database files; no data-structure changes." },
+      {
+        "version": "1.2.0",
+        "date": "2025-08-07",
+        "summary": "Added six provenance properties to all entities; document_summary/document_toc/result_data changed from text to JSON; decision_element.expected_evaluation_data + response_data added."
+      }
+    ]
+  },
+  "partitioning": { "strategy": "time", "column": "last_updated", "granularity": "month", "retention_days": null },
+  "cost": { "center": "permits-pic", "budget_code": "PIC-DATA-CORE", "estimated_annual_cost_usd": 0 },
+  "tags": ["geocontract", "nepa", "data-standard", "pic-standards", "v1.2", "tier-1", "permits-pic"],
+  "entities": {
+    "definitions/project": { "classification": "public", "pii": false },
+    "definitions/comment": { "classification": "mixed", "pii": true },
+    "definitions/document": { "classification": "public", "pii": false },
+    "definitions/gis_data": { "classification": "public", "pii": false },
+    "definitions/gis_data_element": { "classification": "public", "pii": false },
+    "definitions/user_role": { "classification": "internal", "pii": true },
+    "definitions/decision_element": { "classification": "internal", "pii": false },
+    "definitions/process_model": { "classification": "public", "pii": false },
+    "definitions/process_decision_payload": { "classification": "internal", "pii": false },
+    "definitions/legal_structure": { "classification": "public", "pii": false },
+    "definitions/case_event": { "classification": "public", "pii": false },
+    "definitions/engagement": { "classification": "public", "pii": false },
+    "definitions/process_instance": { "classification": "public", "pii": false }
+  }
+}

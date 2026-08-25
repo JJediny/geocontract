@@ -1,0 +1,355 @@
+# Canonical subgraph generated for the PIC NEPA Data Standard (v1.2).
+# Generated from: templates/pic-standards.template.schema.json + maps/pic-standards.field-mapping.json
+# Run the converter to (re)produce:
+#   jxql --input templates/pic-standards.template.schema.json \
+#        --output models/pic-standards.canonical.graphql \
+#        --include-federation-directives --federation-version V2 \
+#        --naming-convention GRAPHQL_IDIOMATIC --id-strategy COMMON_PATTERNS \
+#        --descriptions
+
+directive @mapFrom(path: String!) on FIELD_DEFINITION
+directive @mapHint(note: String) on FIELD_DEFINITION
+
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.9"
+    import: ["@key", "@shareable", "@interfaceObject", "@external", "@requires", "@provides", "@override", "@authenticated", "@requiresScopes", "@policy"]
+  )
+
+"""
+An activity or decision requiring a NEPA review process.
+Source: pic-standards/src/jsonschema/nepa.schema.json :: definitions.project
+"""
+type Project implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/projects/*/id")
+  title: String @mapFrom(path: "/projects/*/title")
+  description: String @mapFrom(path: "/projects/*/description")
+  leadAgency: String @mapFrom(path: "/projects/*/lead_agency")
+  participatingAgencies: [String!] @mapFrom(path: "/projects/*/participating_agencies")
+  location: Location @mapFrom(path: "/projects/*/location_object")
+  startDate: Date @mapFrom(path: "/projects/*/start_date")
+  currentStatus: ProjectStatus @mapFrom(path: "/projects/*/current_status")
+  locationLat: Float @mapFrom(path: "/projects/*/location_lat")
+  locationLon: Float @mapFrom(path: "/projects/*/location_lon")
+  sponsorContact: SponsorContact @mapFrom(path: "/projects/*/sponsor_contact")
+  dataRecordVersion: String @mapFrom(path: "/projects/*/data_record_version")
+  dataSourceAgency: String @mapFrom(path: "/projects/*/data_source_agency")
+  dataSourceSystem: String @mapFrom(path: "/projects/*/data_source_system")
+  lastUpdated: DateTime @mapFrom(path: "/projects/*/last_updated")
+  recordOwnerAgency: String @mapFrom(path: "/projects/*/record_owner_agency")
+  retrievedTimestamp: DateTime @mapFrom(path: "/projects/*/retrieved_timestamp")
+
+  "Cross-subgraph relations (declared via @external where needed)."
+  processInstances(parentProjectId: ID): [ProcessInstance!]!
+  gisData(parentProjectId: ID): [GisData!]!
+  caseEvents(parentProjectId: ID): [CaseEvent!]!
+  comments(parentProjectId: ID): [Comment!]!
+}
+
+enum ProjectStatus {
+  pre_application
+  underway
+  paused
+  completed
+}
+
+type Location {
+  description: String
+  gisReference: String
+}
+
+type SponsorContact {
+  name: String
+  email: String
+  phone: String
+}
+
+"""
+A specific type of environmental review, permit, or authorization.
+Source: pic-standards :: definitions.process_instance
+"""
+type ProcessInstance implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/processe_instances/*/id")
+  createdAt: DateTime @mapFrom(path: "/processe_instances/*/created_at")
+  parentProcessId: Int @mapFrom(path: "/processe_instances/*/parent_process_id")
+  parentProjectId: Int @mapFrom(path: "/processe_instances/*/parent_project_id")
+  agencyId: String @mapFrom(path: "/processe_instances/*/agency_id")
+  federalId: String @mapFrom(path: "/processe_instances/*/federal_id")
+  type: String @mapFrom(path: "/processe_instances/*/type")
+  status: String @mapFrom(path: "/processe_instances/*/status")
+  stage: String @mapFrom(path: "/processe_instances/*/stage")
+  startDate: Date @mapFrom(path: "/processe_instances/*/start_date")
+  completeDate: Date @mapFrom(path: "/processe_instances/*/complete_date")
+  outcome: String @mapFrom(path: "/processe_instances/*/outcome")
+  leadAgency: String @mapFrom(path: "/processe_instances/*/lead_agency")
+  jointLeadAgency: String @mapFrom(path: "/processe_instances/*/joint_lead_agency")
+  cooperatingAgencies: [String!] @mapFrom(path: "/processe_instances/*/cooperating_agencies")
+}
+
+"""
+Official record created during the NEPA review.
+Source: pic-standards :: definitions.document
+"""
+type Document implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/documents/*/id")
+  documentType: String @mapFrom(path: "/documents/*/document_type")
+  title: String @mapFrom(path: "/documents/*/title")
+  volumeTitle: String @mapFrom(path: "/documents/*/volume_title")
+  publishDate: Date @mapFrom(path: "/documents/*/publish_date")
+  preparedBy: String @mapFrom(path: "/documents/*/prepared_by")
+  status: String @mapFrom(path: "/documents/*/status")
+  url: String @mapFrom(path: "/documents/*/url")
+  notes: String @mapFrom(path: "/documents/*/notes")
+  relatedDocumentId: Int @mapFrom(path: "/documents/*/related_document_id")
+  documentSummary: JSON @mapFrom(path: "/documents/*/document_summary")
+  documentToc: JSON @mapFrom(path: "/documents/*/document_toc")
+  publicAccess: Boolean @mapFrom(path: "/documents/*/public_access")
+}
+
+"""
+Feedback submitted during the NEPA process.
+Source: pic-standards :: definitions.comment
+"""
+type Comment implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/comments/*/id")
+  commenterEntity: String @mapFrom(path: "/comments/*/commenter_entity")
+  contentText: String @mapFrom(path: "/comments/*/content_text")
+  dateSubmitted: Date @mapFrom(path: "/comments/*/date_submitted")
+  parentDocumentId: Int @mapFrom(path: "/comments/*/parent_document_id")
+  submissionMethod: String @mapFrom(path: "/comments/*/submission_method")
+  responseText: String @mapFrom(path: "/comments/*/response_text")
+  publicSource: Boolean @mapFrom(path: "/comments/*/public_source")
+  publicAccess: Boolean @mapFrom(path: "/comments/*/public_access")
+  contentJson: JSON @mapFrom(path: "/comments/*/content_json")
+  responseJson: JSON @mapFrom(path: "/comments/*/response_json")
+}
+
+"""
+An opportunity for interaction in the NEPA process.
+Source: pic-standards :: definitions.engagement
+"""
+type Engagement implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/engagements/*/id")
+  type: String @mapFrom(path: "/engagements/*/type")
+  startDatetime: DateTime @mapFrom(path: "/engagements/*/start_datetime")
+  endDatetime: DateTime @mapFrom(path: "/engagements/*/end_datetime")
+  location: String @mapFrom(path: "/engagements/*/location")
+  parentProcessId: Int @mapFrom(path: "/engagements/*/parent_process_id")
+  attendance: Int @mapFrom(path: "/engagements/*/attendance")
+  relatedDocumentId: Int @mapFrom(path: "/engagements/*/related_document_id")
+  participation: Int @mapFrom(path: "/engagements/*/participation")
+  notes: String @mapFrom(path: "/engagements/*/notes")
+}
+
+"""
+A milestone or step within a NEPA review.
+Source: pic-standards :: definitions.case_event
+"""
+type CaseEvent implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/case_events/*/id")
+  source: String @mapFrom(path: "/case_events/*/source")
+  type: String @mapFrom(path: "/case_events/*/type")
+  tier: Int @mapFrom(path: "/case_events/*/tier")
+  status: String @mapFrom(path: "/case_events/*/status")
+  outcome: String @mapFrom(path: "/case_events/*/outcome")
+  relatedDocumentId: Int @mapFrom(path: "/case_events/*/related_document_id")
+  publicAccess: Boolean @mapFrom(path: "/case_events/*/public_access")
+  description: String @mapFrom(path: "/case_events/*/description")
+  assignedEntity: String @mapFrom(path: "/case_events/*/assigned_entity")
+  followingSegmentName: String @mapFrom(path: "/case_events/*/following_segment_name")
+  parentEventId: Int @mapFrom(path: "/case_events/*/parent_event_id")
+  relatedEngagementId: Int @mapFrom(path: "/case_events/*/related_engagement_id")
+}
+
+"""
+Geospatial data container associated with NEPA projects.
+Source: pic-standards :: definitions.gis_data
+"""
+type GisData implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/gis_data/*/id")
+  creator: String @mapFrom(path: "/gis_data/*/creator")
+  description: String @mapFrom(path: "/gis_data/*/description")
+  extent: JSON @mapFrom(path: "/gis_data/*/extent")
+  notes: String @mapFrom(path: "/gis_data/*/notes")
+  containerInventory: JSON @mapFrom(path: "/gis_data/*/container_inventory")
+  parentProjectId: Int @mapFrom(path: "/gis_data/*/parent_project_id")
+  parentProcessId: Int @mapFrom(path: "/gis_data/*/parent_process_id")
+  parentDocumentId: Int @mapFrom(path: "/gis_data/*/parent_document_id")
+  parentCaseEventId: Int @mapFrom(path: "/gis_data/*/parent_case_event_id")
+  parentCommentId: Int @mapFrom(path: "/gis_data/*/parent_comment_id")
+  parentEngagementId: Int @mapFrom(path: "/gis_data/*/parent_engagement_id")
+  createdAt: DateTime @mapFrom(path: "/gis_data/*/created_at")
+  centroidLat: Float @mapFrom(path: "/gis_data/*/centroid_lat")
+  centroidLon: Float @mapFrom(path: "/gis_data/*/centroid_lon")
+
+  gisDataElements(parentGis: ID!): [GisDataElement!]!
+}
+
+"""
+Individual element within a GIS data container.
+Source: pic-standards :: definitions.gis_data_element
+"""
+type GisDataElement implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/gis_data_elements/*/id")
+  containerReference: String @mapFrom(path: "/gis_data_elements/*/container_reference")
+  accessMethod: String @mapFrom(path: "/gis_data_elements/*/access_method")
+  coordinateSystem: String @mapFrom(path: "/gis_data_elements/*/coordinate_system")
+  topLeftLat: Float @mapFrom(path: "/gis_data_elements/*/top_left_lat")
+  topLeftLon: Float @mapFrom(path: "/gis_data_elements/*/top_left_lon")
+  botRightLat: Float @mapFrom(path: "/gis_data_elements/*/bot_right_lat")
+  botRightLon: Float @mapFrom(path: "/gis_data_elements/*/bot_right_lon")
+  purpose: String @mapFrom(path: "/gis_data_elements/*/purpose")
+  dataMatch: Boolean @mapFrom(path: "/gis_data_elements/*/data_match")
+  accessInfo: String @mapFrom(path: "/gis_data_elements/*/access_info")
+  createdAt: DateTime @mapFrom(path: "/gis_data_elements/*/created_at")
+  parentGis: Int @mapFrom(path: "/gis_data_elements/*/parent_gis")
+  format: String @mapFrom(path: "/gis_data_elements/*/format")
+}
+
+"""
+A stakeholder role within the NEPA IT system.
+Source: pic-standards :: definitions.user_role
+"""
+type UserRole implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/user_roles/*/id")
+  name: String @mapFrom(path: "/user_roles/*/name")
+  description: String @mapFrom(path: "/user_roles/*/description")
+  public: Boolean @mapFrom(path: "/user_roles/*/public")
+  accessPolicy: String @mapFrom(path: "/user_roles/*/access_policy")
+  permissionDescriptions: [String!] @mapFrom(path: "/user_roles/*/permission_descriptions")
+  createdAt: DateTime @mapFrom(path: "/user_roles/*/created_at")
+}
+
+"""
+An individual criterion or condition used in NEPA decision-making.
+Source: pic-standards :: definitions.decision_element
+"""
+type DecisionElement implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/decision_elements/*/id")
+  measure: String @mapFrom(path: "/decision_elements/*/measure")
+  intersect: Boolean @mapFrom(path: "/decision_elements/*/intersect")
+  spatialReference: String @mapFrom(path: "/decision_elements/*/spatial_reference")
+  formText: String @mapFrom(path: "/decision_elements/*/form_text")
+  formResponseDesc: String @mapFrom(path: "/decision_elements/*/form_response_desc")
+  formData: JSON @mapFrom(path: "/decision_elements/*/form_data")
+  evaluationMethod: String @mapFrom(path: "/decision_elements/*/evaluation_method")
+  evaluationDmn: String @mapFrom(path: "/decision_elements/*/evaluation_dmn")
+  threshold: JSON @mapFrom(path: "/decision_elements/*/threshold")
+  spatial: JSON @mapFrom(path: "/decision_elements/*/spatial")
+  category: String @mapFrom(path: "/decision_elements/*/category")
+}
+
+"""
+A template or framework for a NEPA process.
+Source: pic-standards :: definitions.process_model
+"""
+type ProcessModel implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/process_models/*/id")
+  description: String @mapFrom(path: "/process_models/*/description")
+  bpmnModel: JSON @mapFrom(path: "/process_models/*/bpmn_model")
+  legalStructureText: String @mapFrom(path: "/process_models/*/legal_structure_text")
+  screeningDescription: String @mapFrom(path: "/process_models/*/screening_description")
+  agency: String @mapFrom(path: "/process_models/*/agency")
+  dmnModel: JSON @mapFrom(path: "/process_models/*/DMN_model")
+  parentModel: Int @mapFrom(path: "/process_models/*/parent_model")
+  createdAt: DateTime @mapFrom(path: "/process_models/*/created_at")
+  title: String @mapFrom(path: "/process_models/*/title")
+  notes: String @mapFrom(path: "/process_models/*/notes")
+  legalStructureId: Int @mapFrom(path: "/process_models/*/legal_structure_id")
+  screeningDescJson: JSON @mapFrom(path: "/process_models/*/screening_desc_json")
+}
+
+"""
+A data package containing decision-making information.
+Source: pic-standards :: definitions.process_decision_payload
+"""
+type ProcessDecisionPayload implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/process_decision_payloads/*/id")
+  createdAt: DateTime @mapFrom(path: "/process_decision_payloads/*/created_at")
+  process: Int @mapFrom(path: "/process_decision_payloads/*/process")
+  evaluationData: JSON @mapFrom(path: "/process_decision_payloads/*/evaluation_data")
+  dataDescription: String @mapFrom(path: "/process_decision_payloads/*/data_description")
+  response: JSON @mapFrom(path: "/process_decision_payloads/*/response")
+  result: String @mapFrom(path: "/process_decision_payloads/*/result")
+  resultBool: Boolean @mapFrom(path: "/process_decision_payloads/*/result_bool")
+  resultNotes: String @mapFrom(path: "/process_decision_payloads/*/result_notes")
+  resultData: JSON @mapFrom(path: "/process_decision_payloads/*/result_data")
+  resultSource: String @mapFrom(path: "/process_decision_payloads/*/result_source")
+  dataAnnotation: JSON @mapFrom(path: "/process_decision_payloads/*/data_annotation")
+  evaluationDataAnnotation: JSON @mapFrom(path: "/process_decision_payloads/*/evaluation_data_annotation")
+  processDecisionElement: Int @mapFrom(path: "/process_decision_payloads/*/process_decision_element")
+  project: Int @mapFrom(path: "/process_decision_payloads/*/project")
+}
+
+"""
+Legal, policy, or process data guiding the NEPA process.
+Source: pic-standards :: definitions.legal_structure
+"""
+type LegalStructure implements Node @key(fields: "id") @shareable {
+  id: ID! @mapFrom(path: "/legal_structures/*/id")
+  title: String @mapFrom(path: "/legal_structures/*/title")
+  citation: String @mapFrom(path: "/legal_structures/*/citation")
+  description: String @mapFrom(path: "/legal_structures/*/description")
+  issuingAuthority: String @mapFrom(path: "/legal_structures/*/issuing_authority")
+  effectiveDate: Date @mapFrom(path: "/legal_structures/*/effective_date")
+  context: String @mapFrom(path: "/legal_structures/*/context")
+  complianceData: JSON @mapFrom(path: "/legal_structures/*/compliance_data")
+  url: String @mapFrom(path: "/legal_structures/*/url")
+  createdAt: DateTime @mapFrom(path: "/legal_structures/*/created_at")
+}
+
+"""ISO 8601 date-time string (RFC 3339)."""
+scalar DateTime
+
+"""ISO 8601 calendar date (YYYY-MM-DD)."""
+scalar Date
+
+"""Arbitrary JSON value."""
+scalar JSON
+
+interface Node @key(fields: "id") {
+  id: ID!
+}
+
+# Relay-style pagination (auto-generated by `x-graphql-pagination`).
+type ProjectConnection {
+  edges: [ProjectEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int
+}
+
+type ProjectEdge {
+  cursor: String!
+  node: Project!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Query {
+  project(id: ID!): Project
+  projects(first: Int = 25, after: String, status: String): ProjectConnection!
+  processInstance(id: ID!): ProcessInstance
+  processInstances(parentProjectId: ID, limit: Int = 50): [ProcessInstance!]!
+  document(id: ID!): Document
+  documents(limit: Int = 50): [Document!]!
+  commentsForDocument(parentDocumentId: ID!): [Comment!]!
+  engagements(parentProcessId: ID, limit: Int = 50): [Engagement!]!
+  caseEvents(type: String, limit: Int = 50): [CaseEvent!]!
+  gisData(parentProjectId: ID, limit: Int = 50): [GisData!]!
+  gisDataElements(parentGis: ID!): [GisDataElement!]!
+  userRole(id: ID!): UserRole
+  userRoles(limit: Int = 100): [UserRole!]!
+  decisionElement(id: ID!): DecisionElement
+  decisionElements(limit: Int = 100): [DecisionElement!]!
+  processModel(id: ID!): ProcessModel
+  processModels(limit: Int = 50): [ProcessModel!]!
+  processDecisionPayload(id: ID!): ProcessDecisionPayload
+  processDecisionPayloads(limit: Int = 50): [ProcessDecisionPayload!]!
+  legalStructure(id: ID!): LegalStructure
+  legalStructures(limit: Int = 50): [LegalStructure!]!
+}

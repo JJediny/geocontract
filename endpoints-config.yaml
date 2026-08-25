@@ -1,0 +1,59 @@
+# Mesh-gateway endpoints configuration for the geocontract supergraph.
+# Mirrors the pattern in json-schema-x-graphql/examples/mesh-gateway/endpoints-config.yaml.
+# Each endpoint binds a REST/JSON source to a json-schema-x-graphql annotated schema;
+# the gateway then translates incoming GraphQL queries into HTTP requests and
+# the raw JSON responses into typed, camelCase GraphQL objects.
+
+endpoints:
+  # Source 1: the federal categorical exclusions catalogue (REST).
+  - name: NepaCategoricalExclusions
+    baseUrl: https://ce.permitting.innovation.gov
+    userAgent: "geocontract-gateway-demo"
+    operations:
+      - field: exclusion
+        path: /data/exclusions.json
+        method: GET
+        # The exclusions file ships the entire catalogue in one payload;
+        # the gateway filters the array in-memory using the `id` arg.
+        # (A production deployment would instead request a per-record
+        #  endpoint or page; this stub documents the interop shape.)
+        args:
+          id: "{args.id}"
+        schema: ./templates/nepa-exclusions.template.schema.json
+
+      - field: exclusions
+        path: /data/exclusions.json
+        method: GET
+        args:
+          unit: "{args.unit}"
+          limit: "{args.limit}"
+        schema: ./templates/nepa-exclusions.template.schema.json
+
+  # Source 2: the PIC NEPA Data Standard JSON sample (file-based).
+  - name: PicNepaDataStandard
+    baseUrl: file://
+    operations:
+      - field: project
+        path: ../pic-standards/src/json/all_entities.json
+        method: GET
+        args:
+          id: "{args.id}"
+        # The PIC source ships all entities in a single object keyed by
+        # table name. The schema picks the `projects` slice via the
+        # field-mapping in maps/pic-standards.field-mapping.json.
+        schema: ./templates/pic-standards.template.schema.json
+
+      - field: projects
+        path: ../pic-standards/src/json/all_entities.json
+        method: GET
+        args:
+          status: "{args.status}"
+          limit: "{args.limit}"
+        schema: ./templates/pic-standards.template.schema.json
+
+      - field: commentsForDocument
+        path: ../pic-standards/src/json/all_entities.json
+        method: GET
+        args:
+          parentDocumentId: "{args.parentDocumentId}"
+        schema: ./templates/pic-standards.template.schema.json

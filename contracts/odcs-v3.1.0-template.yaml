@@ -1,0 +1,174 @@
+# ODCS v3.1.0 Data Contract — Empty Template (Primitive)
+#
+# This is the *primitive* ODCS v3.1.0 contract for the geocontract project.
+# Every key present is required (or strongly recommended) by the ODCS
+# v3.1.0 JSON Schema (https://bitol-io.github.io/open-data-contract-standard/).
+# Concrete instance records for each source (exclusions catalogue,
+# pic-standards) extend this template with the per-source schema,
+# quality, SLA, lineage, retention, access, lifecycle, partitioning,
+# cost, and tags primitives.
+#
+# The datacontract.com / ODCS standard uses these top-level primitives:
+#   apiVersion, kind, id, name, version, status, description, domain,
+#   tenant, tags, servers, schema, support, price, team, roles,
+#   slaProperties, authoritativeDefinitions, customProperties,
+#   contractCreatedTs.
+#
+# This template is valid against the canonical ODCS JSON Schema; see
+# `scripts/validate_odcs.py` for the validator.
+#
+# ── ODCS v3.1.0 quick reference (from the canonical JSON Schema) ──
+# * `logicalType` enum: string, date, timestamp, time, number, integer,
+#   object, array, boolean.
+# * `classification` is a free-form string (e.g. public, internal,
+#   confidential, restricted, pii).
+# * `dimension` enum for quality checks: accuracy, completeness,
+#   conformity, consistency, coverage, timeliness, uniqueness.
+# * `type` for quality checks: text, library, sql, custom.
+# * `type` for servers (enum): api, athena, azure, bigquery,
+#   clickhouse, databricks, denodo, dremio, duckdb, glue, cloudsql,
+#   db2, hive, impala, informix, kafka, kinesis, local, mysql,
+#   oracle, postgresql, postgres, presto, pubsub, redshift, s3, sftp,
+#   snowflake, sqlserver, synapse, trino, vertica, zen, custom.
+# * `server.type: api` requires `server.location` (URI); other types
+#   have their own required fields (e.g. Athena needs `stagingDir`).
+# * `team` is an object with `members[]` of TeamMember (each requires
+#   `username`); `team.username` directly is NOT valid — use `members`.
+# * `logicalTypeOptions` is a free-form object — put JSON-Schema-style
+#   constraints (`minimum`, `maximum`, `minLength`, `maxLength`,
+#   `pattern`, `format`) inside it as plain key/value pairs.
+
+apiVersion: v3.1.0
+kind: DataContract
+id: geocontract-<source-slug>
+name: "<Human-readable contract name>"
+version: 0.0.0
+status: draft
+tenant: us-federal-geocontract
+domain: "<logical-data-domain>"
+
+# High-level description (ODCS description is an object, not a string).
+description:
+  purpose: "<What this contract governs>"
+  usage: "<Who uses it and how>"
+  limitations: "<Known caveats>"
+
+# Provenance / governance
+tags:
+  - geocontract
+  - "<source-tag>"
+
+# Server endpoints where the dataset resides. ODCS supports multiple
+# servers per contract. Each server requires `server` (identifier) and
+# `type` (enum). For `type: api`, the additional required field is
+# `location` (URI); `format` and `path` are not valid top-level keys
+# (use them in a custom property if needed).
+servers:
+  - server: "<unique-server-id>"
+    type: api
+    location: "https://api.example.com/v1"
+    environment: production
+    description: "<Free-text description>"
+
+# The actual schema — list of SchemaObject elements (each == one "table"
+# or "object" in the source JSON Schema).
+schema:
+  - name: "<TableName>"
+    physicalName: "<physical_table_name>"
+    logicalType: object
+    description: "<Table-level description>"
+    dataGranularityDescription: "<One record per …>"
+    properties:
+      - name: "<column_name>"
+        primaryKey: false
+        primaryKeyPosition: 0
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 0
+          maxLength: 64
+          pattern: ".*"
+          format: email
+        physicalType: VARCHAR(64)
+        physicalName: "<source_field_name>"
+        required: true
+        unique: false
+        partitioned: false
+        partitionKeyPosition: 0
+        classification: public
+        criticalDataElement: false
+        description: "<Field description>"
+        examples:
+          - "<sample value>"
+        transformSourceObjects:
+          - "<source-object-name>"
+        transformLogic: "<SQL or pseudo-code expression>"
+        transformDescription: "<Plain English>"
+        quality:
+          - type: library
+            dimension: completeness
+            metric: nullValues
+            description: "<What is being checked>"
+            businessImpact: operational
+            severity: error
+            unit: rows
+            schedule: "0 20 * * *"
+            scheduler: cron
+            mustBe: 0
+
+# Support channels (chat, URL, email).
+support:
+  - channel: email
+    url: "mailto:<address>"
+  - channel: slack
+    url: "<slack-channel-url>"
+
+# Pricing / cost attribution. Optional but recommended for federal use cases.
+price:
+  priceCurrency: USD
+  priceAmount: 0.00
+  priceUnit: dataset
+
+# Team ownership. `team` is an object with `members[]`; each member
+# requires `username`.
+team:
+  name: "<team-name>"
+  description: "<team description>"
+  members:
+    - username: "<handle>"
+      name: "<display-name>"
+      role: owner
+      description: "<free-text>"
+      dateIn: "2026-08-24"
+
+# Role-based access control roles. ODCS `role` is required, not `name`.
+roles:
+  - role: "<IAMRoleName>"
+    description: "<What this role can do>"
+    access: read
+    firstLevelApprovers: "<approver>"
+    secondLevelApprovers: "<approver>"
+
+# Per-property SLA overrides. `property` and `value` are required.
+slaProperties:
+  - property: latency
+    value: "p95 < 100ms"
+    unit: ms
+    element: "<column-name>"
+    driver: operational
+    description: "<human description>"
+    scheduler: cron
+    schedule: "0 20 * * *"
+
+# Authoritative source definitions (e.g. glossary, schema-of-schemas).
+authoritativeDefinitions:
+  - url: "<definition-url>"
+    type: glossary
+    description: "<Description>"
+
+# Custom properties (free-form key/value for org-specific extensions).
+customProperties:
+  - property: "<key>"
+    value: "<any-odcs-type>"
+
+# Timestamp of contract creation (UTC, ISO 8601 string).
+contractCreatedTs: "2026-08-24T00:00:00Z"

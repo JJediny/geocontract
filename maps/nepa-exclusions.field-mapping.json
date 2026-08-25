@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geocontract.dev/maps/nepa-exclusions.field-mapping.json",
+  "title": "Field Mapping — NEPA Categorical Exclusions Source → Canonical Supergraph",
+  "description": "FieldMapping consumed by json-schema-x-graphql (`parse_field_mapping`) and the mesh-gateway. Maps the snake_case / short-keyed payload at https://ce.permitting.innovation.gov/data/exclusions.json to a canonical camelCase GraphQL vocabulary shared with the pic-standards subgraph. Each key is a GraphQL field name on the canonical `Exclusion` entity; `snake` records the source-side name, `locations` lists JSON pointers tried in order before falling back to direct resolution.",
+  "Exclusion": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/exclusions/*/id"] },
+    "structuredId": { "snake": "structuredID", "camel": "structuredId", "locations": ["/exclusions/*/structuredID"] },
+    "unit": { "snake": "unit", "camel": "unit", "locations": ["/exclusions/*/unit"] },
+    "longUnit": { "snake": "longUnit", "camel": "longUnit", "locations": ["/exclusions/*/longUnit"] },
+    "unitOrder": { "snake": "unitOrder", "camel": "unitOrder", "locations": ["/exclusions/*/unitOrder"] },
+    "origin": { "snake": "origin", "camel": "origin", "locations": ["/exclusions/*/origin"] },
+    "originUrl": { "snake": "originUrl", "camel": "originUrl", "locations": ["/exclusions/*/originUrl"] },
+    "context": { "snake": "context", "camel": "context", "locations": ["/exclusions/*/context"] },
+    "additionalContext": {
+      "snake": "additionalContext",
+      "camel": "additionalContext",
+      "locations": ["/exclusions/*/additionalContext"]
+    },
+    "circumstances": {
+      "snake": "circumstances",
+      "camel": "circumstances",
+      "locations": ["/exclusions/*/circumstances"]
+    },
+    "exclusion": { "snake": "exclusion", "camel": "exclusion", "locations": ["/exclusions/*/exclusion"] }
+  },
+  "ExclusionsVersion": {
+    "date": { "snake": "date", "camel": "date", "locations": ["/version/date"] },
+    "version": { "snake": "version", "camel": "version", "locations": ["/version/version"] }
+  }
+}

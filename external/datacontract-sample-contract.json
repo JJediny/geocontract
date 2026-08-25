@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Product Catalog",
+  "description": "Schema for the product catalog service",
+  "type": "object",
+  "$defs": {
+    "Product": {
+      "type": "object",
+      "description": "A product in the catalog",
+      "properties": {
+        "sku": {
+          "type": "string",
+          "description": "Stock keeping unit identifier",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Z0-9-]+$"
+        },
+        "name": { "type": "string", "description": "Display name of the product", "minLength": 1, "maxLength": 255 },
+        "description": { "type": "string", "description": "Long-form product description", "maxLength": 5000 },
+        "category": {
+          "type": "string",
+          "description": "Product category",
+          "enum": ["ELECTRONICS", "CLOTHING", "FOOD", "BOOKS", "OTHER"],
+          "default": "OTHER"
+        },
+        "price": { "type": "number", "description": "Price in USD", "minimum": 0, "exclusiveMinimum": 0 },
+        "tags": { "type": "array", "description": "Search tags", "items": { "type": "string" }, "uniqueItems": true },
+        "metadata": {
+          "type": "object",
+          "description": "Custom metadata",
+          "properties": {
+            "createdBy": { "type": "string" },
+            "priority": { "type": "integer", "minimum": 1, "maximum": 5 }
+          }
+        },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "isActive": { "type": "boolean", "description": "Whether the product is active", "default": true }
+      },
+      "required": ["sku", "name", "price"]
+    },
+    "Vendor": {
+      "type": "object",
+      "description": "A product vendor or supplier",
+      "properties": {
+        "id": { "type": "string", "description": "Vendor identifier" },
+        "name": { "type": "string", "description": "Vendor name" },
+        "productSkus": { "type": "array", "description": "SKUs supplied by this vendor", "items": { "type": "string" } }
+      },
+      "required": ["id", "name"]
+    }
+  }
+}

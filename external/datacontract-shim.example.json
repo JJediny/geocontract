@@ -1,0 +1,77 @@
+{
+  "version": "1.0",
+  "schema": { "source": "./sample-contract.json" },
+  "contract": {
+    "name": "Sample Contract",
+    "description": "A sample data contract for testing the YAML generator",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "sample"
+  },
+  "ownership": {
+    "team": "platform-engineering",
+    "contact": "platform@example.com",
+    "slack": "#platform-eng",
+    "oncall": "platform-oncall",
+    "docs_url": "https://wiki.example.com/platform"
+  },
+  "quality": [
+    {
+      "metric": "freshness",
+      "field": "#/$defs/Product/properties/updatedAt",
+      "threshold": "24h",
+      "description": "Product records updated within 24 hours"
+    },
+    {
+      "metric": "completeness",
+      "field": "#/$defs/Product/properties/name",
+      "threshold": 0.99,
+      "description": "99% of products must have a name"
+    },
+    {
+      "metric": "uniqueness",
+      "field": "#/$defs/Product/properties/sku",
+      "threshold": 1.0,
+      "description": "SKUs must be globally unique"
+    }
+  ],
+  "sla": [
+    { "name": "read-latency", "target": "p95 < 100ms", "window": "rolling-7d" },
+    { "name": "availability", "target": "99.95%", "window": "monthly" }
+  ],
+  "lineage": {
+    "upstream": [
+      { "source": "event://inventory.product.created", "type": "kafka", "topic": "inventory.events", "format": "avro" }
+    ],
+    "downstream": [
+      { "consumer": "order-service", "type": "api", "endpoint": "graphql://order/internal" },
+      { "consumer": "search-index", "type": "kafka", "topic": "search.products.cdc", "format": "json" }
+    ]
+  },
+  "retention": {
+    "policy": "standard-7y",
+    "description": "Retain 7 years per company policy",
+    "delete_after": "7y",
+    "archive_after": "2y"
+  },
+  "access": {
+    "classification": "internal",
+    "pii_fields": [],
+    "compliance": [{ "regulation": "SOC2", "justification": "Part of audited platform" }]
+  },
+  "lifecycle": {
+    "created": "2024-01-15",
+    "last_modified": "2026-06-01",
+    "changelog": [
+      { "version": "1.0.0", "date": "2024-01-15", "summary": "Initial release" },
+      { "version": "1.1.0", "date": "2025-03-10", "summary": "Added category and tags fields" }
+    ]
+  },
+  "partitioning": { "strategy": "time", "column": "createdAt", "granularity": "day", "retention_days": 730 },
+  "cost": { "center": "platform-1234", "budget_code": "PLATFORM-CORE", "estimated_annual_cost_usd": 12000 },
+  "tags": ["inventory", "product-catalog", "tier-2"],
+  "entities": {
+    "$defs/Product": { "classification": "internal", "pii": false },
+    "$defs/Product/properties/sku": { "quality": [{ "metric": "uniqueness", "threshold": 1.0 }] }
+  }
+}

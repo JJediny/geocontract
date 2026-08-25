@@ -1,0 +1,55 @@
+# mise.toml — geocontract toolchain
+# https://mise.jdx.dev/
+#
+# One-time setup:
+#   mise trust            # accept this file
+#   mise install          # install all tools pinned below
+#   uv sync               # install Python deps (uv tool)
+#
+# Then:
+#   prek install          # install pre-commit hooks
+#   mise run test         # run the full validation suite
+
+[env]
+# Disable mise's experimental Tier-2 features we don't use
+MISE_DISABLE_TOOL_VERSIONS_FILE = "1"
+
+# ── Tool versions (install via `mise install`) ───────────────────────────────
+[tools]
+# Python: managed by uv, but mise pins the runtime for scripts
+python = "3.13"
+# Node: for the json-schema-x-graphql Node converter
+node = "22"
+# Rust: for vendoring and re-building the json-schema-x-graphql Rust CLI
+rust = "1.85"
+# System tools required by hooks / validation
+"pipx:datacontract-cli" = "0.10.21"
+"npm:dprint" = "0.47.5"
+
+# ── Tasks (run with `mise run <name>`) ──────────────────────────────────────
+[tasks]
+
+# Validate every ODCS YAML and shim JSON against the canonical schema.
+# Faster than `mise run test` — useful in pre-commit.
+validate-odcs = "uv run python scripts/validate_odcs.py contracts/*.yaml contracts/shim/*.json contracts/examples/*.json"
+
+# Cross-validate the same files with the upstream datacontract CLI
+# (a second-line check; equivalent to `datacontract lint` on each YAML).
+datacontract-lint = "for f in contracts/*.yaml; do datacontract lint \"$f\"; done"
+
+# Format every checked-in JSON file with dprint.
+fmt = "dprint fmt"
+fmt-check = "dprint check"
+
+# Run the Python test suite (validator unit tests).
+test = "uv run pytest scripts/tests/ -v"
+
+# End-to-end smoke test: validate, lint, and run pytest.
+ci = ["validate-odcs", "datacontract-lint", "fmt-check", "test"]
+
+# Vendor the json-schema-x-graphql Rust CLI (jxql) into .tools/.
+# Run once after `mise install`; subsequent runs are no-ops.
+vendor-jxql = "bash scripts/vendor.sh"
+
+# Initialize pre-commit hooks. Idempotent.
+prek-install = "prek install"

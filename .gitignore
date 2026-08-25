@@ -1,0 +1,30 @@
+# ── Toolchain & vendored binaries ─────────────────────────────────────────────
+.tools/                 # mise-managed and locally-vendored binaries
+.mise/                  # internal mise state
+.harvest/               # harvester scratch output
+
+# ── Python ────────────────────────────────────────────────────────────────────
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+
+# ── Node / pnpm ───────────────────────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+
+# ── Rust ──────────────────────────────────────────────────────────────────────
+target/
+Cargo.lock
+
+# ── IDE / editor ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store

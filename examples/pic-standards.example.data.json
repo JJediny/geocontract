@@ -1,0 +1,55 @@
+{
+  "$schema": "https://geocontract.dev/examples/pic-standards.example.schema.json",
+  "projects": [
+    {
+      "id": 1,
+      "title": "Sample Bridge Replacement",
+      "description": "Notional bridge replacement project demonstrating the data standard.",
+      "lead_agency": "Department of Transportation",
+      "current_status": "underway",
+      "start_date": "2025-01-15",
+      "location_lat": 38.9072,
+      "location_lon": -77.0369,
+      "data_record_version": "1",
+      "data_source_agency": "Department of Transportation"
+    }
+  ],
+  "processe_instances": [
+    {
+      "id": 1001,
+      "type": "EA",
+      "status": "in-progress",
+      "stage": "scoping",
+      "parent_project_id": 1,
+      "start_date": "2025-01-20",
+      "lead_agency": "Department of Transportation"
+    },
+    {
+      "id": 1002,
+      "type": "Section 404 Permit",
+      "status": "pending",
+      "parent_project_id": 1,
+      "lead_agency": "U.S. Army Corps of Engineers"
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "commenter_entity": "Alice Citizen",
+      "content_text": "I support the project with mitigation.",
+      "date_submitted": "2025-04-02",
+      "parent_document_id": 50,
+      "submission_method": "Federal Register",
+      "response_text": "Thanks for your input."
+    },
+    {
+      "id": 2,
+      "commenter_entity": "Ben Stakeholder",
+      "content_text": "Concerned about local traffic impact.",
+      "date_submitted": "2025-04-05",
+      "parent_document_id": 50,
+      "submission_method": "Regulations.gov",
+      "response_text": "Comments will be considered in the EA."
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+# Auto-generated SDL preview for examples/nepa-exclusions.example.schema.json
+# (Query type is hand-authored — the operations extension is parsed by the
+# converter but not currently emitted by the Rust SDL emitter; see README.)
+# Run the converter to (re)produce the type/scalar portion:
+#   jxql --input examples/nepa-exclusions.example.schema.json \
+#        --output examples/nepa-exclusions.example.graphql \
+#        --descriptions --preserve-order \
+#        --federation-version 2 --naming-convention GRAPHQL_IDIOMATIC \
+#        --id-strategy NONE \
+#        --output-format SDL_WITH_FEDERATION_METADATA
+
+"""Single categorical exclusion record."""
+type Exclusion implements Node @key(fields: "id") @shareable {
+  """Database id (catalog-internal integer)."""
+  id: ID!
+  """Hierarchical structured identifier, e.g. `AFRH--1-1-1`."""
+  structuredId: String!
+  """Agency unit code (e.g. `AFRH`)."""
+  unit: String!
+  """Long-form agency unit name."""
+  longUnit: String!
+  unitOrder: String
+  """Human-readable origin list."""
+  origin: String!
+  originUrl: URI
+  context: String
+  additionalContext: String
+  circumstances: String
+  """Verbatim exclusion text."""
+  exclusion: String!
+}
+
+type ExclusionsVersion implements Node {
+  date: Date!
+  version: String!
+}
+
+"""Minimal worked example (2 records) derived from https://ce.permitting.innovation.gov/data/exclusions.json, demonstrating the template. Run the json-schema-x-graphql converter over this file to regenerate the matching example SDL."""
+type NepaCategoricalExclusionsFilledExample @shareable {
+  version: ExclusionsVersion!
+  exclusions: [Exclusion]!
+}
+
+"""Minimal worked example (2 records) derived from https://ce.permitting.innovation.gov/data/exclusions.json, demonstrating the template."""
+scalar Date
+
+# Implied Scalars
+scalar URI
+
+# Federation directive imports (Apollo Federation v2.9).
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.9"
+    import: ["@key", "@shareable", "@interfaceObject", "@external", "@requires", "@provides", "@override", "@authenticated", "@requiresScopes", "@policy"]
+  )
+
+# Hand-authored Query type, derived from the example schema's
+# `x-graphql-operations.queries` block. Wire these up to your resolver
+# layer (mesh-gateway subgraph, Hasura DDN, Apollo Router, etc.).
+type Query {
+  """Look up a single categorical exclusion by its database id."""
+  exclusion(id: ID!): Exclusion
+
+  """Look up a single categorical exclusion by its hierarchical structured id."""
+  exclusionByStructuredId(structuredId: String!): Exclusion
+
+  """List categorical exclusions, optionally filtered by agency unit."""
+  exclusions(unit: String, limit: Int = 100): [Exclusion!]!
+
+  """List all exclusions published under a given CFR origin URL."""
+  exclusionsByOriginUrl(originUrl: String!): [Exclusion!]!
+}
