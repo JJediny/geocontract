@@ -37,7 +37,9 @@ validate-odcs = "uv run python scripts/validate_odcs.py contracts/*.yaml contrac
 # (a second-line check; equivalent to `datacontract lint` on each YAML).
 datacontract-lint = "for f in contracts/*.yaml; do datacontract lint \"$f\"; done"
 
-# Format every checked-in JSON file with dprint.
+# Format every checked-in JSON file with dprint. dprint is installed via
+# mise's npm:dprint backend (see [tools]) so the bare `dprint` invocation
+# resolves to .local/share/mise/installs/npm-dprint/.../dprint.
 fmt = "dprint fmt"
 fmt-check = "dprint check"
 

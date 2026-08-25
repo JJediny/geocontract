@@ -1,7 +1,8 @@
 # ── Toolchain & vendored binaries ─────────────────────────────────────────────
-.tools/                 # mise-managed and locally-vendored binaries
-.mise/                  # internal mise state
-.harvest/               # harvester scratch output
+# mise-managed and locally-vendored binaries (jxql, dprint wrapper, …)
+/.tools/
+/.mise/
+/.harvest/
 
 # ── Python ────────────────────────────────────────────────────────────────────
 .venv/
