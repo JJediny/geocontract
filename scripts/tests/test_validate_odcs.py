@@ -12,11 +12,14 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from geocontract_tools.validate_odcs import (  # noqa: E402
+    load_dcat_us_schema,
+    load_master_schema,
     load_odcs_schema,
+    validate_dcat_us_json,
+    validate_embedded_schemas,
     validate_odcs_yaml,
     validate_shim_json,
 )
-
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -43,9 +46,17 @@ CONTRACT_FILES = [
     "contracts/pic-standards.datacontract.yaml",
 ]
 
+# The dcat-us-catalog contract uses `embeddedSchemas`, which only the
+# geocontract master schema (ODCS v3.1.0 + embeddedSchemas) accepts.
+# It is validated against the master schema, not bare ODCS.
+MASTER_CONTRACT_FILES = CONTRACT_FILES + [
+    "contracts/dcat-us-catalog.datacontract.yaml",
+]
+
 SHIM_FILES = [
     "contracts/shim/nepa-exclusions.datacontract-shim.json",
     "contracts/shim/pic-standards.datacontract-shim.json",
+    "contracts/shim/dcat-us-catalog.datacontract-shim.json",
 ]
 
 
@@ -62,6 +73,76 @@ def test_shim_validates(relpath: str) -> None:
     path = REPO_ROOT / relpath
     errors = validate_shim_json(path)
     assert errors == [], f"{relpath} failed validation:\n" + "\n".join(errors)
+
+
+# ── geocontract master schema (ODCS + embeddedSchemas) ─────────────────────────
+
+
+@pytest.mark.parametrize("relpath", MASTER_CONTRACT_FILES)
+def test_contract_validates_master(relpath: str) -> None:
+    """Every contract must validate against the geocontract master schema.
+    The master schema is a strict superset of bare ODCS, so the bare-ODCS
+    contracts pass too — this is the backwards-compatibility sentinel."""
+    schema = load_master_schema()
+    path = REPO_ROOT / relpath
+    errors = validate_odcs_yaml(path, schema)
+    assert errors == [], f"{relpath} failed master-schema validation:\n" + "\n".join(errors)
+    # The human-readable embedded-schema checks must also pass.
+    import yaml
+    doc = yaml.safe_load(path.read_text())
+    assert validate_embedded_schemas(doc) == []
+
+
+def test_dcat_contract_rejected_by_bare_odcs() -> None:
+    """Sentinel: bare ODCS (additionalProperties: false) must reject the
+    embeddedSchemas block — this is the reason the master schema exists."""
+    schema = load_odcs_schema()
+    path = REPO_ROOT / "contracts/dcat-us-catalog.datacontract.yaml"
+    errors = validate_odcs_yaml(path, schema)
+    assert any("embeddedSchemas" in e for e in errors), (
+        "bare ODCS should reject embeddedSchemas; master schema is required"
+    )
+
+
+def test_master_schema_has_embedded_schemas_property() -> None:
+    """The master schema must define embeddedSchemas and use
+    unevaluatedProperties (not additionalProperties) so it composes."""
+    schema = load_master_schema()
+    assert "embeddedSchemas" in schema["properties"]
+    assert schema.get("unevaluatedProperties") is False
+    assert "additionalProperties" not in schema  # swapped out by the generator
+
+
+def test_embedded_schemas_rejects_non_schema_value() -> None:
+    """validate_embedded_schemas flags a value that is a data instance,
+    not a JSON Schema (no type/$ref/properties/…)."""
+    bad = {"embeddedSchemas": {"mySchema": {"foo": "bar", "baz": 1}}}
+    assert validate_embedded_schemas(bad) != []
+
+
+def test_embedded_schemas_accepts_ref_and_inline() -> None:
+    """Both $ref and inline (type+properties) embedded schemas are accepted."""
+    good = {
+        "embeddedSchemas": {
+            "byRef": {"$ref": "external/dcat-us-catalog.json"},
+            "inline": {"type": "object", "properties": {"x": {"type": "string"}}},
+        }
+    }
+    assert validate_embedded_schemas(good) == []
+
+
+# ── DCAT-US Catalog instance validation ─────────────────────────────────────────
+
+
+def test_dcat_us_example_instance_validates() -> None:
+    """The worked DCAT-US Catalog example must validate against the pinned
+    GSA DCAT-US 3.0.0 schema (with the vendored sub-definition registry)."""
+    from geocontract_tools.validate_odcs import _dcat_us_registry
+    schema = load_dcat_us_schema()
+    registry = _dcat_us_registry()
+    path = REPO_ROOT / "examples/dcat-us-catalog.example.data.json"
+    errors = validate_dcat_us_json(path, schema, registry=registry)
+    assert errors == [], "dcat-us example failed validation:\n" + "\n".join(errors)
 
 
 # ── Negative tests (the validator must catch real mistakes) ───────────────────

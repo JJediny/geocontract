@@ -59,13 +59,14 @@ hooks = [
     pass_filenames = true,
   },
 
-  # Validate every ODCS YAML and shim JSON against the canonical schema
+  # Validate every ODCS YAML and shim JSON against the geocontract master
+  # schema (ODCS v3.1.0 + embeddedSchemas extension).
   {
     id = "validate-odcs",
-    name = "Validate ODCS v3.1.0 contracts",
+    name = "Validate geocontract master schema contracts",
     language = "system",
-    entry = "uv run geocontract-validate",
-    files = "contracts/.*\\.(yaml|json)$",
+    entry = "uv run geocontract-validate --master",
+    files = "contracts/.*\.(yaml|json)$",
     pass_filenames = true,
   },
 
