@@ -1,0 +1,27 @@
+{
+  "excludes": [
+    "**/node_modules",
+    "**/.venv",
+    "**/target",
+    "**/__pycache__",
+    "external/exclusions.json",
+    "external/odcs-json-schema-v3.1.0.json",
+    "**/dprint.json",
+    ".tools",
+    ".harvest",
+    ".pytest_cache",
+    ".ruff_cache",
+    "*.datacontract.yaml",
+    "prek.toml",
+    "mise.toml"
+  ],
+  "plugins": [
+    "https://plugins.dprint.dev/json-0.23.0.wasm"
+  ],
+  "json": {
+    "indentWidth": 2,
+    "lineWidth": 120,
+    "useTabs": false,
+    "preferSingleLine": true
+  }
+}

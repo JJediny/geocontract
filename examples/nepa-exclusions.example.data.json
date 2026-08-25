@@ -1,0 +1,32 @@
+{
+  "$schema": "https://geocontract.dev/examples/nepa-exclusions.example.schema.json",
+  "version": { "date": "2025-08-07", "version": "2.0.0" },
+  "exclusions": [
+    {
+      "id": 3,
+      "structuredID": "AFRH--1-1-1",
+      "unit": "AFRH",
+      "longUnit": "Armed Forces Retirement Home",
+      "unitOrder": "67",
+      "origin": "Armed Forces Retirement Home's Categorical Exclusions",
+      "originUrl": "https://www.ecfr.gov/current/title-38/chapter-II/part-200#Appendix-A-to-Part-200",
+      "context": "A.3   CATEXs\u2014Requires No Documentation",
+      "additionalContext": "The following CATEXs require no documentation.",
+      "circumstances": "Not Catalogued",
+      "exclusion": "(a) Granting a lease (i.e., outlease), an easement, license, permit (i.e., licenses to Federal entities), or other arrangements for Federal or non-Federal use of AFRH controlled real property, where such use will remain substantially the same in scope and intensity."
+    },
+    {
+      "id": 264,
+      "structuredID": "CPSC---1-1",
+      "unit": "CPSC",
+      "longUnit": "Consumer Product Safety Commission",
+      "unitOrder": "68",
+      "origin": "Consumer Product Safety Commission's Categorical Exclusions",
+      "originUrl": "https://www.ecfr.gov/cgi-bin/text-idx?SID=9cb1aa80ff3a3962fb6c5a0d57b04a94&node=pt16.2.1021&rgn=div5#se16.2.1021_15",
+      "context": "\u00a71021.5   Categories of CPSC actions.",
+      "additionalContext": "Not Catalogued",
+      "circumstances": "Not Catalogued",
+      "exclusion": "(1) Rules or safety standards to provide design or performance requirements for products, or revision, amendment, or revocation of such standards."
+    }
+  ]
+}

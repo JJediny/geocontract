@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geocontract.dev/examples/pic-standards.example.schema.json",
+  "title": "PIC NEPA Data Standard — Filled Example (Projects + ProcessInstances + Comments slice)",
+  "description": "Minimal worked example derived from pic-standards v1.2 (nepa.schema.json). Covers three representative entity types and a Relay-style connection. Run the json-schema-x-graphql converter over this file to regenerate the matching example SDL.",
+  "type": "object",
+  "properties": {
+    "projects": { "type": "array", "items": { "$ref": "#/$defs/Project" } },
+    "processe_instances": { "type": "array", "items": { "$ref": "#/$defs/ProcessInstance" } },
+    "comments": { "type": "array", "items": { "$ref": "#/$defs/Comment" } }
+  },
+  "$defs": {
+    "Project": {
+      "type": "object",
+      "description": "An activity or decision requiring a NEPA review process.",
+      "x-graphql-type-name": "Project",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-federation-keys": [{ "fields": "id" }],
+      "x-graphql-federation-shareable": true,
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "id": { "type": "integer", "x-graphql-field-type": "ID", "x-graphql-field-non-null": true },
+        "title": { "type": "string", "x-graphql-field-non-null": true },
+        "description": { "type": "string", "x-graphql-field-non-null": true },
+        "lead_agency": { "type": "string", "x-graphql-field-name": "leadAgency" },
+        "current_status": {
+          "type": "string",
+          "enum": ["pre-application", "underway", "paused", "completed"],
+          "x-graphql-field-name": "currentStatus"
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date",
+          "x-graphql-field-name": "startDate",
+          "x-graphql-scalar": "Date"
+        },
+        "location_lat": { "type": "number", "x-graphql-field-name": "locationLat" },
+        "location_lon": { "type": "number", "x-graphql-field-name": "locationLon" },
+        "data_record_version": { "type": "string", "x-graphql-field-name": "dataRecordVersion" },
+        "data_source_agency": { "type": "string", "x-graphql-field-name": "dataSourceAgency" }
+      },
+      "required": ["id", "title", "description"]
+    },
+    "ProcessInstance": {
+      "type": "object",
+      "description": "Specific type of environmental review, permit, or authorization.",
+      "x-graphql-type-name": "ProcessInstance",
+      "x-graphql-federation-keys": [{ "fields": "id" }],
+      "x-graphql-federation-shareable": true,
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "id": { "type": "integer", "x-graphql-field-type": "ID", "x-graphql-field-non-null": true },
+        "type": { "type": "string" },
+        "status": { "type": "string" },
+        "stage": { "type": "string" },
+        "parent_project_id": { "type": "integer", "x-graphql-field-name": "parentProjectId" },
+        "start_date": {
+          "type": "string",
+          "format": "date",
+          "x-graphql-field-name": "startDate",
+          "x-graphql-scalar": "Date"
+        },
+        "complete_date": {
+          "type": "string",
+          "format": "date",
+          "x-graphql-field-name": "completeDate",
+          "x-graphql-scalar": "Date"
+        },
+        "lead_agency": { "type": "string", "x-graphql-field-name": "leadAgency" }
+      },
+      "required": ["id"]
+    },
+    "Comment": {
+      "type": "object",
+      "description": "Feedback submitted during the NEPA process.",
+      "x-graphql-type-name": "Comment",
+      "x-graphql-federation-keys": [{ "fields": "id" }],
+      "x-graphql-federation-shareable": true,
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "id": { "type": "integer", "x-graphql-field-type": "ID", "x-graphql-field-non-null": true },
+        "commenter_entity": { "type": "string", "x-graphql-field-name": "commenterEntity" },
+        "content_text": { "type": "string", "x-graphql-field-name": "contentText" },
+        "date_submitted": {
+          "type": "string",
+          "format": "date",
+          "x-graphql-field-name": "dateSubmitted",
+          "x-graphql-scalar": "Date"
+        },
+        "parent_document_id": { "type": "integer", "x-graphql-field-name": "parentDocumentId" },
+        "submission_method": { "type": "string", "x-graphql-field-name": "submissionMethod" },
+        "response_text": { "type": "string", "x-graphql-field-name": "responseText" }
+      },
+      "required": ["id"]
+    }
+  },
+  "x-graphql-scalars": {
+    "DateTime": { "description": "ISO 8601 date-time string (RFC 3339).", "serialize": "String" },
+    "Date": { "description": "ISO 8601 calendar date (YYYY-MM-DD).", "serialize": "String" },
+    "JSON": { "description": "Arbitrary JSON value.", "serialize": "JSON" }
+  },
+  "x-graphql-operations": {
+    "queries": {
+      "project": {
+        "type": "Project",
+        "description": "Fetch a single NEPA project by database id.",
+        "args": { "id": { "type": "ID!" } }
+      },
+      "projects": {
+        "type": "ProjectConnection!",
+        "description": "Paginated NEPA projects (Relay connection).",
+        "args": { "first": { "type": "Int", "default": 25 }, "after": { "type": "String" } }
+      },
+      "commentsForDocument": {
+        "type": "[Comment!]!",
+        "description": "All comments submitted on a particular document.",
+        "args": { "parentDocumentId": { "type": "ID!" } }
+      },
+      "processInstances": {
+        "type": "[ProcessInstance!]!",
+        "description": "List process instances.",
+        "args": { "parentProjectId": { "type": "ID" } }
+      }
+    }
+  },
+  "x-graphql-pagination": {
+    "enabled": true,
+    "style": "relay",
+    "types": { "project": { "connection": "ProjectConnection", "edge": "ProjectEdge" } }
+  },
+  "x-graphql-federation-shareable": true
+}

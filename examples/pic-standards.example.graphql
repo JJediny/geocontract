@@ -1,0 +1,107 @@
+# Auto-generated SDL preview for examples/pic-standards.example.schema.json
+# (Query type and Relay pagination types are hand-authored — the
+# `x-graphql-operations` and `x-graphql-pagination` extensions are
+# parsed by the converter but the Rust SDL emitter does not yet render
+# them; see README for the Node-side renderer that does.)
+# Run the converter to (re)produce the type/scalar portion:
+#   jxql --input examples/pic-standards.example.schema.json \
+#        --output examples/pic-standards.example.graphql \
+#        --descriptions --preserve-order \
+#        --federation-version 2 --naming-convention GRAPHQL_IDIOMATIC \
+#        --id-strategy NONE \
+#        --output-format SDL_WITH_FEDERATION_METADATA
+
+"""An activity or decision requiring a NEPA review process."""
+type Project implements Node @key(fields: "id") @shareable {
+  id: ID!
+  title: String!
+  description: String!
+  leadAgency: String
+  currentStatus: String
+  startDate: Date
+  locationLat: Float
+  locationLon: Float
+  dataRecordVersion: String
+  dataSourceAgency: String
+}
+
+"""Specific type of environmental review, permit, or authorization."""
+type ProcessInstance implements Node @key(fields: "id") @shareable {
+  id: ID!
+  type: String
+  status: String
+  stage: String
+  parentProjectId: Int
+  startDate: Date
+  completeDate: Date
+  leadAgency: String
+}
+
+"""Feedback submitted during the NEPA process."""
+type Comment implements Node @key(fields: "id") @shareable {
+  id: ID!
+  commenterEntity: String
+  contentText: String
+  dateSubmitted: Date
+  parentDocumentId: Int
+  submissionMethod: String
+  responseText: String
+}
+
+"""Minimal worked example derived from pic-standards v1.2 (nepa.schema.json). Covers three representative entity types and a Relay-style connection."""
+type PicNepaDataStandardFilledExampleProjectsProcessinstancesCommentsSlice @shareable {
+  projects: [Project]
+  processeInstances: [ProcessInstance]
+  comments: [Comment]
+}
+
+# Hand-authored custom scalars (declared via x-graphql-scalars in the example schema).
+scalar DateTime
+scalar Date
+scalar JSON
+
+# Federation directive imports (Apollo Federation v2.9).
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.9"
+    import: ["@key", "@shareable", "@interfaceObject", "@external", "@requires", "@provides", "@override", "@authenticated", "@requiresScopes", "@policy"]
+  )
+
+interface Node @key(fields: "id") {
+  id: ID!
+}
+
+# Relay-style pagination types (declared via x-graphql-pagination).
+type ProjectConnection {
+  edges: [ProjectEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int
+}
+
+type ProjectEdge {
+  cursor: String!
+  node: Project!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+# Hand-authored Query type, derived from the example schema's
+# `x-graphql-operations.queries` block.
+type Query {
+  """Fetch a single NEPA project by database id."""
+  project(id: ID!): Project
+
+  """Paginated NEPA projects (Relay connection)."""
+  projects(first: Int = 25, after: String): ProjectConnection!
+
+  """All comments submitted on a particular document."""
+  commentsForDocument(parentDocumentId: ID!): [Comment!]!
+
+  """List process instances."""
+  processInstances(parentProjectId: ID): [ProcessInstance!]!
+}

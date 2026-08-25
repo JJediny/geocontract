@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geocontract.dev/examples/nepa-exclusions.example.schema.json",
+  "title": "NEPA Categorical Exclusions — Filled Example",
+  "description": "Minimal worked example (2 records) derived from https://ce.permitting.innovation.gov/data/exclusions.json, demonstrating the template. Run the json-schema-x-graphql converter over this file to regenerate the matching example SDL.",
+  "type": "object",
+  "required": ["version", "exclusions"],
+  "properties": {
+    "version": {
+      "type": "object",
+      "x-graphql-type-name": "ExclusionsVersion",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "required": ["date", "version"],
+      "properties": { "date": { "type": "string", "format": "date" }, "version": { "type": "string" } }
+    },
+    "exclusions": { "type": "array", "items": { "$ref": "#/$defs/Exclusion" } }
+  },
+  "$defs": {
+    "Exclusion": {
+      "type": "object",
+      "description": "Single categorical exclusion record.",
+      "x-graphql-type-name": "Exclusion",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-federation-keys": [{ "fields": "id" }],
+      "x-graphql-federation-shareable": true,
+      "x-graphql-implements": ["Node"],
+      "required": ["id", "structuredID", "unit", "longUnit", "origin", "exclusion"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Database id (catalog-internal integer).",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "structuredID": {
+          "type": "string",
+          "description": "Hierarchical structured identifier, e.g. `AFRH--1-1-1`.",
+          "x-graphql-field-name": "structuredId",
+          "x-graphql-field-non-null": true
+        },
+        "unit": {
+          "type": "string",
+          "description": "Agency unit code (e.g. `AFRH`).",
+          "x-graphql-field-non-null": true
+        },
+        "longUnit": {
+          "type": "string",
+          "description": "Long-form agency unit name.",
+          "x-graphql-field-non-null": true
+        },
+        "unitOrder": { "type": "string", "x-graphql-field-name": "unitOrder" },
+        "origin": { "type": "string", "description": "Human-readable origin list.", "x-graphql-field-non-null": true },
+        "originUrl": { "type": "string", "format": "uri", "x-graphql-field-name": "originUrl" },
+        "context": { "type": "string" },
+        "additionalContext": { "type": "string", "x-graphql-field-name": "additionalContext" },
+        "circumstances": { "type": "string" },
+        "exclusion": { "type": "string", "description": "Verbatim exclusion text.", "x-graphql-field-non-null": true }
+      }
+    }
+  },
+  "x-graphql-scalars": { "Date": { "description": "ISO 8601 calendar date (YYYY-MM-DD).", "serialize": "String" } },
+  "x-graphql-operations": {
+    "queries": {
+      "exclusion": {
+        "type": "Exclusion",
+        "description": "Look up a single categorical exclusion by its database id.",
+        "args": { "id": { "type": "ID!", "description": "Database id of the exclusion." } }
+      },
+      "exclusionByStructuredId": {
+        "type": "Exclusion",
+        "description": "Look up a single categorical exclusion by its hierarchical structured id.",
+        "args": { "structuredId": { "type": "String!" } }
+      },
+      "exclusions": {
+        "type": "[Exclusion!]!",
+        "description": "List categorical exclusions, optionally filtered by agency unit.",
+        "args": { "unit": { "type": "String" }, "limit": { "type": "Int", "default": 100 } }
+      },
+      "exclusionsByOriginUrl": {
+        "type": "[Exclusion!]!",
+        "description": "List all exclusions published under a given CFR origin URL.",
+        "args": { "originUrl": { "type": "String!" } }
+      }
+    }
+  },
+  "x-graphql-federation-shareable": true,
+  "examples": [
+    {
+      "version": { "date": "2025-08-07", "version": "2.0.0" },
+      "exclusions": [
+        {
+          "id": 3,
+          "structuredID": "AFRH--1-1-1",
+          "unit": "AFRH",
+          "longUnit": "Armed Forces Retirement Home",
+          "unitOrder": "67",
+          "origin": "Armed Forces Retirement Home's Categorical Exclusions",
+          "originUrl": "https://www.ecfr.gov/current/title-38/chapter-II/part-200#Appendix-A-to-Part-200",
+          "context": "A.3   CATEXs\u2014Requires No Documentation",
+          "additionalContext": "The following CATEXs require no documentation.",
+          "circumstances": "Not Catalogued",
+          "exclusion": "(a) Granting a lease (i.e., outlease), an easement, license, permit (i.e., licenses to Federal entities), or other arrangements for Federal or non-Federal use of AFRH controlled real property, where such use will remain substantially the same in scope and intensity."
+        },
+        {
+          "id": 264,
+          "structuredID": "CPSC---1-1",
+          "unit": "CPSC",
+          "longUnit": "Consumer Product Safety Commission",
+          "unitOrder": "68",
+          "origin": "Consumer Product Safety Commission's Categorical Exclusions",
+          "originUrl": "https://www.ecfr.gov/cgi-bin/text-idx?SID=9cb1aa80ff3a3962fb6c5a0d57b04a94&node=pt16.2.1021&rgn=div5#se16.2.1021_15",
+          "context": "\u00a71021.5   Categories of CPSC actions.",
+          "additionalContext": "Not Catalogued",
+          "circumstances": "Not Catalogued",
+          "exclusion": "(1) Rules or safety standards to provide design or performance requirements for products, or revision, amendment, or revocation of such standards."
+        }
+      ]
+    }
+  ]
+}

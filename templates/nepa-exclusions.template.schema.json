@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geocontract.dev/schemas/nepa-exclusions.template.schema.json",
+  "title": "NEPA Categorical Exclusions — x-graphql Interoperability Template",
+  "description": "Empty template, derived from https://ce.permitting.innovation.gov/data/exclusions.json, annotated with x-graphql-* extensions so it round-trips into a federated GraphQL subgraph. Use the json-schema-x-graphql converter (Rust `jxql` or Node `@json-schema-x-graphql/core`) on this file to emit SDL.",
+  "type": "object",
+  "required": ["version", "exclusions"],
+  "properties": {
+    "version": {
+      "type": "object",
+      "description": "Provenance envelope for the entire exclusions catalogue.",
+      "x-graphql-type-name": "ExclusionsVersion",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "required": ["date", "version"],
+      "properties": {
+        "date": { "type": "string", "format": "date", "description": "Catalogue release date (YYYY-MM-DD)." },
+        "version": { "type": "string", "description": "Semantic version of the catalogue payload (e.g. 2.0.0)." }
+      }
+    },
+    "exclusions": {
+      "type": "array",
+      "description": "Catalogue of categorical exclusions (CATEXs) published by federal agencies.",
+      "items": { "$ref": "#/$defs/Exclusion" }
+    }
+  },
+  "$defs": {
+    "Exclusion": {
+      "type": "object",
+      "description": "Single categorical exclusion record.",
+      "x-graphql-type-name": "Exclusion",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-federation-keys": [{ "fields": "id" }],
+      "x-graphql-federation-shareable": true,
+      "x-graphql-implements": ["Node"],
+      "required": ["id", "structuredID", "unit", "longUnit", "unitOrder", "origin", "exclusion"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Database id (catalog-internal integer).",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "structuredID": {
+          "type": "string",
+          "description": "Hierarchical structured identifier, e.g. `AFRH--1-1-1`.",
+          "x-graphql-field-name": "structuredId",
+          "x-graphql-field-non-null": true
+        },
+        "unit": {
+          "type": "string",
+          "description": "Agency unit code (e.g. `AFRH`, `CPSC`, `DHS`).",
+          "x-graphql-field-non-null": true
+        },
+        "longUnit": {
+          "type": "string",
+          "description": "Long-form agency unit name (e.g. `Armed Forces Retirement Home`).",
+          "x-graphql-field-name": "longUnit",
+          "x-graphql-field-non-null": true
+        },
+        "unitOrder": {
+          "type": "string",
+          "description": "Display/sort order for the unit.",
+          "x-graphql-field-name": "unitOrder"
+        },
+        "origin": {
+          "type": "string",
+          "description": "Human-readable origin list (e.g. `Bureau of Indian Affairs's Categorical Exclusions`).",
+          "x-graphql-field-non-null": true
+        },
+        "originUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Canonical URL to the published CFR / eCFR source list.",
+          "x-graphql-field-name": "originUrl",
+          "x-graphql-field-type": "String"
+        },
+        "context": {
+          "type": "string",
+          "description": "Section heading under which the exclusion is catalogued (e.g. `A.3   CATEXs—Requires No Documentation`)."
+        },
+        "additionalContext": {
+          "type": "string",
+          "description": "Free-text body of the section heading describing the class of exclusions.",
+          "x-graphql-field-name": "additionalContext"
+        },
+        "circumstances": {
+          "type": "string",
+          "description": "Extraordinary-circumstances clause that must be considered before applying the exclusion. Often `Not Catalogued`."
+        },
+        "exclusion": {
+          "type": "string",
+          "description": "Verbatim exclusion text, including the leading letter/number clause (e.g. `(a) Granting a lease...`).",
+          "x-graphql-field-non-null": true
+        }
+      }
+    }
+  },
+  "x-graphql-scalars": { "Date": { "description": "ISO 8601 calendar date (YYYY-MM-DD).", "serialize": "String" } },
+  "x-graphql-operations": {
+    "queries": {
+      "exclusion": {
+        "type": "Exclusion",
+        "description": "Look up a single categorical exclusion by its database id.",
+        "args": { "id": { "type": "ID!", "description": "Database id of the exclusion." } }
+      },
+      "exclusionByStructuredId": {
+        "type": "Exclusion",
+        "description": "Look up a single categorical exclusion by its hierarchical structured id.",
+        "args": { "structuredId": { "type": "String!", "description": "Structured identifier (e.g. `AFRH--1-1-1`)." } }
+      },
+      "exclusions": {
+        "type": "[Exclusion!]!",
+        "description": "List categorical exclusions, optionally filtered by agency unit.",
+        "args": {
+          "unit": { "type": "String", "description": "Filter by agency unit code (e.g. `AFRH`)." },
+          "limit": { "type": "Int", "default": 100, "description": "Maximum number of records to return." }
+        }
+      },
+      "exclusionsByOriginUrl": {
+        "type": "[Exclusion!]!",
+        "description": "List all exclusions published under a given CFR origin URL.",
+        "args": { "originUrl": { "type": "String!", "description": "eCFR / CFR URL." } }
+      }
+    }
+  },
+  "x-graphql-federation-shareable": true
+}

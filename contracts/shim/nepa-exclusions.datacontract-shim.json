@@ -1,0 +1,107 @@
+{
+  "version": "1.0",
+  "schema": { "source": "../../templates/nepa-exclusions.template.schema.json" },
+  "contract": {
+    "name": "NEPA Categorical Exclusions (CATEX) Catalogue",
+    "description": "Federal CATEX catalogue published by the Permitting Innovation Center. 2,105 records, 78 agency units.",
+    "version": "2.0.0",
+    "status": "active",
+    "domain": "environmental-review"
+  },
+  "ownership": {
+    "team": "Permitting Innovation Center",
+    "contact": "permits@innovation.gov",
+    "slack": "#permits-pic",
+    "oncall": "permits-oncall",
+    "docs_url": "https://permitting.innovation.gov/resources/data-standard/"
+  },
+  "quality": [
+    {
+      "metric": "uniqueness",
+      "field": "#/$defs/Exclusion/properties/id",
+      "threshold": 1.0,
+      "description": "ids must be globally unique across the catalogue."
+    },
+    {
+      "metric": "completeness",
+      "field": "#/$defs/Exclusion/properties/structuredID",
+      "threshold": 0.99,
+      "description": "99% of exclusions must have a structuredID (matches v2.0.0 reality: 100%)."
+    },
+    {
+      "metric": "freshness",
+      "field": "#/$defs/ExclusionsVersion/properties/date",
+      "threshold": "30d",
+      "description": "Catalogue release envelope must be published at least every 30 days."
+    },
+    {
+      "metric": "completeness",
+      "field": "#/$defs/Exclusion/properties/origin",
+      "threshold": 1.0,
+      "description": "Every Exclusion must declare an origin."
+    },
+    {
+      "metric": "conformity",
+      "field": "#/$defs/Exclusion/properties/structuredID",
+      "threshold": "^[A-Z0-9-]+(--[A-Z0-9-]+)*$",
+      "description": "structuredID must follow the agency-unit hierarchical pattern."
+    }
+  ],
+  "sla": [
+    { "name": "endpoint-availability", "target": "99.9%", "window": "monthly" },
+    { "name": "endpoint-read-latency", "target": "p95 < 500ms", "window": "rolling-7d" },
+    { "name": "catalogue-freshness", "target": "<= 30 days since version.date", "window": "rolling-30d" }
+  ],
+  "lineage": {
+    "upstream": [
+      {
+        "source": "event://cfr.title-38.chapter-II.part-200",
+        "type": "kafka",
+        "topic": "cfr.amendments",
+        "format": "json"
+      },
+      { "source": "https://www.ecfr.gov/", "type": "api", "endpoint": "graphql://eCFR/v1" }
+    ],
+    "downstream": [
+      { "consumer": "permitting-portal-search", "type": "api", "endpoint": "graphql://permitting-portal/v1" },
+      { "consumer": "nepa-project-router", "type": "graphql", "endpoint": "graphql://router/v1" }
+    ]
+  },
+  "retention": {
+    "policy": "permanent-federal-record",
+    "description": "Federal CATEX catalogue is a permanent federal record; never deleted.",
+    "delete_after": "never",
+    "archive_after": "never",
+    "partition_strategy": "version"
+  },
+  "access": {
+    "classification": "public",
+    "pii_fields": [],
+    "compliance": [
+      { "regulation": "FOIA", "justification": "Public federal record." },
+      { "regulation": "5 U.S.C. § 552", "justification": "Public-access statute." }
+    ]
+  },
+  "lifecycle": {
+    "created": "2024-01-15",
+    "last_modified": "2025-08-07",
+    "sunset_date": null,
+    "changelog": [
+      { "version": "1.0.0", "date": "2024-01-15", "summary": "Initial release of the federal CATEX catalogue." },
+      {
+        "version": "2.0.0",
+        "date": "2025-08-07",
+        "summary": "Added agency-unit taxonomy; 2,105 records spanning 78 units."
+      }
+    ]
+  },
+  "partitioning": { "strategy": "value", "column": "unit", "granularity": "agency-unit", "retention_days": null },
+  "cost": { "center": "permits-pic", "budget_code": "PIC-DATA-CORE", "estimated_annual_cost_usd": 0 },
+  "tags": ["geocontract", "nepa", "catex", "exclusions", "federal-register", "tier-2", "permits-pic"],
+  "entities": {
+    "$defs/Exclusion": { "classification": "public", "pii": false },
+    "$defs/Exclusion/properties/id": { "quality": [{ "metric": "uniqueness", "threshold": 1.0 }] },
+    "$defs/Exclusion/properties/structuredID": { "quality": [{ "metric": "uniqueness", "threshold": 1.0 }] },
+    "$defs/ExclusionsVersion": { "classification": "public" }
+  }
+}

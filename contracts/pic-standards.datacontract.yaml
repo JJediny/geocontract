@@ -1,0 +1,1552 @@
+# ODCS v3.1.0 Data Contract — PIC NEPA Data Standard (v1.2)
+#
+# Source: ../pic-standards/src/jsonschema/nepa.schema.json (v1.2)
+# Mirrors: geocontract/templates/pic-standards.template.schema.json
+#          (json-schema-x-graphql annotated JSON Schema)
+# Companion: contracts/shim/pic-standards.datacontract-shim.json
+#
+# This contract extends the primitive template at
+# contracts/odcs-v3.1.0-template.yaml with concrete values for the
+# Permitting Innovation Center NEPA Data Standard v1.2. Every
+# SchemaObject below corresponds to one of the 13 entity types in
+# the source JSON Schema's `definitions` block:
+#   project, process_instance, document, comment, engagement,
+#   case_event, gis_data, gis_data_element, user_role,
+#   decision_element, process_model, process_decision_payload,
+#   legal_structure.
+#
+# Validated against the canonical ODCS v3.1.0 JSON Schema via
+# scripts/validate_odcs.py.
+
+apiVersion: v3.1.0
+kind: DataContract
+id: geocontract-pic-nepa-data-standard
+name: "PIC NEPA Data Standard v1.2"
+version: 1.2.0
+status: active
+tenant: us-federal-permitting-innovation-center
+domain: environmental-review
+
+description:
+  purpose: |
+    The Permitting Innovation Center (PIC) NEPA Data & Technology
+    Standard v1.2 — a structured schema for environmental-review
+    data collected during reviews conducted under the National
+    Environmental Policy Act (NEPA), 42 U.S.C. §§ 4321 et seq.
+    Defines 13 entity types (project, process_instance, document,
+    comment, engagement, case_event, gis_data, gis_data_element,
+    user_role, decision_element, process_model,
+    process_decision_payload, legal_structure) and a uniform set of
+    six provenance properties added in v1.2.
+  usage: |
+    Producers (federal / state / tribal agencies) and consumers
+    (the public, oversight bodies, downstream applications) agree on
+    the entity shape so that NEPA review records can be exchanged
+    in a machine-readable, lossless form.
+  limitations: |
+    v1.2 deliberately does not prescribe a wire format — sample
+    payloads are published as JSON, YAML, OpenAPI, and SQL DDL.
+    Top-level container keys use the misspelled pluralisation
+    `processe_instances` to match the upstream source — preserved
+    for lossless round-tripping.
+
+tags:
+  - geocontract
+  - nepa
+  - data-standard
+  - permitting-innovation-center
+  - v1.2
+
+servers:
+  - server: pic-standards-json-samples
+    type: local
+    environment: production
+    description: |
+      Reference JSON sample payloads published at
+      `../pic-standards/src/json/all_entities.json` (file-based).
+    path: "../pic-standards/src/json/all_entities.json"
+    format: json
+  - server: pic-standards-postgres
+    type: postgres
+    environment: production
+    description: |
+      Reference SQL schema published at
+      `../pic-standards/src/database/schema-v1.2.0.sql` (PostgreSQL).
+    host: "localhost"
+    port: 5432
+    database: pic_nepa
+    schema: public
+
+schema:
+  # ── project ──────────────────────────────────────────────────────
+  - name: Project
+    physicalName: project
+    logicalType: object
+    description: |
+      An activity or decision requiring a NEPA review process. A
+      project generally has a relationship with a GIS object
+      defining its location, which establishes the physical
+      footprint of the action.
+    dataGranularityDescription: "One record per NEPA project."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions:
+          format: i64
+          minimum: 1
+        physicalType: BIGINT
+        physicalName: id
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+        quality:
+          - type: library
+            dimension: uniqueness
+            metric: duplicateValues
+            mustBe: 0
+            severity: error
+      - name: title
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 512
+        physicalType: VARCHAR(512)
+        physicalName: title
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "Project title."
+      - name: description
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 65535
+        physicalType: TEXT
+        physicalName: description
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "Long-form description of the project."
+      - name: leadAgency
+        logicalType: string
+        physicalType: VARCHAR(255)
+        physicalName: lead_agency
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Federal agency that supervises preparation of the environmental documents for the project."
+        transformSourceObjects:
+          - project
+        transformLogic: "lead_agency -> leadAgency (camelCase)"
+        transformDescription: "snake_case → camelCase field rename at the GraphQL boundary."
+      - name: participatingAgencies
+        logicalType: array
+        logicalTypeOptions:
+          minItems: 0
+          uniqueItems: true
+        physicalType: TEXT[]
+        physicalName: participating_agencies
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Other involved agencies."
+        transformSourceObjects:
+          - project
+        transformLogic: "participating_agencies -> participatingAgencies"
+      - name: startDate
+        logicalType: date
+        logicalTypeOptions:
+          format: "yyyy-MM-dd"
+        physicalType: DATE
+        physicalName: start_date
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Environmental review initiation date (aggregated from process status)."
+        transformLogic: "start_date -> startDate"
+      - name: currentStatus
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 32
+        physicalType: VARCHAR(32)
+        physicalName: current_status
+        required: false
+        classification: public
+        criticalDataElement: true
+        description: |
+          Current phase of the NEPA / permitting / other authorization
+          process (aggregated from process status). Enum-like:
+          pre-application, underway, paused, completed.
+        examples:
+          - "pre-application"
+          - "underway"
+          - "paused"
+          - "completed"
+        quality:
+          - type: library
+            dimension: conformity
+            metric: invalidValues
+            description: "currentStatus must be one of the four enum values."
+            severity: warning
+            mustBe: 0
+      - name: locationLat
+        logicalType: number
+        logicalTypeOptions:
+          format: f64
+          minimum: -90
+          maximum: 90
+        physicalType: DOUBLE PRECISION
+        physicalName: location_lat
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: |
+          Center/centroid of project (shortcut for plotting on a map;
+          should attach a GIS data object as well).
+        transformLogic: "location_lat -> locationLat"
+      - name: locationLon
+        logicalType: number
+        logicalTypeOptions:
+          format: f64
+          minimum: -180
+          maximum: 180
+        physicalType: DOUBLE PRECISION
+        physicalName: location_lon
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Center/centroid of project longitude."
+      # Six provenance properties added in v1.2
+      - name: dataRecordVersion
+        logicalType: string
+        physicalType: VARCHAR(64)
+        physicalName: data_record_version
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Version of this data record (v1.2+)."
+      - name: dataSourceAgency
+        logicalType: string
+        physicalType: VARCHAR(255)
+        physicalName: data_source_agency
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Agency from which this data record was sent/retrieved/stored (may differ from record owner)."
+      - name: dataSourceSystem
+        logicalType: string
+        physicalType: VARCHAR(255)
+        physicalName: data_source_system
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "System from which this data record was sent/retrieved/stored."
+      - name: lastUpdated
+        logicalType: timestamp
+        logicalTypeOptions:
+          format: "yyyy-MM-dd'T'HH:mm:ss[.SSS]XXX"
+          timezone: true
+          defaultTimezone: "Etc/UTC"
+        physicalType: TIMESTAMP WITH TIME ZONE
+        physicalName: last_updated
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Last update of the data record in the system."
+      - name: recordOwnerAgency
+        logicalType: string
+        physicalType: VARCHAR(255)
+        physicalName: record_owner_agency
+        required: false
+        classification: internal
+        criticalDataElement: true
+        description: "Owner of the original data — the authoritative data source."
+      - name: retrievedTimestamp
+        logicalType: timestamp
+        logicalTypeOptions:
+          format: "yyyy-MM-dd'T'HH:mm:ss[.SSS]XXX"
+          timezone: true
+          defaultTimezone: "Etc/UTC"
+        physicalType: TIMESTAMP WITH TIME ZONE
+        physicalName: retrieved_timestamp
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Timestamp of a retrieval or transmission (e.g. responding to an API call)."
+
+  # ── process_instance ─────────────────────────────────────────────
+  - name: ProcessInstance
+    physicalName: process_instance
+    logicalType: object
+    description: |
+      Specific type of environmental review, permit, or authorization.
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions: { format: i64, minimum: 1 }
+        physicalType: BIGINT
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+      - name: createdAt
+        logicalType: timestamp
+        logicalTypeOptions:
+          format: "yyyy-MM-dd'T'HH:mm:ss[.SSS]XXX"
+          timezone: true
+          defaultTimezone: "Etc/UTC"
+        physicalType: TIMESTAMP WITH TIME ZONE
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Created timestamp (v1.2+)."
+      - name: parentProcessId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Reference to parent Process id (sub-processes)."
+      - name: parentProjectId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: true
+        description: "Reference to parent Project id (FK to project.id)."
+      - name: agencyId
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Owning agency identifier."
+      - name: federalId
+        logicalType: string
+        physicalType: VARCHAR(128)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Federal identifier (e.g. NEPA tracker id)."
+      - name: type
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: true
+        description: |
+          Process type — e.g. `EA` (Environmental Assessment),
+          `EIS` (Environmental Impact Statement), `Section 404 Permit`.
+        examples:
+          - "EA"
+          - "EIS"
+          - "Section 404 Permit"
+      - name: status
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: true
+        description: "Process status — e.g. `pending`, `in-progress`, `completed`."
+      - name: stage
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Process stage (e.g. `scoping`, `draft`, `final`)."
+      - name: startDate
+        logicalType: date
+        logicalTypeOptions: { format: "yyyy-MM-dd" }
+        physicalType: DATE
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Process initiation date."
+      - name: completeDate
+        logicalType: date
+        logicalTypeOptions: { format: "yyyy-MM-dd" }
+        physicalType: DATE
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Process completion date."
+      - name: outcome
+        logicalType: string
+        physicalType: VARCHAR(2048)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Result / outcome of the process (e.g. `FONSI`, `ROD`)."
+      - name: leadAgency
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: true
+        description: "Lead federal agency for this process."
+      - name: jointLeadAgency
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Joint lead agency when multiple agencies share lead responsibility."
+      - name: cooperatingAgencies
+        logicalType: array
+        logicalTypeOptions:
+          minItems: 0
+          uniqueItems: true
+        physicalType: TEXT[]
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Cooperating agencies."
+
+  # ── document ────────────────────────────────────────────────────
+  - name: Document
+    physicalName: document
+    logicalType: object
+    description: "Official record created during the NEPA review."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions: { format: i64, minimum: 1 }
+        physicalType: BIGINT
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+      - name: documentType
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: true
+        description: "Type of document (e.g. `NOI`, `DEIS`, `FEIS`, `ROD`)."
+      - name: title
+        logicalType: string
+        physicalType: VARCHAR(512)
+        required: false
+        classification: public
+        criticalDataElement: true
+        description: "Document title."
+      - name: volumeTitle
+        logicalType: string
+        physicalType: VARCHAR(512)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Volume title (when part of a multi-volume set)."
+      - name: publishDate
+        logicalType: date
+        logicalTypeOptions: { format: "yyyy-MM-dd" }
+        physicalType: DATE
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Document publication date."
+      - name: preparedBy
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Author / preparing entity."
+      - name: status
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Document status."
+      - name: url
+        logicalType: string
+        logicalTypeOptions:
+          format: uri
+          minLength: 8
+          maxLength: 2048
+        physicalType: VARCHAR(2048)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Canonical URL where the document is hosted."
+      - name: notes
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Free-text internal notes."
+      - name: relatedDocumentId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Optional reference to a related document."
+      - name: documentSummary
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Document summary (JSON, v1.2 changed from text)."
+      - name: documentToc
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Document table of contents (JSON, v1.2 changed from text)."
+      - name: publicAccess
+        logicalType: boolean
+        physicalType: BOOLEAN
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Whether the document may be displayed publicly."
+
+  # ── comment ──────────────────────────────────────────────────────
+  - name: Comment
+    physicalName: comment
+    logicalType: object
+    description: "Feedback submitted during the NEPA process."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions: { format: i64, minimum: 1 }
+        physicalType: BIGINT
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+      - name: commenterEntity
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Individual or organization submitting the comment."
+      - name: contentText
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Comment content (plain text)."
+      - name: dateSubmitted
+        logicalType: date
+        logicalTypeOptions: { format: "yyyy-MM-dd" }
+        physicalType: DATE
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Comment submission date."
+      - name: parentDocumentId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: true
+        description: "FK to document.id."
+      - name: submissionMethod
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Submission channel (e.g. `Federal Register`, `Regulations.gov`)."
+      - name: responseText
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Agency response text (plain)."
+      - name: publicSource
+        logicalType: boolean
+        physicalType: BOOLEAN
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Whether the comment source is public."
+      - name: publicAccess
+        logicalType: boolean
+        physicalType: BOOLEAN
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Whether the comment may be displayed publicly."
+
+  # ── engagement ──────────────────────────────────────────────────
+  - name: Engagement
+    physicalName: engagement
+    logicalType: object
+    description: "Opportunities for interaction in the NEPA process (formal consultations, public meetings, etc.)."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions: { format: i64, minimum: 1 }
+        physicalType: BIGINT
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+      - name: type
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Engagement type."
+      - name: startDatetime
+        logicalType: timestamp
+        logicalTypeOptions: { format: "yyyy-MM-dd'T'HH:mm:ssXXX", timezone: true, defaultTimezone: "Etc/UTC" }
+        physicalType: TIMESTAMP WITH TIME ZONE
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Engagement start timestamp."
+      - name: endDatetime
+        logicalType: timestamp
+        logicalTypeOptions: { format: "yyyy-MM-dd'T'HH:mm:ssXXX", timezone: true, defaultTimezone: "Etc/UTC" }
+        physicalType: TIMESTAMP WITH TIME ZONE
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Engagement end timestamp."
+      - name: location
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Engagement location (free text or address)."
+      - name: parentProcessId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to process_instance.id."
+      - name: attendance
+        logicalType: integer
+        logicalTypeOptions: { format: i32, minimum: 0 }
+        physicalType: INTEGER
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Number of attendees."
+      - name: relatedDocumentId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to document.id."
+      - name: participation
+        logicalType: integer
+        logicalTypeOptions: { format: i32, minimum: 0 }
+        physicalType: INTEGER
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Number of participants."
+
+  # ── case_event ───────────────────────────────────────────────────
+  - name: CaseEvent
+    physicalName: case_event
+    logicalType: object
+    description: "Milestones or steps within the NEPA review, tracked in a case-management system."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions: { format: i64, minimum: 1 }
+        physicalType: BIGINT
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+      - name: source
+        logicalType: string
+        physicalType: VARCHAR(2048)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Link to information about the event."
+      - name: type
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: true
+        description: "Event class (e.g. `NOI`, `ROD`)."
+      - name: tier
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Optional event hierarchy tier (e.g. `Tier 1 NOI`, `Tier 2 Scoping Complete`)."
+      - name: status
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Event status — `pending`, `in progress`, `completed`."
+      - name: outcome
+        logicalType: string
+        physicalType: VARCHAR(2048)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Result or action taken."
+      - name: relatedDocumentId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to document.id."
+      - name: publicAccess
+        logicalType: boolean
+        physicalType: BOOLEAN
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Whether the event may be displayed publicly."
+      - name: description
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Description of the event."
+      - name: assignedEntity
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Responsible individuals or agencies."
+      - name: followingSegmentName
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Name of segment following this event (e.g. if this is `start of scoping`, the next segment is `scoping`)."
+      - name: parentEventId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "If applicable, the parent event id."
+      - name: relatedEngagementId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Related engagement id, if applicable."
+
+  # ── gis_data ────────────────────────────────────────────────────
+  - name: GisData
+    physicalName: gis_data
+    logicalType: object
+    description: "Geospatial data and metadata associated with NEPA projects."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions: { format: i64, minimum: 1 }
+        physicalType: BIGINT
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+      - name: creator
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "GIS creator."
+      - name: description
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Description of the GIS data container."
+      - name: extent
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Spatial extent (e.g. GeoJSON bounding box)."
+      - name: notes
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Internal notes."
+      - name: containerInventory
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Inventory of containers within the GIS data."
+      - name: parentProjectId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to project.id."
+      - name: parentProcessId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to process_instance.id."
+      - name: parentDocumentId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to document.id."
+      - name: parentCaseEventId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to case_event.id."
+      - name: parentCommentId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to comment.id."
+      - name: parentEngagementId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to engagement.id."
+      - name: createdAt
+        logicalType: timestamp
+        logicalTypeOptions: { format: "yyyy-MM-dd'T'HH:mm:ssXXX", timezone: true, defaultTimezone: "Etc/UTC" }
+        physicalType: TIMESTAMP WITH TIME ZONE
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Created timestamp."
+      - name: centroidLat
+        logicalType: number
+        logicalTypeOptions: { format: f64, minimum: -90, maximum: 90 }
+        physicalType: DOUBLE PRECISION
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Centroid latitude."
+      - name: centroidLon
+        logicalType: number
+        logicalTypeOptions: { format: f64, minimum: -180, maximum: 180 }
+        physicalType: DOUBLE PRECISION
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Centroid longitude."
+
+  # ── gis_data_element ────────────────────────────────────────────
+  - name: GisDataElement
+    physicalName: gis_data_element
+    logicalType: object
+    description: "Individual elements within GIS data containers with specific access and format information."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions: { format: i64, minimum: 1 }
+        physicalType: BIGINT
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+      - name: containerReference
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Reference to the parent GIS data container."
+      - name: accessMethod
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "How the element is accessed (e.g. `WMS`, `WFS`, `download`)."
+      - name: coordinateSystem
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Coordinate reference system (e.g. `EPSG:4326`)."
+      - name: topLeftLat
+        logicalType: number
+        logicalTypeOptions: { format: f64, minimum: -90, maximum: 90 }
+        physicalType: DOUBLE PRECISION
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Top-left latitude of bounding box."
+      - name: topLeftLon
+        logicalType: number
+        logicalTypeOptions: { format: f64, minimum: -180, maximum: 180 }
+        physicalType: DOUBLE PRECISION
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Top-left longitude of bounding box."
+      - name: botRightLat
+        logicalType: number
+        logicalTypeOptions: { format: f64, minimum: -90, maximum: 90 }
+        physicalType: DOUBLE PRECISION
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Bottom-right latitude of bounding box."
+      - name: botRightLon
+        logicalType: number
+        logicalTypeOptions: { format: f64, minimum: -180, maximum: 180 }
+        physicalType: DOUBLE PRECISION
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Bottom-right longitude of bounding box."
+      - name: purpose
+        logicalType: string
+        physicalType: VARCHAR(512)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Purpose of the GIS data element."
+      - name: dataMatch
+        logicalType: boolean
+        physicalType: BOOLEAN
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Whether the data matches expected values."
+      - name: accessInfo
+        logicalType: string
+        physicalType: VARCHAR(2048)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Additional access information."
+      - name: createdAt
+        logicalType: timestamp
+        logicalTypeOptions: { format: "yyyy-MM-dd'T'HH:mm:ssXXX", timezone: true, defaultTimezone: "Etc/UTC" }
+        physicalType: TIMESTAMP WITH TIME ZONE
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Created timestamp."
+      - name: parentGis
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: true
+        description: "FK to gis_data.id."
+      - name: format
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Format (e.g. `GeoJSON`, `Shapefile`, `KML`)."
+
+  # ── user_role ───────────────────────────────────────────────────
+  - name: UserRole
+    physicalName: user_role
+    logicalType: object
+    description: "Defines stakeholders interacting with the NEPA IT system."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions: { format: i64, minimum: 1 }
+        physicalType: BIGINT
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+      - name: name
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: true
+        description: "Role name."
+      - name: description
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Role description."
+      - name: public
+        logicalType: boolean
+        physicalType: BOOLEAN
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Whether the role is publicly visible."
+      - name: accessPolicy
+        logicalType: string
+        physicalType: VARCHAR(2048)
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Access policy expression."
+      - name: permissionDescriptions
+        logicalType: array
+        logicalTypeOptions:
+          minItems: 0
+          uniqueItems: false
+        physicalType: TEXT[]
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "List of human-readable permission descriptions."
+
+  # ── decision_element ────────────────────────────────────────────
+  - name: DecisionElement
+    physicalName: decision_element
+    logicalType: object
+    description: "Individual criteria or conditions used in NEPA decision-making processes."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions: { format: i64, minimum: 1 }
+        physicalType: BIGINT
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+      - name: measure
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: true
+        description: "Name of the measure."
+      - name: intersect
+        logicalType: boolean
+        physicalType: BOOLEAN
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Whether this measure intersects with a spatial reference."
+      - name: spatialReference
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Spatial reference name (e.g. `critical habitat`)."
+      - name: formText
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Form text for the decision element."
+      - name: formResponseDesc
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Form response description."
+      - name: formData
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Form data (JSON)."
+      - name: evaluationMethod
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Evaluation method (e.g. `manual`, `automated`, `spatial`)."
+      - name: evaluationDmn
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "DMN (Decision Model and Notation) expression."
+      - name: threshold
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Threshold expression (JSON)."
+      - name: spatial
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Spatial expression (JSON)."
+      - name: category
+        logicalType: string
+        physicalType: VARCHAR(64)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Decision-element category."
+
+  # ── process_model ───────────────────────────────────────────────
+  - name: ProcessModel
+    physicalName: process_model
+    logicalType: object
+    description: "Template or framework for NEPA processes."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions: { format: i64, minimum: 1 }
+        physicalType: BIGINT
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+      - name: description
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Process-model description."
+      - name: bpmnModel
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "BPMN model (JSON)."
+      - name: legalStructureText
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Legal-structure text."
+      - name: screeningDescription
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Screening description."
+      - name: agency
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Owning agency."
+      - name: dmnModel
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "DMN model (JSON)."
+      - name: parentModel
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to parent process_model.id."
+      - name: createdAt
+        logicalType: timestamp
+        logicalTypeOptions: { format: "yyyy-MM-dd'T'HH:mm:ssXXX", timezone: true, defaultTimezone: "Etc/UTC" }
+        physicalType: TIMESTAMP WITH TIME ZONE
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Created timestamp."
+      - name: title
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: true
+        description: "Process-model title."
+      - name: notes
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Internal notes."
+      - name: legalStructureId
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to legal_structure.id."
+      - name: screeningDescJson
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Screening description (JSON)."
+
+  # ── process_decision_payload ────────────────────────────────────
+  - name: ProcessDecisionPayload
+    physicalName: process_decision_payload
+    logicalType: object
+    description: "Data package containing decision-making information."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions: { format: i64, minimum: 1 }
+        physicalType: BIGINT
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+      - name: createdAt
+        logicalType: timestamp
+        logicalTypeOptions: { format: "yyyy-MM-dd'T'HH:mm:ssXXX", timezone: true, defaultTimezone: "Etc/UTC" }
+        physicalType: TIMESTAMP WITH TIME ZONE
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "Created timestamp."
+      - name: process
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: true
+        description: "FK to process_instance.id."
+      - name: evaluationData
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Evaluation data (JSON, v1.2)."
+      - name: dataDescription
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Description of the evaluation data."
+      - name: response
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Response payload (JSON)."
+      - name: result
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Result string."
+      - name: resultBool
+        logicalType: boolean
+        physicalType: BOOLEAN
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Result as boolean."
+      - name: resultNotes
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Notes about the result."
+      - name: resultData
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Result data (JSON, v1.2 changed from text)."
+      - name: resultSource
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Source of the result."
+      - name: dataAnnotation
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Data annotation (JSON)."
+      - name: evaluationDataAnnotation
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Evaluation-data annotation (JSON)."
+      - name: processDecisionElement
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to decision_element.id."
+      - name: project
+        logicalType: integer
+        logicalTypeOptions: { format: i64 }
+        physicalType: BIGINT
+        required: false
+        classification: internal
+        criticalDataElement: false
+        description: "FK to project.id."
+
+  # ── legal_structure ─────────────────────────────────────────────
+  - name: LegalStructure
+    physicalName: legal_structure
+    logicalType: object
+    description: "Legal, policy, or process data guiding the NEPA process, including thresholds and citations."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions: { format: i64, minimum: 1 }
+        physicalType: BIGINT
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Database id."
+      - name: title
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: true
+        description: "Legal-structure title."
+      - name: citation
+        logicalType: string
+        physicalType: VARCHAR(512)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Citation (e.g. `42 U.S.C. § 4332`)."
+      - name: description
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Legal-structure description."
+      - name: issuingAuthority
+        logicalType: string
+        physicalType: VARCHAR(255)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Issuing authority (e.g. `U.S. Congress`, `CEQ`, `EPA`)."
+      - name: effectiveDate
+        logicalType: date
+        logicalTypeOptions: { format: "yyyy-MM-dd" }
+        physicalType: DATE
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Effective date."
+      - name: context
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Legal context / surrounding text."
+      - name: complianceData
+        logicalType: string
+        physicalType: JSONB
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Compliance-data payload (JSON)."
+      - name: url
+        logicalType: string
+        logicalTypeOptions:
+          format: uri
+          minLength: 8
+          maxLength: 2048
+        physicalType: VARCHAR(2048)
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Canonical URL to the legal structure source."
+
+support:
+  - channel: url
+    url: "https://permitting.innovation.gov/resources/data-standard/"
+  - channel: email
+    url: "mailto:permits@innovation.gov"
+
+price:
+  priceCurrency: USD
+  priceAmount: 0.00
+  priceUnit: dataset
+
+team:
+  name: Permitting Innovation Center
+  description: |
+    Cross-agency federal team responsible for the NEPA Data Standard.
+  members:
+    - username: permits@innovation.gov
+      name: Permitting Innovation Center
+      role: owner
+      description: Publishing team
+      dateIn: "2024-01-01"
+
+roles:
+  - role: Public
+    description: Anonymous read access.
+    access: read
+  - role: NEPAEditor
+    description: NEPA editing role.
+    access: write
+
+slaProperties:
+  - property: availability
+    value: "99.5%"
+    unit: percent
+    driver: operational
+    description: |
+      Reference SQL DDL, JSON samples, OpenAPI, and YAML samples must
+      be available 99.5% of the time per calendar month.
+    scheduler: cron
+    schedule: "*/5 * * * *"
+  - property: freshness
+    value: "180d"
+    unit: days
+    driver: regulatory
+    description: |
+      The standard must be republished at least every 180 days;
+      breaking changes follow semantic versioning.
+
+authoritativeDefinitions:
+  - url: "https://permitting.innovation.gov/resources/data-standard/"
+    type: glossary
+    description: "NEPA Data Standard reference page."
+
+customProperties:
+  - property: geocontract.source
+    value: "https://github.com/permits/pyper/tree/main/pic-standards/src/jsonschema/nepa.schema.json"
+  - property: geocontract.entityCount
+    value: 13
+  - property: geocontract.jsonSchema
+    value: "templates/pic-standards.template.schema.json"
+  - property: geocontract.graphqlSubgraph
+    value: "models/pic-standards.canonical.graphql"
+  - property: geocontract.fieldMapping
+    value: "maps/pic-standards.field-mapping.json"
+  - property: x-graphql-federation-keys
+    value: "id"
+  - property: pic-standards.topLevelContainer
+    value: "processe_instances"
+  - property: pic-standards.v1.2ProvenanceProperties
+    value: "data_record_version,data_source_agency,data_source_system,last_updated,record_owner_agency,retrieved_timestamp"
+
+contractCreatedTs: "2026-08-24T00:00:00Z"

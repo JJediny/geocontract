@@ -1,0 +1,106 @@
+# prek.toml — pre-commit hook manager for geocontract
+# https://github.com/j178/prek
+#
+# One-time setup per clone:
+#   mise install        # provision uv + python + dprint + datacontract-cli
+#   uv sync             # install Python deps
+#   prek install        # install pre-commit hook
+#
+# Run manually against all files (useful after initial setup):
+#   prek run --all-files
+#
+# Hooks run in declaration order; group hooks by language for clarity.
+
+# ── Built-in hooks (prek native, zero-install) ───────────────────────────────
+[[repos]]
+repo = "builtin"
+hooks = [
+  # Remove trailing whitespace
+  { id = "trailing-whitespace", exclude = "pnpm-lock.yaml|Cargo.lock|exclusions.json" },
+  # Ensure files end with a newline
+  { id = "end-of-file-fixer", exclude = "pnpm-lock.yaml|Cargo.lock|exclusions.json" },
+  # Validate JSON syntax
+  { id = "check-json", exclude = "tsconfig.*|.*\\.mapping\\.json|exclusions.json" },
+  # Prevent large files from being committed accidentally
+  { id = "check-added-large-files", args = ["--maxkb=1024"] },
+  # Detect merge conflict markers
+  { id = "check-merge-conflict" },
+  # Disallow case-conflicting filenames (Foo.yaml vs foo.yaml)
+  { id = "check-case-conflict" },
+  # Standardise YAML frontmatter / file structure
+  { id = "check-yaml", exclude = ".*\\.datacontract\\.yaml|contracts/.*\\.yaml" },
+]
+
+# ── dprint (JSON formatter; YAML/Markdown/TOML not yet shipped as plugins) ─
+[[repos]]
+repo = "local"
+hooks = [
+  {
+    id = "dprint",
+    name = "dprint (JSON formatter)",
+    language = "system",
+    entry = "dprint fmt",
+    types = ["json"],
+    pass_filenames = true,
+  },
+]
+
+# ── Python / uv ───────────────────────────────────────────────────────────────
+[[repos]]
+repo = "local"
+hooks = [
+  # ruff: lint + auto-fix Python sources
+  {
+    id = "ruff-fix",
+    name = "ruff (Python linter + auto-fix)",
+    language = "system",
+    entry = "uv run ruff check --fix",
+    types = ["python"],
+    pass_filenames = true,
+  },
+
+  # Validate every ODCS YAML and shim JSON against the canonical schema
+  {
+    id = "validate-odcs",
+    name = "Validate ODCS v3.1.0 contracts",
+    language = "system",
+    entry = "uv run geocontract-validate",
+    files = "contracts/.*\\.(yaml|json)$",
+    pass_filenames = true,
+  },
+
+  # Run the test suite on pre-push only (slower than format checks)
+  {
+    id = "pytest",
+    name = "pytest (Python tests)",
+    language = "system",
+    entry = "uv run pytest scripts/tests/ -v",
+    types = ["python"],
+    pass_filenames = false,
+    stages = ["pre-push"],
+  },
+]
+
+# ── Rust ──────────────────────────────────────────────────────────────────────
+[[repos]]
+repo = "local"
+hooks = [
+  # rustfmt: auto-format changed Rust files before committing
+  {
+    id = "rust-fmt",
+    name = "cargo fmt (Rust formatter)",
+    language = "system",
+    entry = "cargo fmt --",
+    types = ["rust"],
+    pass_filenames = true,
+  },
+  # clippy: lint all Rust sources (needs full workspace; no filenames)
+  {
+    id = "rust-clippy",
+    name = "cargo clippy (Rust linter)",
+    language = "system",
+    entry = "cargo clippy --all-targets -- -D warnings",
+    types = ["rust"],
+    pass_filenames = false,
+  },
+]

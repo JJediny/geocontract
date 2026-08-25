@@ -1,0 +1,463 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geocontract.dev/maps/pic-standards.field-mapping.json",
+  "title": "Field Mapping — PIC NEPA Data Standard (v1.2) Source → Canonical Supergraph",
+  "description": "FieldMapping consumed by json-schema-x-graphql (`parse_field_mapping`). Maps the snake_case payload of pic-standards src/jsonschema/nepa.schema.json onto a canonical camelCase GraphQL vocabulary shared with the exclusions subgraph. `locations[]` are JSON pointer hints tried in order by `resolve_pointer_with_mapping` before falling back to direct resolution.",
+  "Project": {
+    "id": {
+      "snake": "id",
+      "camel": "id",
+      "locations": ["/projects/*/id", "/processe_instances/*/id", "/documents/*/id"]
+    },
+    "title": { "snake": "title", "camel": "title", "locations": ["/projects/*/title"] },
+    "description": { "snake": "description", "camel": "description", "locations": ["/projects/*/description"] },
+    "leadAgency": { "snake": "lead_agency", "camel": "leadAgency", "locations": ["/projects/*/lead_agency"] },
+    "participatingAgencies": {
+      "snake": "participating_agencies",
+      "camel": "participatingAgencies",
+      "locations": ["/projects/*/participating_agencies"]
+    },
+    "location": { "snake": "location_object", "camel": "location", "locations": ["/projects/*/location_object"] },
+    "startDate": {
+      "snake": "start_date",
+      "camel": "startDate",
+      "locations": ["/projects/*/start_date", "/processe_instances/*/start_date"]
+    },
+    "currentStatus": {
+      "snake": "current_status",
+      "camel": "currentStatus",
+      "locations": ["/projects/*/current_status"]
+    },
+    "locationLat": { "snake": "location_lat", "camel": "locationLat", "locations": ["/projects/*/location_lat"] },
+    "locationLon": { "snake": "location_lon", "camel": "locationLon", "locations": ["/projects/*/location_lon"] },
+    "sponsorContact": {
+      "snake": "sponsor_contact",
+      "camel": "sponsorContact",
+      "locations": ["/projects/*/sponsor_contact"]
+    },
+    "dataRecordVersion": {
+      "snake": "data_record_version",
+      "camel": "dataRecordVersion",
+      "locations": ["/projects/*/data_record_version"]
+    },
+    "dataSourceAgency": {
+      "snake": "data_source_agency",
+      "camel": "dataSourceAgency",
+      "locations": ["/projects/*/data_source_agency"]
+    },
+    "dataSourceSystem": {
+      "snake": "data_source_system",
+      "camel": "dataSourceSystem",
+      "locations": ["/projects/*/data_source_system"]
+    },
+    "lastUpdated": { "snake": "last_updated", "camel": "lastUpdated", "locations": ["/projects/*/last_updated"] },
+    "recordOwnerAgency": {
+      "snake": "record_owner_agency",
+      "camel": "recordOwnerAgency",
+      "locations": ["/projects/*/record_owner_agency"]
+    },
+    "retrievedTimestamp": {
+      "snake": "retrieved_timestamp",
+      "camel": "retrievedTimestamp",
+      "locations": ["/projects/*/retrieved_timestamp"]
+    }
+  },
+  "ProcessInstance": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/processe_instances/*/id"] },
+    "createdAt": { "snake": "created_at", "camel": "createdAt", "locations": ["/processe_instances/*/created_at"] },
+    "parentProcessId": {
+      "snake": "parent_process_id",
+      "camel": "parentProcessId",
+      "locations": ["/processe_instances/*/parent_process_id"]
+    },
+    "parentProjectId": {
+      "snake": "parent_project_id",
+      "camel": "parentProjectId",
+      "locations": ["/processe_instances/*/parent_project_id"]
+    },
+    "agencyId": { "snake": "agency_id", "camel": "agencyId", "locations": ["/processe_instances/*/agency_id"] },
+    "federalId": { "snake": "federal_id", "camel": "federalId", "locations": ["/processe_instances/*/federal_id"] },
+    "type": { "snake": "type", "camel": "type", "locations": ["/processe_instances/*/type"] },
+    "status": { "snake": "status", "camel": "status", "locations": ["/processe_instances/*/status"] },
+    "stage": { "snake": "stage", "camel": "stage", "locations": ["/processe_instances/*/stage"] },
+    "startDate": { "snake": "start_date", "camel": "startDate", "locations": ["/processe_instances/*/start_date"] },
+    "completeDate": {
+      "snake": "complete_date",
+      "camel": "completeDate",
+      "locations": ["/processe_instances/*/complete_date"]
+    },
+    "outcome": { "snake": "outcome", "camel": "outcome", "locations": ["/processe_instances/*/outcome"] },
+    "leadAgency": { "snake": "lead_agency", "camel": "leadAgency", "locations": ["/processe_instances/*/lead_agency"] },
+    "jointLeadAgency": {
+      "snake": "joint_lead_agency",
+      "camel": "jointLeadAgency",
+      "locations": ["/processe_instances/*/joint_lead_agency"]
+    },
+    "cooperatingAgencies": {
+      "snake": "cooperating_agencies",
+      "camel": "cooperatingAgencies",
+      "locations": ["/processe_instances/*/cooperating_agencies"]
+    }
+  },
+  "Document": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/documents/*/id"] },
+    "documentType": { "snake": "document_type", "camel": "documentType", "locations": ["/documents/*/document_type"] },
+    "title": { "snake": "title", "camel": "title", "locations": ["/documents/*/title"] },
+    "volumeTitle": { "snake": "volume_title", "camel": "volumeTitle", "locations": ["/documents/*/volume_title"] },
+    "publishDate": { "snake": "publish_date", "camel": "publishDate", "locations": ["/documents/*/publish_date"] },
+    "preparedBy": { "snake": "prepared_by", "camel": "preparedBy", "locations": ["/documents/*/prepared_by"] },
+    "status": { "snake": "status", "camel": "status", "locations": ["/documents/*/status"] },
+    "url": { "snake": "url", "camel": "url", "locations": ["/documents/*/url"] },
+    "notes": { "snake": "notes", "camel": "notes", "locations": ["/documents/*/notes"] },
+    "relatedDocumentId": {
+      "snake": "related_document_id",
+      "camel": "relatedDocumentId",
+      "locations": ["/documents/*/related_document_id"]
+    },
+    "documentSummary": {
+      "snake": "document_summary",
+      "camel": "documentSummary",
+      "locations": ["/documents/*/document_summary"]
+    },
+    "documentToc": { "snake": "document_toc", "camel": "documentToc", "locations": ["/documents/*/document_toc"] },
+    "publicAccess": { "snake": "public_access", "camel": "publicAccess", "locations": ["/documents/*/public_access"] }
+  },
+  "Comment": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/comments/*/id"] },
+    "commenterEntity": {
+      "snake": "commenter_entity",
+      "camel": "commenterEntity",
+      "locations": ["/comments/*/commenter_entity"]
+    },
+    "contentText": { "snake": "content_text", "camel": "contentText", "locations": ["/comments/*/content_text"] },
+    "dateSubmitted": {
+      "snake": "date_submitted",
+      "camel": "dateSubmitted",
+      "locations": ["/comments/*/date_submitted"]
+    },
+    "parentDocumentId": {
+      "snake": "parent_document_id",
+      "camel": "parentDocumentId",
+      "locations": ["/comments/*/parent_document_id"]
+    },
+    "submissionMethod": {
+      "snake": "submission_method",
+      "camel": "submissionMethod",
+      "locations": ["/comments/*/submission_method"]
+    },
+    "responseText": { "snake": "response_text", "camel": "responseText", "locations": ["/comments/*/response_text"] },
+    "publicSource": { "snake": "public_source", "camel": "publicSource", "locations": ["/comments/*/public_source"] },
+    "publicAccess": { "snake": "public_access", "camel": "publicAccess", "locations": ["/comments/*/public_access"] }
+  },
+  "Engagement": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/engagements/*/id"] },
+    "type": { "snake": "type", "camel": "type", "locations": ["/engagements/*/type"] },
+    "startDatetime": {
+      "snake": "start_datetime",
+      "camel": "startDatetime",
+      "locations": ["/engagements/*/start_datetime"]
+    },
+    "endDatetime": { "snake": "end_datetime", "camel": "endDatetime", "locations": ["/engagements/*/end_datetime"] },
+    "location": { "snake": "location", "camel": "location", "locations": ["/engagements/*/location"] },
+    "parentProcessId": {
+      "snake": "parent_process_id",
+      "camel": "parentProcessId",
+      "locations": ["/engagements/*/parent_process_id"]
+    },
+    "attendance": { "snake": "attendance", "camel": "attendance", "locations": ["/engagements/*/attendance"] },
+    "relatedDocumentId": {
+      "snake": "related_document_id",
+      "camel": "relatedDocumentId",
+      "locations": ["/engagements/*/related_document_id"]
+    },
+    "participation": {
+      "snake": "participation",
+      "camel": "participation",
+      "locations": ["/engagements/*/participation"]
+    },
+    "notes": { "snake": "notes", "camel": "notes", "locations": ["/engagements/*/notes"] }
+  },
+  "CaseEvent": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/case_events/*/id"] },
+    "source": { "snake": "source", "camel": "source", "locations": ["/case_events/*/source"] },
+    "type": { "snake": "type", "camel": "type", "locations": ["/case_events/*/type"] },
+    "tier": { "snake": "tier", "camel": "tier", "locations": ["/case_events/*/tier"] },
+    "status": { "snake": "status", "camel": "status", "locations": ["/case_events/*/status"] },
+    "outcome": { "snake": "outcome", "camel": "outcome", "locations": ["/case_events/*/outcome"] },
+    "relatedDocumentId": {
+      "snake": "related_document_id",
+      "camel": "relatedDocumentId",
+      "locations": ["/case_events/*/related_document_id"]
+    },
+    "publicAccess": {
+      "snake": "public_access",
+      "camel": "publicAccess",
+      "locations": ["/case_events/*/public_access"]
+    },
+    "description": { "snake": "description", "camel": "description", "locations": ["/case_events/*/description"] },
+    "assignedEntity": {
+      "snake": "assigned_entity",
+      "camel": "assignedEntity",
+      "locations": ["/case_events/*/assigned_entity"]
+    },
+    "followingSegmentName": {
+      "snake": "following_segment_name",
+      "camel": "followingSegmentName",
+      "locations": ["/case_events/*/following_segment_name"]
+    },
+    "parentEventId": {
+      "snake": "parent_event_id",
+      "camel": "parentEventId",
+      "locations": ["/case_events/*/parent_event_id"]
+    },
+    "relatedEngagementId": {
+      "snake": "related_engagement_id",
+      "camel": "relatedEngagementId",
+      "locations": ["/case_events/*/related_engagement_id"]
+    }
+  },
+  "GisData": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/gis_data/*/id"] },
+    "creator": { "snake": "creator", "camel": "creator", "locations": ["/gis_data/*/creator"] },
+    "description": { "snake": "description", "camel": "description", "locations": ["/gis_data/*/description"] },
+    "extent": { "snake": "extent", "camel": "extent", "locations": ["/gis_data/*/extent"] },
+    "notes": { "snake": "notes", "camel": "notes", "locations": ["/gis_data/*/notes"] },
+    "containerInventory": {
+      "snake": "container_inventory",
+      "camel": "containerInventory",
+      "locations": ["/gis_data/*/container_inventory"]
+    },
+    "parentProjectId": {
+      "snake": "parent_project_id",
+      "camel": "parentProjectId",
+      "locations": ["/gis_data/*/parent_project_id"]
+    },
+    "parentProcessId": {
+      "snake": "parent_process_id",
+      "camel": "parentProcessId",
+      "locations": ["/gis_data/*/parent_process_id"]
+    },
+    "parentDocumentId": {
+      "snake": "parent_document_id",
+      "camel": "parentDocumentId",
+      "locations": ["/gis_data/*/parent_document_id"]
+    },
+    "parentCaseEventId": {
+      "snake": "parent_case_event_id",
+      "camel": "parentCaseEventId",
+      "locations": ["/gis_data/*/parent_case_event_id"]
+    },
+    "parentCommentId": {
+      "snake": "parent_comment_id",
+      "camel": "parentCommentId",
+      "locations": ["/gis_data/*/parent_comment_id"]
+    },
+    "parentEngagementId": {
+      "snake": "parent_engagement_id",
+      "camel": "parentEngagementId",
+      "locations": ["/gis_data/*/parent_engagement_id"]
+    },
+    "createdAt": { "snake": "created_at", "camel": "createdAt", "locations": ["/gis_data/*/created_at"] },
+    "centroidLat": { "snake": "centroid_lat", "camel": "centroidLat", "locations": ["/gis_data/*/centroid_lat"] },
+    "centroidLon": { "snake": "centroid_lon", "camel": "centroidLon", "locations": ["/gis_data/*/centroid_lon"] }
+  },
+  "GisDataElement": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/gis_data_elements/*/id"] },
+    "containerReference": {
+      "snake": "container_reference",
+      "camel": "containerReference",
+      "locations": ["/gis_data_elements/*/container_reference"]
+    },
+    "accessMethod": {
+      "snake": "access_method",
+      "camel": "accessMethod",
+      "locations": ["/gis_data_elements/*/access_method"]
+    },
+    "coordinateSystem": {
+      "snake": "coordinate_system",
+      "camel": "coordinateSystem",
+      "locations": ["/gis_data_elements/*/coordinate_system"]
+    },
+    "topLeftLat": {
+      "snake": "top_left_lat",
+      "camel": "topLeftLat",
+      "locations": ["/gis_data_elements/*/top_left_lat"]
+    },
+    "topLeftLon": {
+      "snake": "top_left_lon",
+      "camel": "topLeftLon",
+      "locations": ["/gis_data_elements/*/top_left_lon"]
+    },
+    "botRightLat": {
+      "snake": "bot_right_lat",
+      "camel": "botRightLat",
+      "locations": ["/gis_data_elements/*/bot_right_lat"]
+    },
+    "botRightLon": {
+      "snake": "bot_right_lon",
+      "camel": "botRightLon",
+      "locations": ["/gis_data_elements/*/bot_right_lon"]
+    },
+    "purpose": { "snake": "purpose", "camel": "purpose", "locations": ["/gis_data_elements/*/purpose"] },
+    "dataMatch": { "snake": "data_match", "camel": "dataMatch", "locations": ["/gis_data_elements/*/data_match"] },
+    "accessInfo": { "snake": "access_info", "camel": "accessInfo", "locations": ["/gis_data_elements/*/access_info"] },
+    "createdAt": { "snake": "created_at", "camel": "createdAt", "locations": ["/gis_data_elements/*/created_at"] },
+    "parentGis": { "snake": "parent_gis", "camel": "parentGis", "locations": ["/gis_data_elements/*/parent_gis"] },
+    "format": { "snake": "format", "camel": "format", "locations": ["/gis_data_elements/*/format"] }
+  },
+  "UserRole": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/user_roles/*/id"] },
+    "name": { "snake": "name", "camel": "name", "locations": ["/user_roles/*/name"] },
+    "description": { "snake": "description", "camel": "description", "locations": ["/user_roles/*/description"] },
+    "public": { "snake": "public", "camel": "public", "locations": ["/user_roles/*/public"] },
+    "accessPolicy": { "snake": "access_policy", "camel": "accessPolicy", "locations": ["/user_roles/*/access_policy"] },
+    "permissionDescriptions": {
+      "snake": "permission_descriptions",
+      "camel": "permissionDescriptions",
+      "locations": ["/user_roles/*/permission_descriptions"]
+    },
+    "createdAt": { "snake": "created_at", "camel": "createdAt", "locations": ["/user_roles/*/created_at"] }
+  },
+  "DecisionElement": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/decision_elements/*/id"] },
+    "measure": { "snake": "measure", "camel": "measure", "locations": ["/decision_elements/*/measure"] },
+    "intersect": { "snake": "intersect", "camel": "intersect", "locations": ["/decision_elements/*/intersect"] },
+    "spatialReference": {
+      "snake": "spatial_reference",
+      "camel": "spatialReference",
+      "locations": ["/decision_elements/*/spatial_reference"]
+    },
+    "formText": { "snake": "form_text", "camel": "formText", "locations": ["/decision_elements/*/form_text"] },
+    "formResponseDesc": {
+      "snake": "form_response_desc",
+      "camel": "formResponseDesc",
+      "locations": ["/decision_elements/*/form_response_desc"]
+    },
+    "formData": { "snake": "form_data", "camel": "formData", "locations": ["/decision_elements/*/form_data"] },
+    "evaluationMethod": {
+      "snake": "evaluation_method",
+      "camel": "evaluationMethod",
+      "locations": ["/decision_elements/*/evaluation_method"]
+    },
+    "evaluationDmn": {
+      "snake": "evaluation_dmn",
+      "camel": "evaluationDmn",
+      "locations": ["/decision_elements/*/evaluation_dmn"]
+    },
+    "threshold": { "snake": "threshold", "camel": "threshold", "locations": ["/decision_elements/*/threshold"] },
+    "spatial": { "snake": "spatial", "camel": "spatial", "locations": ["/decision_elements/*/spatial"] },
+    "category": { "snake": "category", "camel": "category", "locations": ["/decision_elements/*/category"] }
+  },
+  "ProcessModel": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/process_models/*/id"] },
+    "description": { "snake": "description", "camel": "description", "locations": ["/process_models/*/description"] },
+    "bpmnModel": { "snake": "bpmn_model", "camel": "bpmnModel", "locations": ["/process_models/*/bpmn_model"] },
+    "legalStructureText": {
+      "snake": "legal_structure_text",
+      "camel": "legalStructureText",
+      "locations": ["/process_models/*/legal_structure_text"]
+    },
+    "screeningDescription": {
+      "snake": "screening_description",
+      "camel": "screeningDescription",
+      "locations": ["/process_models/*/screening_description"]
+    },
+    "agency": { "snake": "agency", "camel": "agency", "locations": ["/process_models/*/agency"] },
+    "dmnModel": { "snake": "DMN_model", "camel": "dmnModel", "locations": ["/process_models/*/DMN_model"] },
+    "parentModel": { "snake": "parent_model", "camel": "parentModel", "locations": ["/process_models/*/parent_model"] },
+    "createdAt": { "snake": "created_at", "camel": "createdAt", "locations": ["/process_models/*/created_at"] },
+    "title": { "snake": "title", "camel": "title", "locations": ["/process_models/*/title"] },
+    "notes": { "snake": "notes", "camel": "notes", "locations": ["/process_models/*/notes"] },
+    "legalStructureId": {
+      "snake": "legal_structure_id",
+      "camel": "legalStructureId",
+      "locations": ["/process_models/*/legal_structure_id"]
+    },
+    "screeningDescJson": {
+      "snake": "screening_desc_json",
+      "camel": "screeningDescJson",
+      "locations": ["/process_models/*/screening_desc_json"]
+    }
+  },
+  "ProcessDecisionPayload": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/process_decision_payloads/*/id"] },
+    "createdAt": {
+      "snake": "created_at",
+      "camel": "createdAt",
+      "locations": ["/process_decision_payloads/*/created_at"]
+    },
+    "process": { "snake": "process", "camel": "process", "locations": ["/process_decision_payloads/*/process"] },
+    "evaluationData": {
+      "snake": "evaluation_data",
+      "camel": "evaluationData",
+      "locations": ["/process_decision_payloads/*/evaluation_data"]
+    },
+    "dataDescription": {
+      "snake": "data_description",
+      "camel": "dataDescription",
+      "locations": ["/process_decision_payloads/*/data_description"]
+    },
+    "response": { "snake": "response", "camel": "response", "locations": ["/process_decision_payloads/*/response"] },
+    "result": { "snake": "result", "camel": "result", "locations": ["/process_decision_payloads/*/result"] },
+    "resultBool": {
+      "snake": "result_bool",
+      "camel": "resultBool",
+      "locations": ["/process_decision_payloads/*/result_bool"]
+    },
+    "resultNotes": {
+      "snake": "result_notes",
+      "camel": "resultNotes",
+      "locations": ["/process_decision_payloads/*/result_notes"]
+    },
+    "resultData": {
+      "snake": "result_data",
+      "camel": "resultData",
+      "locations": ["/process_decision_payloads/*/result_data"]
+    },
+    "resultSource": {
+      "snake": "result_source",
+      "camel": "resultSource",
+      "locations": ["/process_decision_payloads/*/result_source"]
+    },
+    "dataAnnotation": {
+      "snake": "data_annotation",
+      "camel": "dataAnnotation",
+      "locations": ["/process_decision_payloads/*/data_annotation"]
+    },
+    "evaluationDataAnnotation": {
+      "snake": "evaluation_data_annotation",
+      "camel": "evaluationDataAnnotation",
+      "locations": ["/process_decision_payloads/*/evaluation_data_annotation"]
+    },
+    "processDecisionElement": {
+      "snake": "process_decision_element",
+      "camel": "processDecisionElement",
+      "locations": ["/process_decision_payloads/*/process_decision_element"]
+    },
+    "project": { "snake": "project", "camel": "project", "locations": ["/process_decision_payloads/*/project"] }
+  },
+  "LegalStructure": {
+    "id": { "snake": "id", "camel": "id", "locations": ["/legal_structures/*/id"] },
+    "title": { "snake": "title", "camel": "title", "locations": ["/legal_structures/*/title"] },
+    "citation": { "snake": "citation", "camel": "citation", "locations": ["/legal_structures/*/citation"] },
+    "description": { "snake": "description", "camel": "description", "locations": ["/legal_structures/*/description"] },
+    "issuingAuthority": {
+      "snake": "issuing_authority",
+      "camel": "issuingAuthority",
+      "locations": ["/legal_structures/*/issuing_authority"]
+    },
+    "effectiveDate": {
+      "snake": "effective_date",
+      "camel": "effectiveDate",
+      "locations": ["/legal_structures/*/effective_date"]
+    },
+    "context": { "snake": "context", "camel": "context", "locations": ["/legal_structures/*/context"] },
+    "complianceData": {
+      "snake": "compliance_data",
+      "camel": "complianceData",
+      "locations": ["/legal_structures/*/compliance_data"]
+    },
+    "url": { "snake": "url", "camel": "url", "locations": ["/legal_structures/*/url"] },
+    "createdAt": { "snake": "created_at", "camel": "createdAt", "locations": ["/legal_structures/*/created_at"] }
+  }
+}
