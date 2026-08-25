@@ -90,7 +90,10 @@ install_datacontract() {
   warn "uv not found; skipping datacontract install"
 }
 
-# ── 3. dprint (Node) ─────────────────────────────────────────────────────────
+# ── 3. dprint (native binary) ─────────────────────────────────────────────
+# dprint publishes a standalone Rust binary per release on GitHub. We
+# download the matching linux-x86_64 tarball into .tools/ so the hook
+# runner never has to resolve a Node package at runtime.
 install_dprint() {
   local dest="${BIN_DIR}/dprint"
   if [[ -x "${dest}" ]]; then
@@ -98,33 +101,37 @@ install_dprint() {
     return
   fi
 
-  if command -v pnpm >/dev/null 2>&1; then
-    log "Installing dprint v${DPRINT_VERSION} via pnpm…"
-    pnpm dlx "dprint@${DPRINT_VERSION}" --version
-    # pnpm dlx is ephemeral; install into a local node_modules for persistence.
-    pnpm add -D "dprint@${DPRINT_VERSION}" --silent
-    mkdir -p "${TOOLS_DIR}/node_modules/.bin"
-    if [[ -x "node_modules/.bin/dprint" ]]; then
-      cp "node_modules/.bin/dprint" "${dest}"
-      chmod +x "${dest}"
-      ok "Installed dprint → ${dest}"
-    fi
+  local target="x86_64-unknown-linux-gnu"
+  local url="https://github.com/dprint/dprint/releases/download/${DPRINT_VERSION}/dprint-${target}.zip"
+  local tmp
+  tmp="$(mktemp -d)"
+  log "Downloading dprint v${DPRINT_VERSION} (${target})…"
+  if ! curl -fsSL "${url}" -o "${tmp}/dprint.zip"; then
+    warn "Could not download dprint from ${url} (network or non-x86_64 host?)"
+    rm -rf "${tmp}"
     return
   fi
 
-  if command -v npm >/dev/null 2>&1; then
-    log "Installing dprint v${DPRINT_VERSION} via npm…"
-    npm install -g "dprint@${DPRINT_VERSION}"
-    local npm_prefix
-    npm_prefix="$(npm config get prefix)"
-    if [[ -x "${npm_prefix}/bin/dprint" ]]; then
-      ln -sf "${npm_prefix}/bin/dprint" "${dest}"
-      ok "Installed dprint → ${dest}"
-    fi
+  if command -v unzip >/dev/null 2>&1; then
+    unzip -q -o "${tmp}/dprint.zip" -d "${tmp}" || { warn "unzip failed"; rm -rf "${tmp}"; return; }
+  else
+    python3 -c "import zipfile; zipfile.ZipFile('${tmp}/dprint.zip').extractall('${tmp}')" \
+      || { warn "no unzip and python3 zipfile failed"; rm -rf "${tmp}"; return; }
+  fi
+
+  if [[ ! -x "${tmp}/dprint" ]]; then
+    warn "dprint binary not found in the archive"
+    rm -rf "${tmp}"
     return
   fi
 
-  warn "pnpm/npm not found; skipping dprint install"
+  mv "${tmp}/dprint" "${dest}"
+  chmod +x "${dest}"
+  rm -rf "${tmp}"
+  ok "Installed dprint v${DPRINT_VERSION} → ${dest}"
+
+  # Quick smoke-test
+  "${dest}" --version
 }
 
 main() {

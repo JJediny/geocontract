@@ -21,8 +21,10 @@ hooks = [
   { id = "end-of-file-fixer", exclude = "pnpm-lock.yaml|Cargo.lock|exclusions.json" },
   # Validate JSON syntax
   { id = "check-json", exclude = "tsconfig.*|.*\\.mapping\\.json|exclusions.json" },
-  # Prevent large files from being committed accidentally
-  { id = "check-added-large-files", args = ["--maxkb=1024"] },
+  # Prevent large files from being committed accidentally.
+  # The exclusions.json snapshot in external/ is a deliberate
+  # reproducibility cache (~4 MB), so the threshold is generous.
+  { id = "check-added-large-files", args = ["--maxkb=8192"] },
   # Detect merge conflict markers
   { id = "check-merge-conflict" },
   # Disallow case-conflicting filenames (Foo.yaml vs foo.yaml)
