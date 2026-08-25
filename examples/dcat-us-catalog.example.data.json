@@ -1,0 +1,201 @@
+{
+  "@id": "https://geocontract.dev/catalogs/us-federal-geocontract",
+  "@type": "Catalog",
+  "title": "geocontract — Federal NEPA Data Contracts",
+  "description": "A federated DCAT-US catalog of the geocontract instance records published under the geocontract project. Each dataset listed here is a stable, versioned ODCS v3.1.0 data contract bridging one federal NEPA-relevant data source. The catalog itself is the single entry point for downstream consumers (mesh gateways, search indexes, dashboards) to discover the available contracts and download their data.",
+  "publisher": {
+    "@id": "https://permits.permitting.gov/about",
+    "@type": "Agent",
+    "name": "Permitting Innovation Center",
+    "url": "https://permits.permitting.gov/"
+  },
+  "creator": [
+    { "@id": "https://github.com/JJediny", "@type": "Agent", "name": "Permitting Innovation Center — Data Engineering" }
+  ],
+  "contactPoint": [
+    { "@type": "Kind", "fn": "geocontract maintainers", "hasEmail": "mailto:geocontract-maintainers@example.gov" }
+  ],
+  "keyword": [
+    "geocontract",
+    "nepa",
+    "catex",
+    "categorical-exclusions",
+    "data-contract",
+    "odcs",
+    "open-data",
+    "dcat-us"
+  ],
+  "theme": [
+    {
+      "@id": "https://resources.data.gov/subject/E3B98B73-F57A-4684-A16C-21F0F45DC5B8",
+      "@type": "Concept",
+      "prefLabel": "Environmental monitoring and forecasting"
+    },
+    {
+      "@id": "https://resources.data.gov/subject/06F9D685-3D2E-4DD5-8C76-0F2C18A61C58",
+      "@type": "Concept",
+      "prefLabel": "Government operations and accountability"
+    }
+  ],
+  "themeTaxonomy": [
+    { "@id": "https://resources.data.gov/keywords", "@type": "ConceptScheme", "title": "data.gov Subject Taxonomy" }
+  ],
+  "subject": [
+    { "@type": "Concept", "prefLabel": "National Environmental Policy Act" },
+    { "@type": "Concept", "prefLabel": "Permitting" }
+  ],
+  "spatial": [{ "@type": "Location", "prefLabel": "United States" }],
+  "temporal": [{ "@type": "PeriodOfTime", "startDate": "2024-01-01", "endDate": "2025-12-31" }],
+  "language": ["en"],
+  "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "rights": [
+    "The catalog metadata is dedicated to the public domain under CC0 1.0.",
+    "Individual datasets inherit the license of their upstream publisher."
+  ],
+  "accessRights": "Public access with no restrictions.",
+  "issued": "2024-01-15",
+  "modified": "2025-08-25",
+  "identifier": "https://geocontract.dev/catalogs/us-federal-geocontract",
+  "homepage": {
+    "@id": "https://geocontract.dev/",
+    "@type": "Document",
+    "title": "geocontract — Project Homepage",
+    "accessURL": "https://geocontract.dev/"
+  },
+  "conformsTo": {
+    "@id": "https://resources.data.gov/dcat-us/3.0.0",
+    "@type": "Standard",
+    "title": "DCAT-US 3.0",
+    "description": "U.S. Government Data Catalog Vocabulary, version 3.0",
+    "version": "3.0.0"
+  },
+  "qualifiedAttribution": [
+    {
+      "@type": "Attribution",
+      "agent": { "@type": "Agent", "name": "Permitting Innovation Center" },
+      "hadRole": "publisher"
+    },
+    {
+      "@type": "Attribution",
+      "agent": { "@type": "Agent", "name": "Federal Permitting Council" },
+      "hadRole": "sponsor"
+    }
+  ],
+  "record": [
+    {
+      "@id": "https://geocontract.dev/records/nepa-exclusions-2.0.0",
+      "@type": "CatalogRecord",
+      "title": "Record for NEPA Categorical Exclusions (CATEX) Catalogue v2.0.0",
+      "description": ["Catalogued registration of the NEPA CATEX contract v2.0.0."],
+      "issued": ["2024-01-15"],
+      "modified": "2025-08-25",
+      "primaryTopic": "https://geocontract.dev/datasets/nepa-exclusions"
+    },
+    {
+      "@id": "https://geocontract.dev/records/pic-nepa-data-standard-1.2.0",
+      "@type": "CatalogRecord",
+      "title": "Record for PIC NEPA Data Standard v1.2.0",
+      "description": ["Catalogued registration of the PIC NEPA Data Standard contract v1.2.0."],
+      "issued": ["2024-01-15"],
+      "modified": "2025-08-25",
+      "primaryTopic": "https://geocontract.dev/datasets/pic-nepa-data-standard"
+    }
+  ],
+  "dataset": [
+    {
+      "@id": "https://geocontract.dev/datasets/nepa-exclusions",
+      "@type": "Dataset",
+      "title": "NEPA Categorical Exclusions (CATEX) Catalogue",
+      "description": "The federal Categorical Exclusion (CATEX) catalogue published by the Permitting Innovation Center at https://ce.permitting.innovation.gov/data/exclusions.json. CATEXs are classes of actions that normally do not require further environmental review under NEPA (42 U.S.C. §§ 4321 et seq.) because they have been found not to have a significant effect on the environment, individually or cumulatively.",
+      "identifier": "geocontract-nepa-exclusions",
+      "issued": "2024-01-15",
+      "modified": "2025-08-25",
+      "publisher": { "@type": "Agent", "name": "Permitting Innovation Center" },
+      "contactPoint": { "@type": "Kind", "fn": "PIC NEPA support", "hasEmail": "mailto:pic-nepa@example.gov" },
+      "keyword": ["catex", "categorical-exclusions", "nepa", "permitting", "agency-units"],
+      "theme": [{ "@type": "Concept", "prefLabel": "Categorical Exclusions" }],
+      "spatial": [{ "@type": "Location", "prefLabel": "United States" }],
+      "language": ["en"],
+      "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "rights": ["U.S. Government work; public domain."],
+      "accessRights": "Public access with no restrictions.",
+      "conformsTo": [{ "@type": "Standard", "title": "ODCS v3.1.0", "version": "3.1.0" }],
+      "isPartOf": { "@id": "https://geocontract.dev/catalogs/us-federal-geocontract" },
+      "distribution": [
+        {
+          "@id": "https://geocontract.dev/dist/nepa-exclusions.contract.yaml",
+          "@type": "Distribution",
+          "title": "ODCS v3.1.0 contract (YAML)",
+          "accessURL": "https://geocontract.dev/contracts/nepa-exclusions.datacontract.yaml",
+          "downloadURL": "https://raw.githubusercontent.com/JJediny/geocontract/main/contracts/nepa-exclusions.datacontract.yaml",
+          "mediaType": "application/yaml",
+          "format": "YAML"
+        },
+        {
+          "@id": "https://geocontract.dev/dist/nepa-exclusions.source.json",
+          "@type": "Distribution",
+          "title": "Source catalogue (JSON)",
+          "accessURL": "https://ce.permitting.innovation.gov/data/exclusions.json",
+          "downloadURL": "https://ce.permitting.innovation.gov/data/exclusions.json",
+          "mediaType": "application/json",
+          "format": "JSON",
+          "byteSize": "4043492"
+        }
+      ]
+    },
+    {
+      "@id": "https://geocontract.dev/datasets/pic-nepa-data-standard",
+      "@type": "Dataset",
+      "title": "PIC NEPA Data Standard v1.2",
+      "description": "The Permitting Innovation Center NEPA Data & Technology Standard v1.2 — a structured schema for environmental-review data collected during reviews conducted under NEPA (42 U.S.C. §§ 4321 et seq.). Defines 13 entity types (project, process_instance, document, comment, engagement, case_event, gis_data, gis_data_element, user_role, decision_element, process_model, process_decision_payload, legal_structure) and a uniform set of six provenance properties added in v1.2.",
+      "identifier": "geocontract-pic-nepa-data-standard",
+      "issued": "2024-01-15",
+      "modified": "2025-08-25",
+      "publisher": { "@type": "Agent", "name": "Permitting Innovation Center" },
+      "contactPoint": { "@type": "Kind", "fn": "PIC NEPA support", "hasEmail": "mailto:pic-nepa@example.gov" },
+      "keyword": ["nepa-data-standard", "v1.2", "data-model", "permits", "pic"],
+      "theme": [{ "@type": "Concept", "prefLabel": "NEPA Data Standard" }],
+      "spatial": [{ "@type": "Location", "prefLabel": "United States" }],
+      "language": ["en"],
+      "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "rights": ["Published under the terms of the pic-standards repository."],
+      "accessRights": "Public access with no restrictions.",
+      "conformsTo": [{ "@type": "Standard", "title": "ODCS v3.1.0", "version": "3.1.0" }],
+      "isPartOf": { "@id": "https://geocontract.dev/catalogs/us-federal-geocontract" },
+      "distribution": [
+        {
+          "@id": "https://geocontract.dev/dist/pic-standards.contract.yaml",
+          "@type": "Distribution",
+          "title": "ODCS v3.1.0 contract (YAML)",
+          "accessURL": "https://geocontract.dev/contracts/pic-standards.datacontract.yaml",
+          "downloadURL": "https://raw.githubusercontent.com/JJediny/geocontract/main/contracts/pic-standards.datacontract.yaml",
+          "mediaType": "application/yaml",
+          "format": "YAML"
+        },
+        {
+          "@id": "https://geocontract.dev/dist/pic-standards.schema.json",
+          "@type": "Distribution",
+          "title": "Source JSON Schema (pic-standards v1.2)",
+          "accessURL": "https://github.com/permits/pyper/blob/main/pic-standards/src/jsonschema/nepa.schema.json",
+          "downloadURL": "https://raw.githubusercontent.com/permits/pyper/main/pic-standards/src/jsonschema/nepa.schema.json",
+          "mediaType": "application/schema+json",
+          "format": "JSON Schema"
+        }
+      ]
+    }
+  ],
+  "service": [
+    {
+      "@id": "https://geocontract.dev/services/harvester",
+      "@type": "DataService",
+      "id": "geocontract-harvester",
+      "title": "geocontract Federated Harvester",
+      "description": "Federated harvester that walks published *.geocontract.yaml files, validates each against the canonical ODCS v3.1.0 schema, normalises them into a canonical record view, and emits a unified JSONL stream.",
+      "endpointURL": ["https://geocontract.dev/harvest"],
+      "publisher": { "@type": "Agent", "name": "Permitting Innovation Center" },
+      "contactPoint": [
+        { "@type": "Kind", "fn": "geocontract maintainers", "hasEmail": "mailto:geocontract-maintainers@example.gov" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "schema": { "source": "../../templates/dcat-us-catalog.template.schema.json" },
+  "contract": {
+    "name": "geocontract Federated Catalog (DCAT-US 3.0.0)",
+    "description": "Federated DCAT-US 3.0.0 catalog envelope bundling every published *.geocontract.yaml instance record (NEPA CATEX catalogue, PIC NEPA Data Standard v1.2).",
+    "version": "3.0.0",
+    "status": "active",
+    "domain": "data-catalog"
+  },
+  "ownership": {
+    "team": "Permitting Innovation Center — Data Engineering",
+    "contact": "geocontract-maintainers@example.gov",
+    "docs_url": "https://geocontract.dev/"
+  },
+  "quality": [
+    {
+      "metric": "uniqueness",
+      "field": "#/$defs/Catalog/properties/@id",
+      "threshold": 1.0,
+      "description": "No two catalogs may share an @id."
+    },
+    {
+      "metric": "completeness",
+      "field": "#/$defs/Catalog/properties/dataset",
+      "threshold": 1.0,
+      "description": "Every catalog must contain at least one dataset entry."
+    },
+    {
+      "metric": "freshness",
+      "field": "#/$defs/Catalog/properties/modified",
+      "threshold": "7d",
+      "description": "Catalog modified date must be within 7 days of any published contract change."
+    }
+  ],
+  "sla": [
+    { "name": "catalog-availability", "target": "99%", "window": "monthly" },
+    { "name": "catalog-freshness", "target": "<= 7 days since modified", "window": "rolling-7d" }
+  ],
+  "lineage": {
+    "upstream": [
+      {
+        "source": "https://raw.githubusercontent.com/GSA/dcat-us/refs/heads/main/jsonschema/definitions/Catalog.json",
+        "type": "api",
+        "format": "json-schema"
+      },
+      { "source": "contracts/nepa-exclusions.datacontract.yaml", "type": "local", "format": "yaml" },
+      { "source": "contracts/pic-standards.datacontract.yaml", "type": "local", "format": "yaml" }
+    ],
+    "downstream": [
+      { "consumer": "geocontract-harvester", "type": "api", "endpoint": "https://geocontract.dev/harvest" },
+      { "consumer": "mesh-gateway", "type": "graphql", "endpoint": "graphql://geocontract/v1" }
+    ]
+  },
+  "retention": {
+    "policy": "permanent-federal-record",
+    "description": "Catalog metadata is a permanent federal record; never deleted.",
+    "delete_after": "never",
+    "archive_after": "never",
+    "partition_strategy": "version"
+  },
+  "access": {
+    "classification": "public",
+    "pii_fields": [],
+    "compliance": [
+      { "regulation": "FOIA", "justification": "Public federal record." },
+      { "regulation": "OPEN-Government-Data-Act", "justification": "DCAT-US is the federal open-data vocabulary." }
+    ]
+  },
+  "lifecycle": {
+    "created": "2024-01-15",
+    "last_modified": "2025-08-25",
+    "sunset_date": null,
+    "changelog": [
+      {
+        "version": "3.0.0",
+        "date": "2025-08-25",
+        "summary": "Initial DCAT-US 3.0.0 catalog envelope for the geocontract federated harvester."
+      }
+    ]
+  },
+  "partitioning": {
+    "strategy": "value",
+    "column": "dataset.identifier",
+    "granularity": "per-contract",
+    "retention_days": null
+  },
+  "cost": { "center": "permits-pic", "budget_code": "PIC-DATA-CORE", "estimated_annual_cost_usd": 0 },
+  "tags": ["geocontract", "dcat-us", "catalog", "interoperability", "federal", "open-data"],
+  "entities": {
+    "$defs/Catalog": { "classification": "public", "pii": false },
+    "$defs/Catalog/properties/@id": { "quality": [{ "metric": "uniqueness", "threshold": 1.0 }] },
+    "$defs/Dataset": { "classification": "public", "pii": false },
+    "$defs/Dataset/properties/@id": { "quality": [{ "metric": "uniqueness", "threshold": 1.0 }] }
+  }
+}

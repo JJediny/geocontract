@@ -29,13 +29,26 @@ rust = "1.85"
 # ── Tasks (run with `mise run <name>`) ──────────────────────────────────────
 [tasks]
 
-# Validate every ODCS YAML and shim JSON against the canonical schema.
-# Faster than `mise run test` — useful in pre-commit.
-validate-odcs = "uv run python scripts/validate_odcs.py contracts/*.yaml contracts/shim/*.json contracts/examples/*.json"
+# Validate every ODCS YAML and shim JSON against the geocontract master
+# schema (ODCS v3.1.0 + embeddedSchemas extension). The master schema
+# is a strict superset of the bare ODCS schema, so every contract that
+# validates against ODCS also validates against it. Contracts that use
+# the `embeddedSchemas` block (e.g. the DCAT-US catalog contract) ONLY
+# validate against the master schema.
+validate-odcs = "uv run python scripts/validate_odcs.py --master contracts/*.yaml contracts/examples/*.json && uv run python scripts/validate_odcs.py --shim contracts/shim/*.json"
 
-# Cross-validate the same files with the upstream datacontract CLI
+# Validate every DCAT-US Catalog JSON instance against the pinned GSA
+# DCAT-US 3.0.0 schema. Examples live in examples/dcat-us-catalog.example.data.json.
+validate-dcat = "uv run python scripts/validate_odcs.py --dcat examples/dcat-us-catalog.example.data.json"
+
+# Cross-validate the bare-ODCS contracts with the upstream datacontract CLI
 # (a second-line check; equivalent to `datacontract lint` on each YAML).
-datacontract-lint = "for f in contracts/*.yaml; do datacontract lint \"$f\"; done"
+# The dcat-us-catalog contract is EXCLUDED because it uses the
+# geocontract `embeddedSchemas` extension, which is beyond the bare ODCS
+# standard that the upstream CLI validates against — `datacontract lint`
+# flags it by design. The authoritative check for that contract is
+# `mise run validate-odcs` (which uses the geocontract master schema).
+datacontract-lint = "for f in contracts/nepa-exclusions.datacontract.yaml contracts/pic-standards.datacontract.yaml contracts/odcs-v3.1.0-template.yaml; do datacontract lint \"$f\"; done"
 
 # Format every checked-in JSON file with dprint. dprint is installed via
 # mise's npm:dprint backend (see [tools]) so the bare `dprint` invocation
@@ -48,6 +61,17 @@ test = "uv run pytest scripts/tests/ -v"
 
 # End-to-end smoke test: validate, lint, and run pytest.
 ci = ["validate-odcs", "datacontract-lint", "fmt-check", "test"]
+
+# Generate GraphQL SDL from the x-graphql-annotated templates using the
+# vendored jxql converter. The models/*.canonical.graphql files are build
+# artifacts — do not edit them by hand; re-run this task after changing a
+# template. Requires `mise run vendor-jxql` to have built jxql once.
+generate-graphql = "bash scripts/generate_graphql.sh"
+
+# (Re)build the geocontract master schema from the pinned ODCS v3.1.0
+# schema. The master schema adds the `embeddedSchemas` extension point.
+# Run after bumping external/odcs-json-schema-v3.1.0.json.
+build-master-schema = "uv run python scripts/build_master_schema.py"
 
 # Vendor the json-schema-x-graphql Rust CLI (jxql) into .tools/.
 # Run once after `mise install`; subsequent runs are no-ops.

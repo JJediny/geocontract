@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geocontract.dev/maps/dcat-us-catalog.field-mapping.json",
+  "title": "Field Mapping — DCAT-US 3.0.0 Catalog Source → Canonical Supergraph",
+  "description": "FieldMapping consumed by json-schema-x-graphql (`parse_field_mapping`) and the mesh-gateway. Maps the @-prefixed / camelCase keys of the GSA DCAT-US 3.0.0 Catalog JSON instance (https://raw.githubusercontent.com/GSA/dcat-us/refs/heads/main/jsonschema/definitions/Catalog.json) to the canonical camelCase GraphQL vocabulary emitted by jxql from templates/dcat-us-catalog.template.schema.json (see models/dcat-us-catalog.canonical.graphql). Each key is a GraphQL field name on the canonical `DcatCatalog` (and child types); `snake` records the source-side key, `camel` the canonical field, and `locations` lists JSON pointers tried in order before falling back to direct resolution.",
+  "DcatCatalog": {
+    "id": { "snake": "@id", "camel": "id", "locations": ["/@id"] },
+    "type": { "snake": "@type", "camel": "type", "locations": ["/@type"] },
+    "title": { "snake": "title", "camel": "title", "locations": ["/title"] },
+    "description": { "snake": "description", "camel": "description", "locations": ["/description"] },
+    "publisher": { "snake": "publisher", "camel": "publisher", "locations": ["/publisher"] },
+    "creator": { "snake": "creator", "camel": "creator", "locations": ["/creator"] },
+    "contactPoint": { "snake": "contactPoint", "camel": "contactPoint", "locations": ["/contactPoint"] },
+    "keywords": { "snake": "keyword", "camel": "keywords", "locations": ["/keyword"] },
+    "theme": { "snake": "theme", "camel": "theme", "locations": ["/theme"] },
+    "themeTaxonomy": { "snake": "themeTaxonomy", "camel": "themeTaxonomy", "locations": ["/themeTaxonomy"] },
+    "subject": { "snake": "subject", "camel": "subject", "locations": ["/subject"] },
+    "spatial": { "snake": "spatial", "camel": "spatial", "locations": ["/spatial"] },
+    "temporal": { "snake": "temporal", "camel": "temporal", "locations": ["/temporal"] },
+    "language": { "snake": "language", "camel": "language", "locations": ["/language"] },
+    "license": { "snake": "license", "camel": "license", "locations": ["/license"] },
+    "rights": { "snake": "rights", "camel": "rights", "locations": ["/rights"] },
+    "accessRights": { "snake": "accessRights", "camel": "accessRights", "locations": ["/accessRights"] },
+    "issued": { "snake": "issued", "camel": "issued", "locations": ["/issued"] },
+    "modified": { "snake": "modified", "camel": "modified", "locations": ["/modified"] },
+    "identifier": { "snake": "identifier", "camel": "identifier", "locations": ["/identifier"] },
+    "homepage": { "snake": "homepage", "camel": "homepage", "locations": ["/homepage"] },
+    "hasPart": { "snake": "hasPart", "camel": "hasPart", "locations": ["/hasPart"] },
+    "conformsTo": { "snake": "conformsTo", "camel": "conformsTo", "locations": ["/conformsTo"] },
+    "qualifiedAttribution": {
+      "snake": "qualifiedAttribution",
+      "camel": "qualifiedAttribution",
+      "locations": ["/qualifiedAttribution"]
+    },
+    "record": { "snake": "record", "camel": "record", "locations": ["/record"] },
+    "dataset": { "snake": "dataset", "camel": "dataset", "locations": ["/dataset"] },
+    "service": { "snake": "service", "camel": "service", "locations": ["/service"] },
+    "datasetSeries": { "snake": "datasetSeries", "camel": "datasetSeries", "locations": ["/datasetSeries"] }
+  },
+  "DcatDataset": {
+    "id": { "snake": "@id", "camel": "id", "locations": ["/dataset[]/@id"] },
+    "type": { "snake": "@type", "camel": "type", "locations": ["/dataset[]/@type"] },
+    "title": { "snake": "title", "camel": "title", "locations": ["/dataset[]/title"] },
+    "description": { "snake": "description", "camel": "description", "locations": ["/dataset[]/description"] },
+    "identifier": { "snake": "identifier", "camel": "identifier", "locations": ["/dataset[]/identifier"] },
+    "contactPoint": { "snake": "contactPoint", "camel": "contactPoint", "locations": ["/dataset[]/contactPoint"] },
+    "publisher": { "snake": "publisher", "camel": "publisher", "locations": ["/dataset[]/publisher"] },
+    "keywords": { "snake": "keyword", "camel": "keywords", "locations": ["/dataset[]/keyword"] },
+    "theme": { "snake": "theme", "camel": "theme", "locations": ["/dataset[]/theme"] },
+    "spatial": { "snake": "spatial", "camel": "spatial", "locations": ["/dataset[]/spatial"] },
+    "temporal": { "snake": "temporal", "camel": "temporal", "locations": ["/dataset[]/temporal"] },
+    "language": { "snake": "language", "camel": "language", "locations": ["/dataset[]/language"] },
+    "license": { "snake": "license", "camel": "license", "locations": ["/dataset[]/license"] },
+    "rights": { "snake": "rights", "camel": "rights", "locations": ["/dataset[]/rights"] },
+    "accessRights": { "snake": "accessRights", "camel": "accessRights", "locations": ["/dataset[]/accessRights"] },
+    "conformsTo": { "snake": "conformsTo", "camel": "conformsTo", "locations": ["/dataset[]/conformsTo"] },
+    "isPartOf": { "snake": "isPartOf", "camel": "isPartOf", "locations": ["/dataset[]/isPartOf"] },
+    "distribution": { "snake": "distribution", "camel": "distribution", "locations": ["/dataset[]/distribution"] },
+    "issued": { "snake": "issued", "camel": "issued", "locations": ["/dataset[]/issued"] },
+    "modified": { "snake": "modified", "camel": "modified", "locations": ["/dataset[]/modified"] }
+  },
+  "DcatCatalogRecord": {
+    "id": { "snake": "@id", "camel": "id", "locations": ["/record[]/@id"] },
+    "type": { "snake": "@type", "camel": "type", "locations": ["/record[]/@type"] },
+    "title": { "snake": "title", "camel": "title", "locations": ["/record[]/title"] },
+    "description": { "snake": "description", "camel": "description", "locations": ["/record[]/description"] },
+    "issued": { "snake": "issued", "camel": "issued", "locations": ["/record[]/issued"] },
+    "modified": { "snake": "modified", "camel": "modified", "locations": ["/record[]/modified"] },
+    "primaryTopic": { "snake": "primaryTopic", "camel": "primaryTopic", "locations": ["/record[]/primaryTopic"] }
+  },
+  "DcatDataService": {
+    "id": { "snake": "@id", "camel": "id", "locations": ["/service[]/@id"] },
+    "type": { "snake": "@type", "camel": "type", "locations": ["/service[]/@type"] },
+    "title": { "snake": "title", "camel": "title", "locations": ["/service[]/title"] },
+    "description": { "snake": "description", "camel": "description", "locations": ["/service[]/description"] },
+    "endpointURL": { "snake": "endpointURL", "camel": "endpointURL", "locations": ["/service[]/endpointURL"] },
+    "publisher": { "snake": "publisher", "camel": "publisher", "locations": ["/service[]/publisher"] },
+    "contactPoint": { "snake": "contactPoint", "camel": "contactPoint", "locations": ["/service[]/contactPoint"] },
+    "servesDataset": { "snake": "servesDataset", "camel": "servesDataset", "locations": ["/service[]/servesDataset"] }
+  },
+  "DcatDistribution": {
+    "id": { "snake": "@id", "camel": "id", "locations": ["/dataset[]/distribution[]/@id"] },
+    "type": { "snake": "@type", "camel": "type", "locations": ["/dataset[]/distribution[]/@type"] },
+    "title": { "snake": "title", "camel": "title", "locations": ["/dataset[]/distribution[]/title"] },
+    "description": {
+      "snake": "description",
+      "camel": "description",
+      "locations": ["/dataset[]/distribution[]/description"]
+    },
+    "accessURL": { "snake": "accessURL", "camel": "accessURL", "locations": ["/dataset[]/distribution[]/accessURL"] },
+    "downloadURL": {
+      "snake": "downloadURL",
+      "camel": "downloadURL",
+      "locations": ["/dataset[]/distribution[]/downloadURL"]
+    },
+    "mediaType": { "snake": "mediaType", "camel": "mediaType", "locations": ["/dataset[]/distribution[]/mediaType"] },
+    "format": { "snake": "format", "camel": "format", "locations": ["/dataset[]/distribution[]/format"] },
+    "byteSize": { "snake": "byteSize", "camel": "byteSize", "locations": ["/dataset[]/distribution[]/byteSize"] }
+  },
+  "DcatAgent": {
+    "id": { "snake": "@id", "camel": "id", "locations": ["/publisher/@id", "/creator[]/@id"] },
+    "type": { "snake": "@type", "camel": "type", "locations": ["/publisher/@type", "/creator[]/@type"] },
+    "name": { "snake": "name", "camel": "name", "locations": ["/publisher/name", "/creator[]/name"] },
+    "url": { "snake": "url", "camel": "url", "locations": ["/publisher/url", "/creator[]/url"] },
+    "identifier": {
+      "snake": "identifier",
+      "camel": "identifier",
+      "locations": ["/publisher/identifier", "/creator[]/identifier"]
+    }
+  }
+}

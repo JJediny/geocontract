@@ -1,0 +1,507 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geocontract.dev/schemas/dcat-us-catalog.template.schema.json",
+  "title": "DCAT-US 3 Catalog — x-graphql Interoperability Template",
+  "description": "Interoperability template derived from the GSA DCAT-US 3.0.0 Catalog definition (https://raw.githubusercontent.com/GSA/dcat-us/refs/heads/main/jsonschema/definitions/Catalog.json). Annotated with x-graphql-* extensions so it round-trips into a federated GraphQL subgraph that publishes both the geocontract catalog envelope and its two child datasets (NEPA Categorical Exclusions, PIC NEPA Data Standard). The Catalog type lives under $defs/Catalog so the json-schema-x-graphql converter (Rust `jxql` or Node `@json-schema-x-graphql/core`) emits it as the canonical `DcatCatalog` GraphQL type; the root is a thin allOf wrapper that validates the flat DCAT-US instance shape but generates no wrapper type. The SDL under models/ is generated from this template via scripts/generate_graphql.sh — not hand-curated.",
+  "type": "object",
+  "allOf": [{ "$ref": "#/$defs/Catalog" }],
+  "$defs": {
+    "Catalog": {
+      "type": "object",
+      "description": "A curated collection of metadata about datasets, data services, or other resources. For geocontract this is the federated catalog envelope that bundles every published *.geocontract.yaml instance record.",
+      "x-graphql-type-name": "DcatCatalog",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-federation-keys": [{ "fields": "id" }],
+      "x-graphql-federation-shareable": true,
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "description": "Resolvable IRI for this catalog instance.",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": {
+          "type": "string",
+          "default": "Catalog",
+          "description": "DCAT-US class — fixed to `Catalog`.",
+          "x-graphql-field-name": "type",
+          "x-graphql-field-non-null": true
+        },
+        "title": {
+          "type": ["null", "string"],
+          "description": "Human-readable title of the catalog.",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "description": {
+          "type": ["null", "string"],
+          "description": "Plain-language summary of the catalog.",
+          "x-graphql-field-type": "String"
+        },
+        "publisher": {
+          "$ref": "#/$defs/Agent",
+          "description": "Person or organization responsible for publishing and making the catalog available."
+        },
+        "creator": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Agent" },
+          "description": "Person or organization responsible for creating the catalog metadata."
+        },
+        "contactPoint": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Kind" },
+          "description": "Contact information people can use to ask questions or send feedback about the catalog."
+        },
+        "keyword": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "List of keywords or tags describing the catalog.",
+          "x-graphql-field-name": "keywords"
+        },
+        "theme": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Concept" },
+          "description": "List of themes or categories for the catalog."
+        },
+        "themeTaxonomy": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ConceptScheme" },
+          "description": "Controlled vocabulary or taxonomy used to classify catalog resources."
+        },
+        "subject": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Concept" },
+          "description": "List of subjects of the catalog."
+        },
+        "spatial": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Location" },
+          "description": "Geographic area covered by the catalog."
+        },
+        "temporal": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/PeriodOfTime" },
+          "description": "Time periods covered by the catalog."
+        },
+        "language": {
+          "type": ["null", "string", "array"],
+          "items": { "type": "string", "maxLength": 2 },
+          "description": "ISO 639-1 language code(s) used for catalog metadata text.",
+          "x-graphql-field-type": "String"
+        },
+        "license": {
+          "type": ["null", "string"],
+          "description": "License governing how the catalog can be used or reused.",
+          "x-graphql-field-type": "String"
+        },
+        "rights": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Rights statements about the catalog that are not covered by `license`."
+        },
+        "accessRights": {
+          "type": ["null", "string"],
+          "description": "Whether the catalog is publicly accessible, restricted, or not public.",
+          "x-graphql-field-type": "String"
+        },
+        "issued": {
+          "type": ["null", "string"],
+          "format": "date",
+          "description": "Date the catalog was formally issued (YYYY-MM-DD).",
+          "x-graphql-scalar": "Date"
+        },
+        "modified": {
+          "type": ["null", "string"],
+          "format": "date",
+          "description": "Most recent date the catalog content changed.",
+          "x-graphql-scalar": "Date"
+        },
+        "identifier": {
+          "type": ["null", "string"],
+          "description": "Main unique identifier for the catalog (URI or persistent ID).",
+          "x-graphql-field-type": "String"
+        },
+        "homepage": { "$ref": "#/$defs/Document", "description": "Main public web page for the catalog." },
+        "hasPart": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Catalog" },
+          "description": "List of catalogs contained within this catalog (for sub-catalogs)."
+        },
+        "conformsTo": {
+          "$ref": "#/$defs/Standard",
+          "description": "Standard, schema, profile, or model that this catalog follows."
+        },
+        "qualifiedAttribution": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Attribution" },
+          "description": "Agents with specific responsibilities for the catalog."
+        },
+        "record": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/CatalogRecord" },
+          "description": "Catalog records describing how each resource is registered."
+        },
+        "dataset": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Dataset" },
+          "description": "List of datasets included in the catalog (the geocontract sources).",
+          "x-graphql-field-non-null": true
+        },
+        "service": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/DataService" },
+          "description": "List of data services included in the catalog."
+        },
+        "datasetSeries": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/DatasetSeries" },
+          "description": "List of dataset series included in the catalog."
+        }
+      }
+    },
+    "Agent": {
+      "type": "object",
+      "description": "Person or organization with a role in producing, publishing, or curating the catalog.",
+      "x-graphql-type-name": "DcatAgent",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "Agent", "x-graphql-field-name": "type" },
+        "name": { "type": "string", "x-graphql-field-non-null": true },
+        "url": { "type": "string", "format": "uri" },
+        "identifier": { "type": "string" }
+      }
+    },
+    "Kind": {
+      "type": "object",
+      "description": "vCard-style contact information (kind).",
+      "x-graphql-type-name": "DcatContactPoint",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "Kind", "x-graphql-field-name": "type" },
+        "fn": { "type": "string", "description": "Formatted name." },
+        "hasEmail": { "type": "string", "format": "uri" },
+        "hasTelephone": { "type": "string" },
+        "hasURL": { "type": "string", "format": "uri" }
+      }
+    },
+    "Concept": {
+      "type": "object",
+      "description": "SKOS concept — a controlled-vocabulary term.",
+      "x-graphql-type-name": "DcatConcept",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "Concept", "x-graphql-field-name": "type" },
+        "prefLabel": { "type": "string" },
+        "definition": { "type": "string" }
+      }
+    },
+    "ConceptScheme": {
+      "type": "object",
+      "description": "SKOS concept scheme — a controlled vocabulary.",
+      "x-graphql-type-name": "DcatConceptScheme",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "ConceptScheme", "x-graphql-field-name": "type" },
+        "title": { "type": "string", "x-graphql-field-type": "String" },
+        "description": { "type": "string", "x-graphql-field-type": "String" }
+      }
+    },
+    "Location": {
+      "type": "object",
+      "description": "Geographic location / spatial coverage.",
+      "x-graphql-type-name": "DcatLocation",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "Location", "x-graphql-field-name": "type" },
+        "prefLabel": { "type": "string" },
+        "geometry": { "type": "object", "description": "GeoJSON-shaped geometry." }
+      }
+    },
+    "PeriodOfTime": {
+      "type": "object",
+      "description": "Temporal coverage interval.",
+      "x-graphql-type-name": "DcatPeriodOfTime",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "PeriodOfTime", "x-graphql-field-name": "type" },
+        "startDate": { "type": "string", "format": "date", "x-graphql-scalar": "Date" },
+        "endDate": { "type": "string", "format": "date", "x-graphql-scalar": "Date" }
+      }
+    },
+    "Document": {
+      "type": "object",
+      "description": "Web document / page.",
+      "x-graphql-type-name": "DcatDocument",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "Document", "x-graphql-field-name": "type" },
+        "title": { "type": "string", "x-graphql-field-type": "String" },
+        "accessURL": { "type": "string", "format": "uri" }
+      }
+    },
+    "Standard": {
+      "type": "object",
+      "description": "Standard, schema, or profile the catalog conforms to.",
+      "x-graphql-type-name": "DcatStandard",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "Standard", "x-graphql-field-name": "type" },
+        "title": { "type": "string", "x-graphql-field-type": "String" },
+        "description": { "type": "string", "x-graphql-field-type": "String" },
+        "version": { "type": "string" }
+      }
+    },
+    "Attribution": {
+      "type": "object",
+      "description": "PROV-style qualified attribution of an agent to a resource.",
+      "x-graphql-type-name": "DcatAttribution",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "Attribution", "x-graphql-field-name": "type" },
+        "agent": { "$ref": "#/$defs/Agent" },
+        "hadRole": {
+          "type": "string",
+          "description": "Role of the agent (free-text per DCAT-US).",
+          "x-graphql-field-type": "String"
+        }
+      }
+    },
+    "CatalogRecord": {
+      "type": "object",
+      "description": "Catalog record describing how a single resource is registered in the catalog.",
+      "x-graphql-type-name": "DcatCatalogRecord",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-federation-keys": [{ "fields": "id" }],
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "CatalogRecord", "x-graphql-field-name": "type" },
+        "title": { "type": "string", "x-graphql-field-type": "String" },
+        "description": { "type": "array", "items": { "type": "string" } },
+        "issued": { "type": "array", "items": { "type": "string" } },
+        "modified": {
+          "type": "string",
+          "format": "date",
+          "x-graphql-scalar": "Date",
+          "x-graphql-field-non-null": true
+        },
+        "primaryTopic": {
+          "type": "string",
+          "format": "iri",
+          "description": "IRI of the resource described by this record."
+        }
+      }
+    },
+    "Dataset": {
+      "type": "object",
+      "description": "A dataset catalogued under this catalog (one of the geocontract sources).",
+      "x-graphql-type-name": "DcatDataset",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-federation-keys": [{ "fields": "id" }],
+      "x-graphql-federation-shareable": true,
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "Dataset", "x-graphql-field-name": "type" },
+        "title": { "type": "string", "x-graphql-field-non-null": true, "x-graphql-field-type": "String" },
+        "description": { "type": "string", "x-graphql-field-non-null": true, "x-graphql-field-type": "String" },
+        "identifier": { "type": "string", "x-graphql-field-non-null": true },
+        "issued": { "type": "string", "format": "date", "x-graphql-scalar": "Date" },
+        "modified": { "type": "string", "format": "date", "x-graphql-scalar": "Date" },
+        "publisher": { "$ref": "#/$defs/Agent" },
+        "contactPoint": { "$ref": "#/$defs/Kind" },
+        "keyword": { "type": "array", "items": { "type": "string" }, "x-graphql-field-name": "keywords" },
+        "theme": { "type": "array", "items": { "$ref": "#/$defs/Concept" } },
+        "spatial": { "type": "array", "items": { "$ref": "#/$defs/Location" } },
+        "temporal": { "type": "array", "items": { "$ref": "#/$defs/PeriodOfTime" } },
+        "language": { "type": ["null", "string", "array"], "x-graphql-field-type": "String" },
+        "license": { "type": ["null", "string"], "x-graphql-field-type": "String" },
+        "rights": { "type": "array", "items": { "type": "string" } },
+        "accessRights": { "type": ["null", "string"], "x-graphql-field-type": "String" },
+        "conformsTo": { "type": "array", "items": { "$ref": "#/$defs/Standard" } },
+        "isPartOf": { "$ref": "#/$defs/Catalog" },
+        "distribution": { "type": "array", "items": { "$ref": "#/$defs/Distribution" } }
+      }
+    },
+    "Distribution": {
+      "type": "object",
+      "description": "A specific representation / downloadable form of a dataset.",
+      "x-graphql-type-name": "DcatDistribution",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "Distribution", "x-graphql-field-name": "type" },
+        "title": { "type": "string", "x-graphql-field-type": "String" },
+        "description": { "type": "string", "x-graphql-field-type": "String" },
+        "accessURL": { "type": "string", "format": "uri", "x-graphql-field-non-null": true },
+        "downloadURL": { "type": "string", "format": "uri" },
+        "mediaType": { "type": "string" },
+        "format": { "type": "string" },
+        "byteSize": { "type": ["null", "string"], "x-graphql-field-type": "String" }
+      }
+    },
+    "DataService": {
+      "type": "object",
+      "description": "A data service endpoint (REST API, GraphQL gateway, etc.).",
+      "x-graphql-type-name": "DcatDataService",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-federation-keys": [{ "fields": "id" }],
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "DataService", "x-graphql-field-name": "type" },
+        "title": { "type": "string", "x-graphql-field-non-null": true, "x-graphql-field-type": "String" },
+        "description": { "type": "string", "x-graphql-field-type": "String" },
+        "endpointURL": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" },
+          "x-graphql-field-non-null": true
+        },
+        "publisher": { "$ref": "#/$defs/Agent" },
+        "contactPoint": { "type": "array", "items": { "$ref": "#/$defs/Kind" } },
+        "servesDataset": { "type": "array", "items": { "$ref": "#/$defs/Dataset" } }
+      }
+    },
+    "DatasetSeries": {
+      "type": "object",
+      "description": "A grouping of datasets published as a series.",
+      "x-graphql-type-name": "DcatDatasetSeries",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-federation-keys": [{ "fields": "id" }],
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "@id": {
+          "type": "string",
+          "format": "iri",
+          "x-graphql-field-name": "id",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "@type": { "type": "string", "default": "DatasetSeries", "x-graphql-field-name": "type" },
+        "title": { "type": "string", "x-graphql-field-non-null": true, "x-graphql-field-type": "String" },
+        "description": { "type": "string", "x-graphql-field-type": "String" },
+        "seriesMember": { "type": "array", "items": { "$ref": "#/$defs/Dataset" } }
+      }
+    }
+  },
+  "x-graphql-scalars": {
+    "Date": { "description": "ISO 8601 calendar date (YYYY-MM-DD).", "serialize": "String" },
+    "IRI": { "description": "Internationalized Resource Identifier.", "serialize": "String" }
+  },
+  "x-graphql-operations": {
+    "queries": {
+      "dcatCatalog": {
+        "type": "DcatCatalog",
+        "description": "Fetch the geocontract catalog envelope (DCAT-US Catalog shape)."
+      },
+      "dcatDataset": {
+        "type": "DcatDataset",
+        "description": "Look up a single catalogued dataset by its @id IRI.",
+        "args": { "id": { "type": "ID!", "description": "@id IRI of the dataset." } }
+      },
+      "dcatDatasets": { "type": "[DcatDataset!]!", "description": "List all catalogued datasets." },
+      "dcatRecords": { "type": "[DcatCatalogRecord!]!", "description": "List all catalog records." },
+      "dcatServices": { "type": "[DcatDataService!]!", "description": "List all data services exposed by the catalog." }
+    }
+  }
+}

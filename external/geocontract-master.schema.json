@@ -1,0 +1,3322 @@
+{
+  "$defs": {
+    "AnyNonCollectionType": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "AnyType": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array"
+        },
+        {
+          "type": "object"
+        }
+      ]
+    },
+    "AuthoritativeDefinitions": {
+      "description": "List of links to sources that provide more details on the dataset; examples would be a link to an external definition, a training video, a git repo, data catalog, or another tool. Authoritative definitions follow the same structure in the standard.",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "description": "Description of the authoritative definition for humans.",
+            "type": "string"
+          },
+          "id": {
+            "$ref": "#/$defs/StableId"
+          },
+          "type": {
+            "description": "Type of definition for authority: v2.3 adds standard values: `businessDefinition`, `transformationImplementation`, `videoTutorial`, `tutorial`, and `implementation`.",
+            "examples": [
+              "businessDefinition",
+              "transformationImplementation",
+              "videoTutorial",
+              "tutorial",
+              "implementation"
+            ],
+            "type": "string"
+          },
+          "url": {
+            "description": "URL to the authority.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "type"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "CustomProperties": {
+      "description": "A list of key/value pairs for custom properties.",
+      "items": {
+        "$ref": "#/$defs/CustomProperty"
+      },
+      "type": "array"
+    },
+    "CustomProperty": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "description": "Description of the custom property.",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/StableId"
+        },
+        "property": {
+          "description": "The name of the key. Names should be in camel case\u2013the same as if they were permanent properties in the contract.",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/AnyType",
+          "description": "The value of the key."
+        }
+      },
+      "required": [
+        "property",
+        "value"
+      ],
+      "type": "object"
+    },
+    "DataQuality": {
+      "allOf": [
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "type": {
+                    "const": "library"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "properties": {
+                  "metric": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "metric"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/DataQualityLibrary"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "sql"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/DataQualitySql"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "custom"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/DataQualityCustom"
+          }
+        }
+      ],
+      "properties": {
+        "authoritativeDefinitions": {
+          "$ref": "#/$defs/AuthoritativeDefinitions"
+        },
+        "businessImpact": {
+          "description": "Consequences of the rule failure.",
+          "examples": [
+            "operational",
+            "regulatory"
+          ],
+          "type": "string"
+        },
+        "customProperties": {
+          "description": "Additional properties required for rule execution.",
+          "items": {
+            "$ref": "#/$defs/CustomProperty"
+          },
+          "type": "array"
+        },
+        "description": {
+          "description": "Describe the quality check to be completed.",
+          "type": "string"
+        },
+        "dimension": {
+          "description": "The key performance indicator (KPI) or dimension for data quality.",
+          "enum": [
+            "accuracy",
+            "completeness",
+            "conformity",
+            "consistency",
+            "coverage",
+            "timeliness",
+            "uniqueness"
+          ],
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/StableId"
+        },
+        "method": {
+          "examples": [
+            "reconciliation"
+          ],
+          "type": "string"
+        },
+        "name": {
+          "description": "Name of the data quality check.",
+          "type": "string"
+        },
+        "schedule": {
+          "description": "Rule execution schedule details.",
+          "examples": [
+            "0 20 * * *"
+          ],
+          "type": "string"
+        },
+        "scheduler": {
+          "description": "The name or type of scheduler used to start the data quality check.",
+          "examples": [
+            "cron"
+          ],
+          "type": "string"
+        },
+        "severity": {
+          "description": "The severance of the quality rule.",
+          "examples": [
+            "info",
+            "warning",
+            "error"
+          ],
+          "type": "string"
+        },
+        "tags": {
+          "$ref": "#/$defs/Tags"
+        },
+        "type": {
+          "default": "library",
+          "description": "The type of quality check. 'text' is human-readable text that describes the quality of the data. 'library' is a set of maintained predefined quality attributes such as row count or unique. 'sql' is an individual SQL query that returns a value that can be compared. 'custom' is quality attributes that are vendor-specific, such as Soda or Great Expectations.",
+          "enum": [
+            "text",
+            "library",
+            "sql",
+            "custom"
+          ],
+          "type": "string"
+        },
+        "unit": {
+          "description": "Unit the rule is using, popular values are `rows` or `percent`, but any value is allowed.",
+          "examples": [
+            "rows",
+            "percent"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "DataQualityChecks": {
+      "description": "Data quality rules with all the relevant information for rule setup and execution.",
+      "items": {
+        "$ref": "#/$defs/DataQuality"
+      },
+      "type": "array"
+    },
+    "DataQualityCustom": {
+      "properties": {
+        "engine": {
+          "description": "Name of the engine which executes the data quality checks.",
+          "examples": [
+            "soda",
+            "great-expectations",
+            "monte-carlo",
+            "dbt"
+          ],
+          "type": "string"
+        },
+        "implementation": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "required": [
+        "engine",
+        "implementation"
+      ],
+      "type": "object"
+    },
+    "DataQualityLibrary": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/DataQualityOperators"
+        }
+      ],
+      "properties": {
+        "arguments": {
+          "description": "Additional arguments for the metric, if needed.",
+          "type": "object"
+        },
+        "metric": {
+          "description": "Define a data quality check based on the predefined metrics as per ODCS.",
+          "enum": [
+            "nullValues",
+            "missingValues",
+            "invalidValues",
+            "duplicateValues",
+            "rowCount"
+          ],
+          "type": "string"
+        },
+        "rule": {
+          "deprecated": true,
+          "description": "Use metric instead",
+          "type": "string"
+        }
+      },
+      "required": [
+        "metric"
+      ],
+      "type": "object"
+    },
+    "DataQualityOperators": {
+      "description": "Common comparison operators for data quality checks.",
+      "oneOf": [
+        {
+          "properties": {
+            "mustBe": {
+              "description": "Must be equal to the value to be valid. When using numbers, it is equivalent to '='."
+            }
+          },
+          "required": [
+            "mustBe"
+          ]
+        },
+        {
+          "properties": {
+            "mustNotBe": {
+              "description": "Must not be equal to the value to be valid. When using numbers, it is equivalent to '!='."
+            }
+          },
+          "required": [
+            "mustNotBe"
+          ]
+        },
+        {
+          "properties": {
+            "mustBeGreaterThan": {
+              "description": "Must be greater than the value to be valid. It is equivalent to '>'.",
+              "type": "number"
+            }
+          },
+          "required": [
+            "mustBeGreaterThan"
+          ]
+        },
+        {
+          "properties": {
+            "mustBeGreaterOrEqualTo": {
+              "description": "Must be greater than or equal to the value to be valid. It is equivalent to '>='.",
+              "type": "number"
+            }
+          },
+          "required": [
+            "mustBeGreaterOrEqualTo"
+          ]
+        },
+        {
+          "properties": {
+            "mustBeLessThan": {
+              "description": "Must be less than the value to be valid. It is equivalent to '<'.",
+              "type": "number"
+            }
+          },
+          "required": [
+            "mustBeLessThan"
+          ]
+        },
+        {
+          "properties": {
+            "mustBeLessOrEqualTo": {
+              "description": "Must be less than or equal to the value to be valid. It is equivalent to '<='.",
+              "type": "number"
+            }
+          },
+          "required": [
+            "mustBeLessOrEqualTo"
+          ]
+        },
+        {
+          "properties": {
+            "mustBeBetween": {
+              "description": "Must be between the two numbers to be valid. Smallest number first in the array.",
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array",
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "mustBeBetween"
+          ]
+        },
+        {
+          "properties": {
+            "mustNotBeBetween": {
+              "description": "Must not be between the two numbers to be valid. Smallest number first in the array.",
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array",
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "mustNotBeBetween"
+          ]
+        }
+      ],
+      "type": "object"
+    },
+    "DataQualitySql": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/DataQualityOperators"
+        }
+      ],
+      "properties": {
+        "query": {
+          "description": "Query string that adheres to the dialect of the provided server.",
+          "examples": [
+            "SELECT COUNT(*) FROM ${table} WHERE ${column} IS NOT NULL"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "type": "object"
+    },
+    "FullyQualifiedReference": {
+      "description": "Fully qualified notation using id fields (section/id/properties/id), optionally prefixed with external file reference",
+      "pattern": "^(?:(?:https?:\\/\\/)?[A-Za-z0-9._\\-\\/]+\\.yaml#)?\\/?[A-Za-z_][A-Za-z0-9_]*\\/[A-Za-z0-9_-]+(?:\\/[A-Za-z_][A-Za-z0-9_]*\\/[A-Za-z0-9_-]+)*$",
+      "type": "string"
+    },
+    "Pricing": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/StableId"
+        },
+        "priceAmount": {
+          "description": "Subscription price per unit of measure in `priceUnit`.",
+          "type": "number"
+        },
+        "priceCurrency": {
+          "description": "Currency of the subscription price in `price.priceAmount`.",
+          "type": "string"
+        },
+        "priceUnit": {
+          "description": "The unit of measure for calculating cost. Examples megabyte, gigabyte.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Relationship": {
+      "description": "Compatibility wrapper for relationship definitions.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/RelationshipSchemaLevel"
+        },
+        {
+          "$ref": "#/$defs/RelationshipPropertyLevel"
+        }
+      ]
+    },
+    "RelationshipBase": {
+      "description": "Base definition for relationships between properties, typically for foreign key constraints.",
+      "properties": {
+        "customProperties": {
+          "$ref": "#/$defs/CustomProperties"
+        },
+        "from": {
+          "description": "Source property or properties.",
+          "oneOf": [
+            {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ShorthandReference"
+                },
+                {
+                  "$ref": "#/$defs/FullyQualifiedReference"
+                }
+              ],
+              "description": "Source property reference using fully qualified or shorthand notation."
+            },
+            {
+              "description": "Array of source properties for composite keys.",
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ShorthandReference"
+                  },
+                  {
+                    "$ref": "#/$defs/FullyQualifiedReference"
+                  }
+                ]
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "to": {
+          "description": "Target property or properties to reference.",
+          "oneOf": [
+            {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ShorthandReference"
+                },
+                {
+                  "$ref": "#/$defs/FullyQualifiedReference"
+                }
+              ],
+              "description": "Target property reference using fully qualified or shorthand notation."
+            },
+            {
+              "description": "Array of target properties for composite keys.",
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ShorthandReference"
+                  },
+                  {
+                    "$ref": "#/$defs/FullyQualifiedReference"
+                  }
+                ]
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "type": {
+          "default": "foreignKey",
+          "description": "The type of relationship. Defaults to 'foreignKey'.",
+          "enum": [
+            "foreignKey"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "RelationshipPropertyLevel": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/RelationshipBase"
+        },
+        {
+          "required": [
+            "to"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "The 'from' field must not be specified at property level as it is implicitly derived from the property context",
+          "not": {
+            "required": [
+              "from"
+            ]
+          }
+        }
+      ],
+      "description": "Relationship definition at property level, where 'from' is implicitly the current property.",
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "RelationshipSchemaLevel": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/RelationshipBase"
+        },
+        {
+          "required": [
+            "from",
+            "to"
+          ]
+        },
+        {
+          "oneOf": [
+            {
+              "description": "Single-column relationship - both fields must be strings",
+              "properties": {
+                "from": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "description": "Composite key relationship - both fields must be arrays with matching lengths",
+              "properties": {
+                "from": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "to": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Relationship definition at schema level, requiring both 'from' and 'to' fields with matching types.",
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "Role": {
+      "additionalProperties": false,
+      "properties": {
+        "access": {
+          "description": "The type of access provided by the IAM role.",
+          "type": "string"
+        },
+        "customProperties": {
+          "$ref": "#/$defs/CustomProperties"
+        },
+        "description": {
+          "description": "Description of the IAM role and its permissions.",
+          "type": "string"
+        },
+        "firstLevelApprovers": {
+          "description": "The name(s) of the first-level approver(s) of the role.",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/StableId"
+        },
+        "role": {
+          "description": "Name of the IAM role that provides access to the dataset.",
+          "type": "string"
+        },
+        "secondLevelApprovers": {
+          "description": "The name(s) of the second-level approver(s) of the role.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role"
+      ],
+      "type": "object"
+    },
+    "SchemaBaseProperty": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/SchemaElement"
+        },
+        {
+          "if": {
+            "properties": {
+              "logicalType": {
+                "const": "string"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "logicalTypeOptions": {
+                "additionalProperties": false,
+                "properties": {
+                  "format": {
+                    "description": "Provides extra context about what format the string follows.",
+                    "examples": [
+                      "password",
+                      "byte",
+                      "binary",
+                      "email",
+                      "uuid",
+                      "uri",
+                      "hostname",
+                      "ipv4",
+                      "ipv6"
+                    ],
+                    "type": "string"
+                  },
+                  "maxLength": {
+                    "description": "Maximum length of the string.",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "minLength": {
+                    "description": "Minimum length of the string.",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "pattern": {
+                    "description": "Regular expression pattern to define valid value. Follows regular expression syntax from ECMA-262 (https://262.ecma-international.org/5.1/#sec-15.10.1).",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "logicalType": {
+                "const": "date"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "logicalTypeOptions": {
+                "additionalProperties": false,
+                "properties": {
+                  "exclusiveMaximum": {
+                    "description": "All values must be strictly less than this value (values < exclusiveMaximum).",
+                    "type": "string"
+                  },
+                  "exclusiveMinimum": {
+                    "description": "All values must be strictly greater than this value (values > exclusiveMinimum).",
+                    "type": "string"
+                  },
+                  "format": {
+                    "description": "Format of the date. Follows the format as prescribed by [JDK DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html). For example, format 'yyyy-MM-dd'.",
+                    "examples": [
+                      "yyyy-MM-dd",
+                      "yyyy-MM-dd HH:mm:ss",
+                      "HH:mm:ss"
+                    ],
+                    "type": "string"
+                  },
+                  "maximum": {
+                    "description": "All date values are less than or equal to this value (values <= maximum).",
+                    "type": "string"
+                  },
+                  "minimum": {
+                    "description": "All date values are greater than or equal to this value (values >= minimum).",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "logicalType": {
+                    "const": "timestamp"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "logicalType": {
+                    "const": "time"
+                  }
+                }
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "logicalTypeOptions": {
+                "additionalProperties": false,
+                "properties": {
+                  "defaultTimezone": {
+                    "default": "Etc/UTC",
+                    "description": "The default timezone of the timestamp. If timezone is not defined, the default timezone UTC is used.",
+                    "type": "string"
+                  },
+                  "exclusiveMaximum": {
+                    "description": "All values must be strictly less than this value (values < exclusiveMaximum).",
+                    "type": "string"
+                  },
+                  "exclusiveMinimum": {
+                    "description": "All values must be strictly greater than this value (values > exclusiveMinimum).",
+                    "type": "string"
+                  },
+                  "format": {
+                    "description": "Format of the date. Follows the format as prescribed by [JDK DateTimeFormatter](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html). For example, format 'yyyy-MM-dd'.",
+                    "examples": [
+                      "yyyy-MM-dd",
+                      "yyyy-MM-dd HH:mm:ss",
+                      "HH:mm:ss"
+                    ],
+                    "type": "string"
+                  },
+                  "maximum": {
+                    "description": "All date values are less than or equal to this value (values <= maximum).",
+                    "type": "string"
+                  },
+                  "minimum": {
+                    "description": "All date values are greater than or equal to this value (values >= minimum).",
+                    "type": "string"
+                  },
+                  "timezone": {
+                    "description": "Whether the timestamp defines the timezone or not. If true, timezone information is included in the timestamp.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "logicalType": {
+                    "const": "integer"
+                  }
+                }
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "logicalTypeOptions": {
+                "additionalProperties": false,
+                "properties": {
+                  "exclusiveMaximum": {
+                    "description": "All values must be strictly less than this value (values < exclusiveMaximum).",
+                    "type": "number"
+                  },
+                  "exclusiveMinimum": {
+                    "description": "All values must be strictly greater than this value (values > exclusiveMinimum).",
+                    "type": "number"
+                  },
+                  "format": {
+                    "default": "i32",
+                    "description": "Format of the value in terms of how many bits of space it can use and whether it is signed or unsigned (follows the Rust integer types).",
+                    "enum": [
+                      "i8",
+                      "i16",
+                      "i32",
+                      "i64",
+                      "i128",
+                      "u8",
+                      "u16",
+                      "u32",
+                      "u64",
+                      "u128"
+                    ],
+                    "type": "string"
+                  },
+                  "maximum": {
+                    "description": "All values are less than or equal to this value (values <= maximum).",
+                    "type": "number"
+                  },
+                  "minimum": {
+                    "description": "All values are greater than or equal to this value (values >= minimum).",
+                    "type": "number"
+                  },
+                  "multipleOf": {
+                    "description": "Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.",
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "logicalType": {
+                    "const": "number"
+                  }
+                }
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "logicalTypeOptions": {
+                "additionalProperties": false,
+                "properties": {
+                  "exclusiveMaximum": {
+                    "description": "All values must be strictly less than this value (values < exclusiveMaximum).",
+                    "type": "number"
+                  },
+                  "exclusiveMinimum": {
+                    "description": "All values must be strictly greater than this value (values > exclusiveMinimum).",
+                    "type": "number"
+                  },
+                  "format": {
+                    "default": "i32",
+                    "description": "Format of the value in terms of how many bits of space it can use (follows the Rust float types).",
+                    "enum": [
+                      "f32",
+                      "f64"
+                    ],
+                    "type": "string"
+                  },
+                  "maximum": {
+                    "description": "All values are less than or equal to this value (values <= maximum).",
+                    "type": "number"
+                  },
+                  "minimum": {
+                    "description": "All values are greater than or equal to this value (values >= minimum).",
+                    "type": "number"
+                  },
+                  "multipleOf": {
+                    "description": "Values must be multiples of this number. For example, multiple of 5 has valid values 0, 5, 10, -5.",
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "logicalType": {
+                "const": "object"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "logicalTypeOptions": {
+                "additionalProperties": false,
+                "properties": {
+                  "maxProperties": {
+                    "description": "Maximum number of properties.",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "minProperties": {
+                    "default": 0,
+                    "description": "Minimum number of properties.",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "required": {
+                    "description": "Property names that are required to exist in the object.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "type": "array",
+                    "uniqueItems": true
+                  }
+                },
+                "type": "object"
+              },
+              "properties": {
+                "description": "A list of properties for the object.",
+                "items": {
+                  "$ref": "#/$defs/SchemaProperty"
+                },
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "logicalType": {
+                "const": "array"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "items": {
+                "$ref": "#/$defs/SchemaItemProperty",
+                "description": "List of items in an array (only applicable when `logicalType: array`)."
+              },
+              "logicalTypeOptions": {
+                "additionalProperties": false,
+                "properties": {
+                  "maxItems": {
+                    "description": "Maximum number of items.",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "minItems": {
+                    "default": 0,
+                    "description": "Minimum number of items",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "uniqueItems": {
+                    "default": false,
+                    "description": "If set to true, all items in the array are unique.",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "classification": {
+          "description": "Can be anything, like confidential, restricted, and public to more advanced categorization. Some companies like PayPal, use data classification indicating the class of data in the element; expected values are 1, 2, 3, 4, or 5.",
+          "examples": [
+            "confidential",
+            "restricted",
+            "public"
+          ],
+          "type": "string"
+        },
+        "criticalDataElement": {
+          "default": false,
+          "description": "True or false indicator; If element is considered a critical data element (CDE) then true else false.",
+          "type": "boolean"
+        },
+        "encryptedName": {
+          "description": "The element name within the dataset that contains the encrypted element value. For example, unencrypted element `email_address` might have an encryptedName of `email_address_encrypt`.",
+          "type": "string"
+        },
+        "examples": {
+          "description": "List of sample element values.",
+          "items": {
+            "$ref": "#/$defs/AnyType"
+          },
+          "type": "array"
+        },
+        "logicalType": {
+          "description": "The logical element data type.",
+          "enum": [
+            "string",
+            "date",
+            "timestamp",
+            "time",
+            "number",
+            "integer",
+            "object",
+            "array",
+            "boolean"
+          ],
+          "type": "string"
+        },
+        "logicalTypeOptions": {
+          "description": "Additional optional metadata to describe the logical type.",
+          "type": "object"
+        },
+        "partitionKeyPosition": {
+          "default": -1,
+          "description": "If element is used for partitioning, the position of the partition element. Starts from 1. Example of `country, year` being partition columns, `country` has partitionKeyPosition 1 and `year` partitionKeyPosition 2. Default to -1.",
+          "type": "integer"
+        },
+        "partitioned": {
+          "default": false,
+          "description": "Indicates if the element is partitioned; possible values are true and false.",
+          "type": "boolean"
+        },
+        "physicalName": {
+          "description": "Physical name.",
+          "examples": [
+            "col_str_a"
+          ],
+          "type": "string"
+        },
+        "physicalType": {
+          "description": "The physical element data type in the data source. For example, VARCHAR(2), DOUBLE, INT.",
+          "type": "string"
+        },
+        "primaryKey": {
+          "description": "Boolean value specifying whether the element is primary or not. Default is false.",
+          "type": "boolean"
+        },
+        "primaryKeyPosition": {
+          "default": -1,
+          "description": "If element is a primary key, the position of the primary key element. Starts from 1. Example of `account_id, name` being primary key columns, `account_id` has primaryKeyPosition 1 and `name` primaryKeyPosition 2. Default to -1.",
+          "type": "integer"
+        },
+        "quality": {
+          "$ref": "#/$defs/DataQualityChecks"
+        },
+        "relationships": {
+          "description": "A list of relationships to other properties. When defined at property level, the 'from' field is implicit and should not be specified.",
+          "items": {
+            "$ref": "#/$defs/RelationshipPropertyLevel"
+          },
+          "type": "array"
+        },
+        "required": {
+          "default": false,
+          "description": "Indicates if the element may contain Null values; possible values are true and false. Default is false.",
+          "type": "boolean"
+        },
+        "transformDescription": {
+          "description": "Describes the transform logic in very simple terms.",
+          "type": "string"
+        },
+        "transformLogic": {
+          "description": "Logic used in the element transformation.",
+          "type": "string"
+        },
+        "transformSourceObjects": {
+          "description": "List of objects in the data source used in the transformation.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "unique": {
+          "default": false,
+          "description": "Indicates if the element contains unique values; possible values are true and false. Default is false.",
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "SchemaElement": {
+      "properties": {
+        "authoritativeDefinitions": {
+          "$ref": "#/$defs/AuthoritativeDefinitions"
+        },
+        "businessName": {
+          "description": "The business name of the element.",
+          "type": "string"
+        },
+        "customProperties": {
+          "$ref": "#/$defs/CustomProperties"
+        },
+        "description": {
+          "description": "Description of the element.",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/StableId"
+        },
+        "name": {
+          "description": "Name of the element.",
+          "type": "string"
+        },
+        "physicalType": {
+          "description": "The physical element data type in the data source.",
+          "examples": [
+            "table",
+            "view",
+            "topic",
+            "file"
+          ],
+          "type": "string"
+        },
+        "tags": {
+          "$ref": "#/$defs/Tags"
+        }
+      },
+      "type": "object"
+    },
+    "SchemaItemProperty": {
+      "$ref": "#/$defs/SchemaBaseProperty",
+      "properties": {
+        "properties": {
+          "description": "A list of properties for the object.",
+          "items": {
+            "$ref": "#/$defs/SchemaProperty"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "SchemaObject": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/SchemaElement"
+        }
+      ],
+      "properties": {
+        "dataGranularityDescription": {
+          "description": "Granular level of the data in the object.",
+          "examples": [
+            "Aggregation by country"
+          ],
+          "type": "string"
+        },
+        "logicalType": {
+          "description": "The logical element data type.",
+          "enum": [
+            "object"
+          ],
+          "type": "string"
+        },
+        "physicalName": {
+          "description": "Physical name.",
+          "examples": [
+            "table_1_2_0"
+          ],
+          "type": "string"
+        },
+        "properties": {
+          "description": "A list of properties for the object.",
+          "items": {
+            "$ref": "#/$defs/SchemaProperty"
+          },
+          "type": "array"
+        },
+        "quality": {
+          "$ref": "#/$defs/DataQualityChecks"
+        },
+        "relationships": {
+          "description": "A list of relationships to other properties. Each relationship must have 'from', 'to' and optionally 'type' field.",
+          "items": {
+            "$ref": "#/$defs/RelationshipSchemaLevel"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "SchemaProperty": {
+      "$ref": "#/$defs/SchemaBaseProperty",
+      "required": [
+        "name"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "Server": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "api"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/ApiServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "athena"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/AthenaServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "azure"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/AzureServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "bigquery"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/BigQueryServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "clickhouse"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/ClickHouseServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "databricks"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/DatabricksServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "denodo"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/DenodoServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "dremio"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/DremioServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "duckdb"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/DuckdbServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "glue"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/GlueServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "cloudsql"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/GoogleCloudSqlServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "db2"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/IBMDB2Server"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "hive"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/HiveServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "impala"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/ImpalaServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "informix"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/InformixServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "zen"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/ZenServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "custom"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/CustomServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "kafka"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/KafkaServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "kinesis"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/KinesisServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "local"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/LocalServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "mysql"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/MySqlServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "oracle"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/OracleServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "postgresql"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/PostgresServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "postgres"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/PostgresServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "presto"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/PrestoServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "pubsub"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/PubSubServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "redshift"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/RedshiftServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "s3"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/S3Server"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "sftp"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/SftpServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "snowflake"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/SnowflakeServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "sqlserver"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/SqlserverServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "synapse"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/SynapseServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "trino"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/TrinoServer"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "vertica"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ServerSource/VerticaServer"
+          }
+        }
+      ],
+      "description": "Data source details of where data is physically stored.",
+      "properties": {
+        "customProperties": {
+          "$ref": "#/$defs/CustomProperties"
+        },
+        "description": {
+          "description": "Description of the server.",
+          "type": "string"
+        },
+        "environment": {
+          "description": "Environment of the server.",
+          "examples": [
+            "prod",
+            "preprod",
+            "dev",
+            "uat"
+          ],
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/StableId"
+        },
+        "roles": {
+          "description": "List of roles that have access to the server.",
+          "items": {
+            "$ref": "#/$defs/Role"
+          },
+          "type": "array"
+        },
+        "server": {
+          "description": "Identifier of the server.",
+          "type": "string"
+        },
+        "type": {
+          "description": "Type of the server.",
+          "enum": [
+            "api",
+            "athena",
+            "azure",
+            "bigquery",
+            "clickhouse",
+            "databricks",
+            "denodo",
+            "dremio",
+            "duckdb",
+            "glue",
+            "cloudsql",
+            "db2",
+            "hive",
+            "impala",
+            "informix",
+            "kafka",
+            "kinesis",
+            "local",
+            "mysql",
+            "oracle",
+            "postgresql",
+            "postgres",
+            "presto",
+            "pubsub",
+            "redshift",
+            "s3",
+            "sftp",
+            "snowflake",
+            "sqlserver",
+            "synapse",
+            "trino",
+            "vertica",
+            "zen",
+            "custom"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "server",
+        "type"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "ServerSource": {
+      "ApiServer": {
+        "properties": {
+          "location": {
+            "description": "The url to the API.",
+            "examples": [
+              "https://api.example.com/v1"
+            ],
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "title": "AthenaServer",
+        "type": "object"
+      },
+      "AthenaServer": {
+        "properties": {
+          "catalog": {
+            "default": "awsdatacatalog",
+            "description": "Identify the name of the Data Source, also referred to as a Catalog.",
+            "type": "string"
+          },
+          "regionName": {
+            "description": "The region your AWS account uses.",
+            "examples": [
+              "eu-west-1"
+            ],
+            "type": "string"
+          },
+          "schema": {
+            "description": "Identify the schema in the data source in which your tables exist.",
+            "type": "string"
+          },
+          "stagingDir": {
+            "description": "Amazon Athena automatically stores query results and metadata information for each query that runs in a query result location that you can specify in Amazon S3.",
+            "examples": [
+              "s3://my_storage_account_name/my_container/path"
+            ],
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stagingDir",
+          "schema"
+        ],
+        "title": "AthenaServer",
+        "type": "object"
+      },
+      "AzureServer": {
+        "properties": {
+          "delimiter": {
+            "description": "Only for format = json. How multiple json documents are delimited within one file",
+            "examples": [
+              "new_line",
+              "array"
+            ],
+            "type": "string"
+          },
+          "format": {
+            "description": "File format.",
+            "examples": [
+              "parquet",
+              "delta",
+              "json",
+              "csv"
+            ],
+            "type": "string"
+          },
+          "location": {
+            "description": "Fully qualified path to Azure Blob Storage or Azure Data Lake Storage (ADLS), supports globs.",
+            "examples": [
+              "az://my_storage_account_name.blob.core.windows.net/my_container/path/*.parquet",
+              "abfss://my_storage_account_name.dfs.core.windows.net/my_container_name/path/*.parquet"
+            ],
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "location",
+          "format"
+        ],
+        "title": "AzureServer",
+        "type": "object"
+      },
+      "BigQueryServer": {
+        "properties": {
+          "dataset": {
+            "description": "The GCP dataset name.",
+            "type": "string"
+          },
+          "project": {
+            "description": "The GCP project name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project",
+          "dataset"
+        ],
+        "title": "BigQueryServer",
+        "type": "object"
+      },
+      "ClickHouseServer": {
+        "properties": {
+          "database": {
+            "description": "The name of the database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The host of the ClickHouse server.",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port to the ClickHouse server.",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "database"
+        ],
+        "title": "ClickHouseServer",
+        "type": "object"
+      },
+      "CustomServer": {
+        "properties": {
+          "account": {
+            "description": "Account used by the server.",
+            "type": "string"
+          },
+          "catalog": {
+            "description": "Name of the catalog.",
+            "type": "string"
+          },
+          "database": {
+            "description": "Name of the database.",
+            "type": "string"
+          },
+          "dataset": {
+            "description": "Name of the dataset.",
+            "type": "string"
+          },
+          "delimiter": {
+            "description": "Delimiter.",
+            "type": "string"
+          },
+          "endpointUrl": {
+            "description": "Server endpoint.",
+            "format": "uri",
+            "type": "string"
+          },
+          "format": {
+            "description": "File format.",
+            "type": "string"
+          },
+          "host": {
+            "description": "Host name or IP address.",
+            "type": "string"
+          },
+          "location": {
+            "description": "A URL to a location.",
+            "format": "uri",
+            "type": "string"
+          },
+          "path": {
+            "description": "Relative or absolute path to the data file(s).",
+            "type": "string"
+          },
+          "port": {
+            "description": "Port to the server. No default value is assumed for custom servers.",
+            "type": "integer"
+          },
+          "project": {
+            "description": "Project name.",
+            "type": "string"
+          },
+          "region": {
+            "description": "Cloud region.",
+            "type": "string"
+          },
+          "regionName": {
+            "description": "Region name.",
+            "type": "string"
+          },
+          "schema": {
+            "description": "Name of the schema.",
+            "type": "string"
+          },
+          "serviceName": {
+            "description": "Name of the service.",
+            "type": "string"
+          },
+          "stagingDir": {
+            "description": "Staging directory.",
+            "type": "string"
+          },
+          "stream": {
+            "description": "Name of the data stream.",
+            "type": "string"
+          },
+          "warehouse": {
+            "description": "Name of the cluster or warehouse.",
+            "type": "string"
+          }
+        },
+        "title": "CustomServer",
+        "type": "object"
+      },
+      "DatabricksServer": {
+        "properties": {
+          "catalog": {
+            "description": "The name of the Hive or Unity catalog",
+            "type": "string"
+          },
+          "host": {
+            "description": "The Databricks host",
+            "examples": [
+              "dbc-abcdefgh-1234.cloud.databricks.com"
+            ],
+            "type": "string"
+          },
+          "schema": {
+            "description": "The schema name in the catalog",
+            "type": "string"
+          }
+        },
+        "required": [
+          "catalog",
+          "schema"
+        ],
+        "title": "DatabricksServer",
+        "type": "object"
+      },
+      "DenodoServer": {
+        "properties": {
+          "database": {
+            "description": "The name of the database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The host of the Denodo server.",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port of the Denodo server.",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "host",
+          "port"
+        ],
+        "title": "DenodoServer",
+        "type": "object"
+      },
+      "DremioServer": {
+        "properties": {
+          "host": {
+            "description": "The host of the Dremio server.",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port of the Dremio server.",
+            "type": "integer"
+          },
+          "schema": {
+            "description": "The name of the schema.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "host",
+          "port"
+        ],
+        "title": "DremioServer",
+        "type": "object"
+      },
+      "DuckdbServer": {
+        "properties": {
+          "database": {
+            "description": "Path to duckdb database file.",
+            "type": "string"
+          },
+          "schema": {
+            "description": "The name of the schema.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "database"
+        ],
+        "title": "DuckdbServer",
+        "type": "object"
+      },
+      "GlueServer": {
+        "properties": {
+          "account": {
+            "description": "The AWS Glue account",
+            "examples": [
+              "1234-5678-9012"
+            ],
+            "type": "string"
+          },
+          "database": {
+            "description": "The AWS Glue database name",
+            "examples": [
+              "my_database"
+            ],
+            "type": "string"
+          },
+          "format": {
+            "description": "The format of the files",
+            "examples": [
+              "parquet",
+              "csv",
+              "json",
+              "delta"
+            ],
+            "type": "string"
+          },
+          "location": {
+            "description": "The AWS S3 path. Must be in the form of a URL.",
+            "examples": [
+              "s3://datacontract-example-orders-latest/data/{model}"
+            ],
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "account",
+          "database"
+        ],
+        "title": "GlueServer",
+        "type": "object"
+      },
+      "GoogleCloudSqlServer": {
+        "properties": {
+          "database": {
+            "description": "The name of the database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The host of the Google Cloud Sql server.",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port of the Google Cloud Sql server.",
+            "type": "integer"
+          },
+          "schema": {
+            "description": "The name of the schema.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "database",
+          "schema"
+        ],
+        "title": "GoogleCloudSqlServer",
+        "type": "object"
+      },
+      "HiveServer": {
+        "properties": {
+          "database": {
+            "description": "The name of the Hive database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The host to the Hive server. ",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port to the Hive server. Defaults to 10000.",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "host",
+          "database"
+        ],
+        "title": "HiveServer",
+        "type": "object"
+      },
+      "IBMDB2Server": {
+        "properties": {
+          "database": {
+            "description": "The name of the database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The host of the IBM DB2 server.",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port of the IBM DB2 server.",
+            "type": "integer"
+          },
+          "schema": {
+            "description": "The name of the schema.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "database"
+        ],
+        "title": "IBMDB2Server",
+        "type": "object"
+      },
+      "ImpalaServer": {
+        "properties": {
+          "database": {
+            "description": "The name of the Impala database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The host to the Impala server.",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port to the Impala server. Defaults to 21050.",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "host",
+          "database"
+        ],
+        "title": "ImpalaServer",
+        "type": "object"
+      },
+      "InformixServer": {
+        "properties": {
+          "database": {
+            "description": "The name of the database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The host to the Informix server. ",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port to the Informix server. Defaults to 9088.",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "host",
+          "database"
+        ],
+        "title": "InformixServer",
+        "type": "object"
+      },
+      "KafkaServer": {
+        "description": "Kafka Server",
+        "properties": {
+          "format": {
+            "default": "json",
+            "description": "The format of the messages.",
+            "examples": [
+              "json",
+              "avro",
+              "protobuf",
+              "xml"
+            ],
+            "type": "string"
+          },
+          "host": {
+            "description": "The bootstrap server of the kafka cluster.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "host"
+        ],
+        "title": "KafkaServer",
+        "type": "object"
+      },
+      "KinesisServer": {
+        "description": "Kinesis Data Streams Server",
+        "properties": {
+          "format": {
+            "description": "The format of the record",
+            "examples": [
+              "json",
+              "avro",
+              "protobuf"
+            ],
+            "type": "string"
+          },
+          "region": {
+            "description": "AWS region.",
+            "examples": [
+              "eu-west-1"
+            ],
+            "type": "string"
+          }
+        },
+        "title": "KinesisDataStreamsServer",
+        "type": "object"
+      },
+      "LocalServer": {
+        "properties": {
+          "format": {
+            "description": "The format of the file(s)",
+            "examples": [
+              "json",
+              "parquet",
+              "delta",
+              "csv"
+            ],
+            "type": "string"
+          },
+          "path": {
+            "description": "The relative or absolute path to the data file(s).",
+            "examples": [
+              "./folder/data.parquet",
+              "./folder/*.parquet"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "format"
+        ],
+        "title": "LocalServer",
+        "type": "object"
+      },
+      "MySqlServer": {
+        "properties": {
+          "database": {
+            "description": "The name of the database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The host of the MySql server.",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port of the MySql server.",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "database"
+        ],
+        "title": "MySqlServer",
+        "type": "object"
+      },
+      "OracleServer": {
+        "properties": {
+          "host": {
+            "description": "The host to the oracle server",
+            "examples": [
+              "localhost"
+            ],
+            "type": "string"
+          },
+          "port": {
+            "description": "The port to the oracle server.",
+            "examples": [
+              1523
+            ],
+            "type": "integer"
+          },
+          "serviceName": {
+            "description": "The name of the service.",
+            "examples": [
+              "service"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "serviceName"
+        ],
+        "title": "OracleServer",
+        "type": "object"
+      },
+      "PostgresServer": {
+        "properties": {
+          "database": {
+            "description": "The name of the database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The host to the Postgres server",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port to the Postgres server.",
+            "type": "integer"
+          },
+          "schema": {
+            "description": "The name of the schema in the database.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "database",
+          "schema"
+        ],
+        "title": "PostgresServer",
+        "type": "object"
+      },
+      "PrestoServer": {
+        "properties": {
+          "catalog": {
+            "description": "The name of the catalog.",
+            "examples": [
+              "postgres"
+            ],
+            "type": "string"
+          },
+          "host": {
+            "description": "The host to the Presto server",
+            "examples": [
+              "localhost:8080"
+            ],
+            "type": "string"
+          },
+          "schema": {
+            "description": "The name of the schema.",
+            "examples": [
+              "public"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "host"
+        ],
+        "title": "PrestoServer",
+        "type": "object"
+      },
+      "PubSubServer": {
+        "properties": {
+          "project": {
+            "description": "The GCP project name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project"
+        ],
+        "title": "PubSubServer",
+        "type": "object"
+      },
+      "RedshiftServer": {
+        "properties": {
+          "account": {
+            "description": "The account used by the server.",
+            "type": "string"
+          },
+          "database": {
+            "description": "The name of the database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "An optional string describing the server.",
+            "type": "string"
+          },
+          "region": {
+            "description": "AWS region of Redshift server.",
+            "examples": [
+              "us-east-1"
+            ],
+            "type": "string"
+          },
+          "schema": {
+            "description": "The name of the schema.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "database",
+          "schema"
+        ],
+        "title": "RedshiftServer",
+        "type": "object"
+      },
+      "S3Server": {
+        "properties": {
+          "delimiter": {
+            "description": "Only for format = json. How multiple json documents are delimited within one file",
+            "examples": [
+              "new_line",
+              "array"
+            ],
+            "type": "string"
+          },
+          "endpointUrl": {
+            "description": "The server endpoint for S3-compatible servers.",
+            "examples": [
+              "https://minio.example.com"
+            ],
+            "format": "uri",
+            "type": "string"
+          },
+          "format": {
+            "description": "File format.",
+            "examples": [
+              "parquet",
+              "delta",
+              "json",
+              "csv"
+            ],
+            "type": "string"
+          },
+          "location": {
+            "description": "S3 URL, starting with `s3://`",
+            "examples": [
+              "s3://datacontract-example-orders-latest/data/{model}/*.json"
+            ],
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "title": "S3Server",
+        "type": "object"
+      },
+      "SftpServer": {
+        "properties": {
+          "delimiter": {
+            "description": "Only for format = json. How multiple json documents are delimited within one file",
+            "examples": [
+              "new_line",
+              "array"
+            ],
+            "type": "string"
+          },
+          "format": {
+            "description": "File format.",
+            "examples": [
+              "parquet",
+              "delta",
+              "json",
+              "csv"
+            ],
+            "type": "string"
+          },
+          "location": {
+            "description": "SFTP URL, starting with `sftp://`",
+            "examples": [
+              "sftp://123.123.12.123/{model}/*.json"
+            ],
+            "format": "uri",
+            "pattern": "^sftp://.*",
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "title": "SftpServer",
+        "type": "object"
+      },
+      "SnowflakeServer": {
+        "properties": {
+          "account": {
+            "description": "The Snowflake account used by the server.",
+            "type": "string"
+          },
+          "database": {
+            "description": "The name of the database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The host to the Snowflake server",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port to the Snowflake server.",
+            "type": "integer"
+          },
+          "schema": {
+            "description": "The name of the schema.",
+            "type": "string"
+          },
+          "warehouse": {
+            "description": "The name of the cluster of resources that is a Snowflake virtual warehouse.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "account",
+          "database",
+          "schema"
+        ],
+        "title": "SnowflakeServer",
+        "type": "object"
+      },
+      "SqlserverServer": {
+        "properties": {
+          "database": {
+            "description": "The name of the database.",
+            "examples": [
+              "database"
+            ],
+            "type": "string"
+          },
+          "host": {
+            "description": "The host to the database server",
+            "examples": [
+              "localhost"
+            ],
+            "type": "string"
+          },
+          "port": {
+            "default": 1433,
+            "description": "The port to the database server.",
+            "examples": [
+              1433
+            ],
+            "type": "integer"
+          },
+          "schema": {
+            "description": "The name of the schema in the database.",
+            "examples": [
+              "dbo"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "host",
+          "database",
+          "schema"
+        ],
+        "title": "SqlserverServer",
+        "type": "object"
+      },
+      "SynapseServer": {
+        "properties": {
+          "database": {
+            "description": "The name of the database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The host of the Synapse server.",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port of the Synapse server.",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "database"
+        ],
+        "title": "SynapseServer",
+        "type": "object"
+      },
+      "TrinoServer": {
+        "properties": {
+          "catalog": {
+            "description": "The name of the catalog.",
+            "examples": [
+              "hive"
+            ],
+            "type": "string"
+          },
+          "host": {
+            "description": "The Trino host URL.",
+            "examples": [
+              "localhost"
+            ],
+            "type": "string"
+          },
+          "port": {
+            "description": "The Trino port.",
+            "type": "integer"
+          },
+          "schema": {
+            "description": "The name of the schema in the database.",
+            "examples": [
+              "my_schema"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "catalog",
+          "schema"
+        ],
+        "title": "TrinoServer",
+        "type": "object"
+      },
+      "VerticaServer": {
+        "properties": {
+          "database": {
+            "description": "The name of the database.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The host of the Vertica server.",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port of the Vertica server.",
+            "type": "integer"
+          },
+          "schema": {
+            "description": "The name of the schema.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "database",
+          "schema"
+        ],
+        "title": "VerticaServer",
+        "type": "object"
+      },
+      "ZenServer": {
+        "properties": {
+          "database": {
+            "description": "Database name to connect to on the Zen server.",
+            "type": "string"
+          },
+          "host": {
+            "description": "Hostname or IP address of the Zen server.",
+            "type": "string"
+          },
+          "port": {
+            "description": "Zen server SQL connections port. Defaults to 1583.",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "host",
+          "database"
+        ],
+        "title": "ZenServer",
+        "type": "object"
+      }
+    },
+    "ServiceLevelAgreementProperty": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "description": "Description of the SLA for humans.",
+          "examples": [
+            "99.9% of the time, data is available by 6 AM UTC"
+          ],
+          "type": "string"
+        },
+        "driver": {
+          "description": "Describes the importance of the SLA from the list of: `regulatory`, `analytics`, or `operational`.",
+          "examples": [
+            "regulatory",
+            "analytics",
+            "operational"
+          ],
+          "type": "string"
+        },
+        "element": {
+          "description": "Element(s) to check on. Multiple elements should be extremely rare and, if so, separated by commas.",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/StableId"
+        },
+        "property": {
+          "description": "Specific property in SLA, check the periodic table. May requires units (more details to come).",
+          "type": "string"
+        },
+        "schedule": {
+          "description": "Configuration information for the scheduling tool, for cron a possible value is 0 20 * * *.",
+          "examples": [
+            "0 20 * * *"
+          ],
+          "type": "string"
+        },
+        "scheduler": {
+          "description": "Name of the scheduler, can be cron or any tool your organization support.",
+          "examples": [
+            "cron"
+          ],
+          "type": "string"
+        },
+        "unit": {
+          "description": "**d**, day, days for days; **y**, yr, years for years, etc. Units use the ISO standard.",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Agreement value. The label will change based on the property itself."
+        },
+        "valueExt": {
+          "$ref": "#/$defs/AnyNonCollectionType",
+          "description": "Extended agreement value. The label will change based on the property itself."
+        }
+      },
+      "required": [
+        "property",
+        "value"
+      ],
+      "type": "object"
+    },
+    "ShorthandReference": {
+      "description": "Shorthand notation using name fields (table_name.column_name)",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*$",
+      "type": "string"
+    },
+    "StableId": {
+      "description": "Stable technical identifier for references. Must be unique within its containing array. Cannot contain special characters ('-', '_' allowed).",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "type": "string"
+    },
+    "Support": {
+      "description": "Top level for support channels.",
+      "items": {
+        "$ref": "#/$defs/SupportItem"
+      },
+      "type": "array"
+    },
+    "SupportItem": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "description": "Channel name or identifier.",
+          "type": "string"
+        },
+        "customProperties": {
+          "$ref": "#/$defs/CustomProperties"
+        },
+        "description": {
+          "description": "Description of the channel, free text.",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/StableId"
+        },
+        "invitationUrl": {
+          "description": "Some tools uses invitation URL for requesting or subscribing. Follows the [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax).",
+          "type": "string"
+        },
+        "scope": {
+          "description": "Scope can be: `interactive`, `announcements`, `issues`, `notifications`.",
+          "examples": [
+            "interactive",
+            "announcements",
+            "issues",
+            "notifications"
+          ],
+          "type": "string"
+        },
+        "tool": {
+          "description": "Name of the tool, value can be `email`, `slack`, `teams`, `discord`, `ticket`, `googlechat`, or `other`.",
+          "examples": [
+            "email",
+            "slack",
+            "teams",
+            "discord",
+            "ticket",
+            "googlechat",
+            "other"
+          ],
+          "type": "string"
+        },
+        "url": {
+          "description": "Access URL using normal [URL scheme](https://en.wikipedia.org/wiki/URL#Syntax) (https, mailto, etc.).",
+          "type": "string"
+        }
+      },
+      "required": [
+        "channel"
+      ],
+      "type": "object"
+    },
+    "Tags": {
+      "description": "A list of tags that may be assigned to the elements (object or property); the tags keyword may appear at any level. Tags may be used to better categorize an element. For example, `finance`, `sensitive`, `employee_record`.",
+      "examples": [
+        "finance",
+        "sensitive",
+        "employee_record"
+      ],
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "Team": {
+      "additionalProperties": false,
+      "description": "Team information.",
+      "properties": {
+        "authoritativeDefinitions": {
+          "$ref": "#/$defs/AuthoritativeDefinitions"
+        },
+        "customProperties": {
+          "description": "Custom properties block.",
+          "items": {
+            "$ref": "#/$defs/CustomProperty"
+          },
+          "type": "array"
+        },
+        "description": {
+          "description": "Team description.",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/StableId"
+        },
+        "members": {
+          "description": "List of members.",
+          "items": {
+            "$ref": "#/$defs/TeamMember"
+          },
+          "type": "array"
+        },
+        "name": {
+          "description": "Team name.",
+          "type": "string"
+        },
+        "tags": {
+          "$ref": "#/$defs/Tags"
+        }
+      },
+      "type": "object"
+    },
+    "TeamMember": {
+      "additionalProperties": false,
+      "description": "Team member information.",
+      "properties": {
+        "authoritativeDefinitions": {
+          "$ref": "#/$defs/AuthoritativeDefinitions"
+        },
+        "customProperties": {
+          "description": "Custom properties block.",
+          "items": {
+            "$ref": "#/$defs/CustomProperty"
+          },
+          "type": "array"
+        },
+        "dateIn": {
+          "description": "The date when the user joined the team.",
+          "format": "date",
+          "type": "string"
+        },
+        "dateOut": {
+          "description": "The date when the user ceased to be part of the team.",
+          "format": "date",
+          "type": "string"
+        },
+        "description": {
+          "description": "The user's description.",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/StableId"
+        },
+        "name": {
+          "description": "The user's name.",
+          "type": "string"
+        },
+        "replacedByUsername": {
+          "description": "The username of the user who replaced the previous user.",
+          "type": "string"
+        },
+        "role": {
+          "description": "The user's job role; Examples might be owner, data steward. There is no limit on the role.",
+          "type": "string"
+        },
+        "tags": {
+          "$ref": "#/$defs/Tags"
+        },
+        "username": {
+          "description": "The user's username or email.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "username"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://geocontract.dev/schemas/geocontract-master.schema.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "description": "Derivative of the canonical ODCS v3.1.0 JSON Schema that adds a top-level `embeddedSchemas` property. Each value in embeddedSchemas is an arbitrary nested JSON Schema (e.g. the DCAT-US 3.0.0 Catalog schema, the NEPA exclusions source schema, or any agency-published domain schema). The federated harvester uses the embedded schemas to validate harvested records. Generated by scripts/build_master_schema.py \u2014 do not edit by hand.",
+  "properties": {
+    "apiVersion": {
+      "default": "v3.1.0",
+      "description": "Version of the standard used to build data contract. Default value is v3.1.0.",
+      "enum": [
+        "v3.1.0",
+        "v3.0.2",
+        "v3.0.1",
+        "v3.0.0",
+        "v2.2.2",
+        "v2.2.1",
+        "v2.2.0"
+      ],
+      "type": "string"
+    },
+    "authoritativeDefinitions": {
+      "$ref": "#/$defs/AuthoritativeDefinitions"
+    },
+    "contractCreatedTs": {
+      "description": "Timestamp in UTC of when the data contract was created.",
+      "format": "date-time",
+      "type": "string"
+    },
+    "customProperties": {
+      "$ref": "#/$defs/CustomProperties"
+    },
+    "dataProduct": {
+      "deprecated": true,
+      "description": "The name of the data product. DEPRECATED since v3.1.0.",
+      "type": "string"
+    },
+    "description": {
+      "description": "High level description of the dataset.",
+      "properties": {
+        "authoritativeDefinitions": {
+          "$ref": "#/$defs/AuthoritativeDefinitions"
+        },
+        "customProperties": {
+          "$ref": "#/$defs/CustomProperties"
+        },
+        "limitations": {
+          "description": "Limitations of the dataset.",
+          "type": "string"
+        },
+        "purpose": {
+          "description": "Purpose of the dataset.",
+          "type": "string"
+        },
+        "usage": {
+          "description": "Intended usage of the dataset.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "domain": {
+      "description": "Name of the logical data domain.",
+      "examples": [
+        "imdb_ds_aggregate",
+        "receiver_profile_out",
+        "transaction_profile_out"
+      ],
+      "type": "string"
+    },
+    "embeddedSchemas": {
+      "additionalProperties": {
+        "$schema": "https://json-schema.org/draft/2019-09/schema",
+        "anyOf": [
+          {
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "required": [
+              "$ref"
+            ]
+          },
+          {
+            "required": [
+              "properties"
+            ]
+          },
+          {
+            "required": [
+              "allOf"
+            ]
+          },
+          {
+            "required": [
+              "oneOf"
+            ]
+          },
+          {
+            "required": [
+              "anyOf"
+            ]
+          },
+          {
+            "required": [
+              "enum"
+            ]
+          },
+          {
+            "required": [
+              "const"
+            ]
+          }
+        ],
+        "type": "object"
+      },
+      "description": "A map of named, arbitrary nested JSON Schemas that extend this contract with domain-specific payload validation. Each key is a stable schema name (e.g. `dcatUsCatalog`, `nepaExclusions`); each value is a JSON Schema document (inline or with a `$ref`). The federated harvester validates harvested records against the matching embedded schema.",
+      "propertyNames": {
+        "description": "Schema names are stable identifiers (camelCase or kebab-case).",
+        "pattern": "^[A-Za-z][A-Za-z0-9_-]*$",
+        "type": "string"
+      },
+      "title": "Embedded JSON Schemas",
+      "type": "object"
+    },
+    "id": {
+      "description": "A unique identifier used to reduce the risk of dataset name collisions, such as a UUID.",
+      "type": "string"
+    },
+    "kind": {
+      "default": "DataContract",
+      "description": "The kind of file this is. Valid value is `DataContract`.",
+      "enum": [
+        "DataContract"
+      ],
+      "type": "string"
+    },
+    "name": {
+      "description": "Name of the data contract.",
+      "type": "string"
+    },
+    "price": {
+      "$ref": "#/$defs/Pricing"
+    },
+    "roles": {
+      "description": "A list of roles that will provide user access to the dataset.",
+      "items": {
+        "$ref": "#/$defs/Role"
+      },
+      "type": "array"
+    },
+    "schema": {
+      "description": "A list of elements within the schema to be cataloged.",
+      "items": {
+        "$ref": "#/$defs/SchemaObject"
+      },
+      "type": "array"
+    },
+    "servers": {
+      "description": "List of servers where the datasets reside.",
+      "items": {
+        "$ref": "#/$defs/Server"
+      },
+      "type": "array"
+    },
+    "slaDefaultElement": {
+      "deprecated": true,
+      "description": "DEPRECATED SINCE 3.1. WILL BE REMOVED IN ODCS 4.0. Element (using the element path notation) to do the checks on.",
+      "type": "string"
+    },
+    "slaProperties": {
+      "description": "A list of key/value pairs for SLA specific properties. There is no limit on the type of properties (more details to come).",
+      "items": {
+        "$ref": "#/$defs/ServiceLevelAgreementProperty"
+      },
+      "type": "array"
+    },
+    "status": {
+      "description": "Current status of the dataset.",
+      "examples": [
+        "proposed",
+        "draft",
+        "active",
+        "deprecated",
+        "retired"
+      ],
+      "type": "string"
+    },
+    "support": {
+      "$ref": "#/$defs/Support"
+    },
+    "tags": {
+      "$ref": "#/$defs/Tags"
+    },
+    "team": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Team",
+          "description": "Team information object with members array (v3.1.0+)."
+        },
+        {
+          "deprecated": true,
+          "description": "DEPRECATED: Array of team members. Use the Team object structure instead. This array format is maintained for backward compatibility with v3.0.2 and earlier versions and will be removed in ODCS 4.0.",
+          "items": {
+            "$ref": "#/$defs/TeamMember"
+          },
+          "type": "array"
+        }
+      ]
+    },
+    "tenant": {
+      "description": "Indicates the property the data is primarily associated with. Value is case insensitive.",
+      "type": "string"
+    },
+    "version": {
+      "description": "Current version of the data contract.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "version",
+    "apiVersion",
+    "kind",
+    "id",
+    "status"
+  ],
+  "title": "geocontract Master Data Contract Schema (ODCS v3.1.0 + embeddedSchemas)",
+  "type": "object",
+  "unevaluatedProperties": false
+}
