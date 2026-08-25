@@ -55,3 +55,11 @@ generate() {
 generate \
   "templates/dcat-us-catalog.template.schema.json" \
   "models/dcat-us-catalog.canonical.graphql"
+
+generate \
+  "templates/nepa-exclusions.template.schema.json" \
+  "models/nepa-exclusions.canonical.graphql"
+
+generate \
+  "templates/pic-standards.template.schema.json" \
+  "models/pic-standards.canonical.graphql"

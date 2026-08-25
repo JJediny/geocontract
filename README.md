@@ -197,6 +197,27 @@ uv run geocontract-validate --shim contracts/shim/pic-standards.datacontract-shi
 
 ---
 
+## Known upstream jxql issues
+
+The following issues have been filed on the `json-schema-x-graphql/json-schema-x-graphql`
+upstream project. Each one documents a quirk encountered while building the
+geocontract interop layer, along with the current workaround:
+
+| Issue | Type | Summary | Workaround |
+| ----- | ---- | ------- | ---------- |
+| [#231](https://github.com/json-schema-x-graphql/json-schema-x-graphql/issues/231) | bug | `x-graphql-type-name` ignored for root schema type | Move type into `$defs/`; root as thin `allOf` wrapper |
+| [#232](https://github.com/json-schema-x-graphql/json-schema-x-graphql/issues/232) | bug | `$ref: "#"` self-references produce duplicate root types | Use `$ref: "#/$defs/TypeName"` instead of `$ref: "#"` |
+| [#233](https://github.com/json-schema-x-graphql/json-schema-x-graphql/issues/233) | bug | `x-graphql-field-type` on array properties flattens list wrapper | Avoid `x-graphql-field-type` on arrays; let inference work |
+| [#234](https://github.com/json-schema-x-graphql/json-schema-x-graphql/issues/234) | bug | `x-graphql-type-name` duplicated via title-derived type + explicit name | Avoid `title` on root when using `x-graphql-type-name` |
+| [#235](https://github.com/json-schema-x-graphql/json-schema-x-graphql/issues/235) | enhancement | Query rendering has odd argument formatting (cosmetic) | None — cosmetic only |
+| [#236](https://github.com/json-schema-x-graphql/json-schema-x-graphql/issues/236) | enhancement | No annotation for String-but-concept vocabulary fields | Use `x-graphql-field-type: "String"` override |
+| [#237](https://github.com/json-schema-x-graphql/json-schema-x-graphql/issues/237) | bug | `["null", "string"]` type unions generate `JSON` scalar instead of `String` | Add `x-graphql-field-type: "String"` to each null∪string property |
+
+These issues are tracked downstream so that when upstream fixes land, the
+geocontract templates can be simplified and the models regenerated.
+
+---
+
 ## Why this is PR-ready
 
 - All JSON files are syntactically valid (`check-json` passes).

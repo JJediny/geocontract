@@ -35,7 +35,7 @@ rust = "1.85"
 # validates against ODCS also validates against it. Contracts that use
 # the `embeddedSchemas` block (e.g. the DCAT-US catalog contract) ONLY
 # validate against the master schema.
-validate-odcs = "uv run python scripts/validate_odcs.py --master contracts/*.yaml contracts/shim/*.json contracts/examples/*.json"
+validate-odcs = "uv run python scripts/validate_odcs.py --master contracts/*.yaml contracts/examples/*.json && uv run python scripts/validate_odcs.py --shim contracts/shim/*.json"
 
 # Validate every DCAT-US Catalog JSON instance against the pinned GSA
 # DCAT-US 3.0.0 schema. Examples live in examples/dcat-us-catalog.example.data.json.
