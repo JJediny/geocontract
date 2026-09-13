@@ -16,6 +16,7 @@ from geocontract_tools.citizen_source import (  # noqa: E402
     harvest_many,
     harvest_one,
     load_canonical,
+    main,
     to_jsonl,
 )
 
@@ -51,6 +52,14 @@ def test_load_canonical_unsupported_format(tmp_path: Path) -> None:
 
 
 # ── Harvesting ───────────────────────────────────────────────────────────────
+
+
+def test_cli_emits_jsonl(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main([str(EXAMPLE_PATH)]) == 0
+    output = capsys.readouterr().out
+    record = json.loads(output)
+    assert record["contract_id"] == "groton-rhine-001"
+    assert record["projection"] == "public"
 
 
 def test_harvest_one_public_projection() -> None:

@@ -45,6 +45,7 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import json
+import sys
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -154,6 +155,22 @@ def _examples_to_proposal(props: list[dict[str, Any]]) -> dict[str, Any]:
 # ── Public projection + content hash ─────────────────────────────────────────
 
 
+def _validate_harvest_shape(proposal: dict[str, Any]) -> None:
+    """Reject malformed inputs before emitting misleading empty records."""
+    required = {
+        "id": proposal.get("id"),
+        "schemaVersion": proposal.get("schemaVersion"),
+        "createdAt": proposal.get("createdAt"),
+        "parcel.jurisdiction": (proposal.get("parcel") or {}).get("jurisdiction"),
+        "parcel.authoritativeParcelId": (proposal.get("parcel") or {}).get("authoritativeParcelId"),
+        "activity.code": (proposal.get("activity") or {}).get("code"),
+        "lifecycle.state": (proposal.get("lifecycle") or {}).get("state"),
+    }
+    missing = [path for path, value in required.items() if value in (None, "")]
+    if missing:
+        raise ValueError(f"proposal missing required harvest fields: {', '.join(missing)}")
+
+
 def _public_record(
     *,
     proposal: dict[str, Any],
@@ -221,7 +238,10 @@ def harvest_one(
 ) -> HarvestRecord:
     """Harvest a single Proposal file into a HarvestRecord."""
     proposal = load_canonical(path)
+    _validate_harvest_shape(proposal)
 
+    if projection not in {"public", "restricted"}:
+        raise ValueError(f"unsupported projection: {projection}")
     if projection == "restricted" and not authority_token:
         raise PermissionError(
             "restricted projection requires --authority-token (plan §5.8)"
