@@ -35,10 +35,10 @@ The ``records.jsonl`` is one record per line; see
 ``citizen_source.HarvestRecord`` for the per-record shape.
 
 This module is deliberately additive: it does not modify the
-existing ``geocontract_tools.harvester`` design stub. After PR #9
-merges, this module can call into ``citizen_source`` directly; for
-now it provides the same ``HarvestRecord`` and ``to_jsonl`` helpers
-locally to keep this PR independent.
+existing ``geocontract_tools.harvester`` design stub. It delegates
+loading, projection, validation, and JSONL serialization to the shared
+``citizen_source`` implementation; PR #9 is therefore a required
+predecessor rather than a duplicated implementation.
 """
 
 from __future__ import annotations
@@ -47,45 +47,23 @@ import datetime as dt
 import hashlib
 import json
 import shutil
-from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
 
 import yaml
 
-from geocontract_tools.canonicalize import canonicalize_for_signing
-from geocontract_tools.public_projection import public_projection
+from geocontract_tools.citizen_source import (
+    HarvestRecord,
+    harvest_one,
+    load_canonical,
+    to_jsonl,
+)
 
 Projection = Literal["public", "restricted"]
 
 HARVESTER_VERSION = "geocontract-tools 0.1.0"
 
-
-@dataclass(frozen=True)
-class HarvestRecord:
-    """One JSONL record produced by the citizen-source harvester.
-
-    Duplicated here (rather than imported from ``citizen_source``) so
-    this module is independent of PR #9. The two definitions will
-    collapse once the branches merge.
-    """
-
-    source: str
-    contract_id: str
-    schema_version: str
-    fetched_at: str
-    content_hash: str
-    lifecycle_state: str
-    activity_code: str
-    jurisdiction: str
-    authoritative_parcel_id: str
-
-    contract_version: str | None = None
-    submission_id: str | None = None
-    anchor_service_ref: str | None = None
-    supersedes: str | None = None
-    projection: Projection = "public"
 
 
 @dataclass(frozen=True)
@@ -103,90 +81,6 @@ class SourceOutcome:
     status: Literal["ok", "error"]
     error: str | None = None
 
-
-# ── Loaders ──────────────────────────────────────────────────────────────────
-
-
-def _load_nested_json(path: Path) -> dict[str, Any]:
-    doc = json.loads(path.read_text())
-    proposal = doc.get("proposal")
-    if not isinstance(proposal, dict):
-        raise ValueError(f"{path}: missing top-level `proposal` object")
-    return proposal
-
-
-def _load_odcs_yaml(path: Path) -> dict[str, Any]:
-    contract = yaml.safe_load(path.read_text())
-    if not isinstance(contract, dict):
-        raise ValueError(f"{path}: not a YAML mapping")
-    schema = contract.get("schema") or []
-    if not schema:
-        raise ValueError(f"{path}: missing `schema[]`")
-    props = schema[0].get("properties") or []
-    proposal: dict[str, Any] = {}
-    for p in props:
-        name = p.get("name")
-        ex = (p.get("examples") or [None])[0]
-        if ex is None or name is None:
-            continue
-        physical = p.get("physicalName") or ""
-        if physical.startswith("proposal."):
-            dotted = physical[len("proposal.") :]
-        else:
-            dotted = physical
-        parts = dotted.split(".") if dotted else [name]
-        cur = proposal
-        for part in parts[:-1]:
-            cur = cur.setdefault(part, {})
-        cur[parts[-1]] = ex
-    return proposal
-
-
-def load_canonical(path: Path) -> dict[str, Any]:
-    suffix = path.suffix.lower()
-    if suffix == ".json":
-        return _load_nested_json(path)
-    if suffix in {".yaml", ".yml"}:
-        return _load_odcs_yaml(path)
-    raise ValueError(f"unsupported source format: {suffix} ({path})")
-
-
-# ── Record building ──────────────────────────────────────────────────────────
-
-
-def _record(
-    *,
-    proposal: dict[str, Any],
-    source: str,
-    contract_version: str | None,
-    fetched_at: str,
-    projection: Projection,
-) -> HarvestRecord:
-    if projection == "public":
-        proposal = public_projection(proposal)
-    digest = "sha256:" + hashlib.sha256(canonicalize_for_signing(proposal)).hexdigest()
-    return HarvestRecord(
-        source=source,
-        contract_id=str(proposal.get("id", "")),
-        schema_version=str(proposal.get("schemaVersion", "")),
-        fetched_at=fetched_at,
-        content_hash=digest,
-        lifecycle_state=str(proposal.get("lifecycle", {}).get("state", "")),
-        activity_code=str(proposal.get("activity", {}).get("code", "")),
-        jurisdiction=str(proposal.get("parcel", {}).get("jurisdiction", "")),
-        authoritative_parcel_id=str(
-            proposal.get("parcel", {}).get("authoritativeParcelId", "")
-        ),
-        contract_version=contract_version,
-        submission_id=(proposal.get("anchorReceipt") or {}).get("submissionId"),
-        anchor_service_ref=(proposal.get("anchorReceipt") or {}).get("serviceRef"),
-        supersedes=(proposal.get("lifecycle") or {}).get("supersedes"),
-        projection=projection,
-    )
-
-
-def to_jsonl(records: Iterable[HarvestRecord]) -> str:
-    return "\n".join(json.dumps(asdict(r), sort_keys=True) for r in records) + "\n"
 
 
 # ── Manifest + directory layout ─────────────────────────────────────────────
@@ -245,12 +139,11 @@ def harvest_directory(
             shutil.copy2(src, target)
             copied_names.add(src.name)
 
-            record = _record(
-                proposal=proposal,
-                source=str(src.resolve()),
-                contract_version=contract_version,
-                fetched_at=timestamp,
+            record = harvest_one(
+                src,
                 projection=projection,
+                authority_token=authority_token,
+                fetched_at=timestamp,
             )
             records.append(record)
             outcomes.append(
