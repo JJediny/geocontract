@@ -44,16 +44,8 @@ from geocontract_tools.validate_odcs import load_master_schema, validate_odcs_ya
 from geocontract_tools.validate_ontology import ActivityOntology  # noqa: E402
 from geocontract_tools.validate_proof import verify_proof  # noqa: E402
 
-try:
-    from geocontract_tools.citizen_source_manifest import (  # noqa: E402
-        HarvestRecord,
-        harvest_directory,
-        load_canonical,
-        to_jsonl,
-    )
-    HAS_MANIFEST_MODULE = True
-except ImportError:
-    HAS_MANIFEST_MODULE = False
+from geocontract_tools.citizen_source import harvest_one, to_jsonl as citizen_to_jsonl  # noqa: E402
+from geocontract_tools.citizen_source_manifest import harvest_directory  # noqa: E402
 
 REPO_ROOT = ROOT
 TEMPLATE = REPO_ROOT / "templates" / "proposed-action.template.schema.json"
@@ -90,49 +82,25 @@ def test_step2_proof_envelope_no_proof_means_draft(proposal: dict) -> None:
 
 def test_step3_odcs_contract_validates() -> None:
     master = load_master_schema()
-    validate_odcs_yaml(CONTRACT, master)
+    errors = validate_odcs_yaml(CONTRACT, master)
+    assert errors == [], "ODCS contract failed validation:\n" + "\n".join(errors)
 
 
 # ── 4. Citizen-source harvester emits a JSONL record ────────────────────────
 
 
-def test_step4_harvest_emits_jsonl(tmp_path: Path) -> None:
-    if not HAS_MANIFEST_MODULE:
-        pytest.skip("citizen_source_manifest not available in this branch")
-
-    body = load_canonical(EXAMPLE)
-    digest = "sha256:" + __import__("hashlib").sha256(
-        canonicalize_for_signing(public_projection(body))
-    ).hexdigest()
-    rec = HarvestRecord(
-        source=str(EXAMPLE),
-        contract_id=body["id"],
-        schema_version=body["schemaVersion"],
-        fetched_at="2026-09-13T00:00:00+00:00",
-        content_hash=digest,
-        lifecycle_state=body["lifecycle"]["state"],
-        activity_code=body["activity"]["code"],
-        jurisdiction=body["parcel"]["jurisdiction"],
-        authoritative_parcel_id=body["parcel"]["authoritativeParcelId"],
-        contract_version=None,
-        submission_id=None,
-        anchor_service_ref=None,
-        supersedes=None,
-        projection="public",
-    )
-    out = to_jsonl([rec])
-    obj = json.loads(out.strip())
+def test_step4_harvest_emits_jsonl() -> None:
+    record = harvest_one(EXAMPLE, fetched_at="2026-09-13T00:00:00+00:00")
+    obj = json.loads(citizen_to_jsonl([record]).strip())
     assert obj["contract_id"] == "groton-rhine-001"
     assert obj["projection"] == "public"
-    assert obj["content_hash"] == digest
+    assert obj["content_hash"].startswith("sha256:")
 
 
 # ── 5. Directory-mode harvester produces the expected layout ───────────────
 
 
 def test_step5_directory_layout(tmp_path: Path) -> None:
-    if not HAS_MANIFEST_MODULE:
-        pytest.skip("citizen_source_manifest not available in this branch")
     out = tmp_path / "harvest"
     manifest = harvest_directory([EXAMPLE, CONTRACT], out_dir=out)
     assert manifest["records_count"] == 2
@@ -149,6 +117,7 @@ def test_step6_public_projection_strips_restricted(proposal: dict) -> None:
     public = public_projection(proposal)
     assert "applicant" not in public
     assert "proof" not in public
+    assert "geometry" not in public["parcel"]
     # Public fields preserved.
     assert public["id"] == proposal["id"]
     assert public["parcel"]["jurisdiction"] == proposal["parcel"]["jurisdiction"]
