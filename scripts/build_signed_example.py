@@ -16,14 +16,14 @@ Run::
     uv run python scripts/build_signed_example.py
 
 The output is byte-reproducible: re-running with no edits produces
-byte-identical files because:
+byte-identical JSON and YAML files because:
 
 - The proposal body uses no ``fetched_at`` / ``now()`` calls (only
   the fixed ``2026-09-12T14:30:00-04:00`` timestamp).
 - The Ed25519 keypair is the fixed 32-byte seed below.
-- The ``signedAt`` timestamp in the proof envelope IS regenerated
-  each run, but the signature is over the canonicalised proposal
-  body WITHOUT the proof, so the signature is stable.
+- The ``signedAt`` timestamp is fixed and the signature input excludes
+  only the self-referential signature and digest while binding the
+  remaining proof context.
 """
 
 from __future__ import annotations
@@ -35,13 +35,17 @@ import json
 import sys
 from pathlib import Path
 
+import yaml
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 # Make src/ importable when run from a checkout without `uv sync`.
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from geocontract_tools.canonicalize import canonicalize_for_signing  # noqa: E402
+from geocontract_tools.canonicalize import (  # noqa: E402
+    canonicalize_proof_input,
+    canonicalize_for_signing,
+)
 from geocontract_tools.validate_ontology import ActivityOntology  # noqa: E402
 
 # ── TEST KEYPAIR (deterministic seed; documented in repo) ────────────────
@@ -55,6 +59,7 @@ TEST_PUB_HEX = "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c
 TEST_DID = "did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA"
 
 OUTPUT_PATH = ROOT / "examples" / "groton-rhine-002.example.data.json"
+YAML_OUTPUT_PATH = ROOT / "examples" / "groton-rhine-002.example.data.yaml"
 
 
 def _b64(b: bytes) -> str:
@@ -141,22 +146,23 @@ def _attach_proof(proposal: dict) -> dict:
     payload.pop("proof", None)
     canonical = canonicalize_for_signing(payload)
     digest = "sha256:" + hashlib.sha256(canonical).hexdigest()
-    signature = priv.sign(canonical)
-
-    # `signedAt` is NOT part of the signed payload (the canonical
-    # body excludes `proof` entirely). It is included in the
-    # envelope for human readability.
+    # The signature covers the proposal body plus the protected proof
+    # context. `signature` and `signedDigest` are excluded by
+    # canonicalize_proof_input to avoid circularity.
     proposal["proof"] = {
         "signedDigest": digest,
         "hashAlgorithm": "sha-256",
         "signatureAlgorithm": "ed25519",
         "signingKey": TEST_DID,
-        "signature": _b64(signature),
+        "signature": "",
         "signedAt": "2026-09-12T14:30:00-04:00",  # FIXED for reproducibility
         "domain": "geocontract.example",
         "nonce": _b64(b"\x42" * 16),
         "keyId": "k-1",
     }
+    proposal["proof"]["signature"] = _b64(
+        priv.sign(canonicalize_proof_input(proposal))
+    )
     return proposal
 
 
@@ -183,7 +189,11 @@ def main() -> int:
         "proposal": body,
     }
     OUTPUT_PATH.write_text(json.dumps(output, indent=2) + "\n")
+    YAML_OUTPUT_PATH.write_text(
+        yaml.safe_dump(output, sort_keys=False, allow_unicode=True)
+    )
     print(f"Wrote {OUTPUT_PATH}")
+    print(f"Wrote {YAML_OUTPUT_PATH}")
     print()
     print("Re-run anytime: uv run python scripts/build_signed_example.py")
     print()

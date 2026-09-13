@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from jsonschema import Draft202012Validator
 
@@ -27,6 +28,7 @@ from geocontract_tools.validate_proof import verify_proof  # noqa: E402
 
 TEMPLATE = ROOT / "templates" / "proposed-action.template.schema.json"
 EXAMPLE = ROOT / "examples" / "groton-rhine-002.example.data.json"
+YAML_EXAMPLE = ROOT / "examples" / "groton-rhine-002.example.data.yaml"
 
 TEST_PRIV_SEED = b"\x01" * 32
 TEST_PUB_HEX = "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c"
@@ -34,6 +36,8 @@ TEST_DID = "did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA"
 
 
 def _resolver_for_test_did(did: str, key_id: str) -> bytes:
+    if did != TEST_DID or key_id != "k-1":
+        raise ValueError("unknown test key")
     priv = Ed25519PrivateKey.from_private_bytes(TEST_PRIV_SEED)
     return priv.public_key().public_bytes_raw()
 
@@ -114,6 +118,11 @@ def test_example_signed_digest_matches_recomputed(example: dict) -> None:
     assert proposal["proof"]["signedDigest"] == expected
 
 
+def test_yaml_companion_matches_json(example: dict) -> None:
+    assert YAML_EXAMPLE.exists()
+    assert yaml.safe_load(YAML_EXAMPLE.read_text()) == example
+
+
 def test_example_signature_verifies_with_test_pubkey(example: dict) -> None:
     """End-to-end: the proof verifies with the documented test pubkey."""
     proposal = example["proposal"]
@@ -128,23 +137,20 @@ def test_example_signature_breaks_when_proposal_is_mutated(example: dict) -> Non
         verify_proof(proposal, did_resolver=_resolver_for_test_did)
 
 
-def test_example_is_byte_reproducible(tmp_path: Path) -> None:
-    """Regenerating the example via build_signed_example.py produces
-    a byte-equal file (excluding the `$schema` URL line)."""
+def test_example_is_byte_reproducible() -> None:
+    """Regenerating the JSON and YAML examples produces identical bytes."""
     import subprocess  # noqa: PLC0415
 
+    before_json = EXAMPLE.read_bytes()
+    before_yaml = YAML_EXAMPLE.read_bytes()
     subprocess.run(
         ["uv", "run", "python", "scripts/build_signed_example.py"],
         cwd=ROOT,
         check=True,
         capture_output=True,
     )
-    after = EXAMPLE.read_bytes()
-    # The proof envelope's `signedAt` is FIXED in the script
-    # (2026-09-12T14:30:00-04:00), so re-runs are byte-stable.
-    assert b'"signedAt": "2026-09-12T14:30:00-04:00"' in after
-    assert b'"id": "groton-rhine-002"' in after
-    assert b'"signingKey": "did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA"' in after
+    assert EXAMPLE.read_bytes() == before_json
+    assert YAML_EXAMPLE.read_bytes() == before_yaml
 
 
 def test_example_public_projection_drops_applicant_and_proof(example: dict) -> None:
@@ -154,6 +160,7 @@ def test_example_public_projection_drops_applicant_and_proof(example: dict) -> N
     public = public_projection(example["proposal"])
     assert "applicant" not in public
     assert "proof" not in public
+    assert "geometry" not in public["parcel"]
     # Public fields preserved.
     assert public["id"] == example["proposal"]["id"]
     assert public["parcel"]["jurisdiction"] == example["proposal"]["parcel"]["jurisdiction"]
