@@ -67,7 +67,7 @@ def _sign(proposal: dict) -> dict:
         "hashAlgorithm": "sha-256",
         "signatureAlgorithm": "ed25519",
         "signingKey": did,
-        # The signature field is excluded from canonicalize_for_proof_input.
+        # The signature field is excluded from canonicalize_proof_input.
         "signature": "",
         "signedAt": "2026-09-12T14:30:00Z",
         "domain": "geocontract.test",
