@@ -32,6 +32,7 @@ def test_public_projection_preserves_public_fields() -> None:
     assert public["id"] == proposal["id"]
     assert public["parcel"]["jurisdiction"] == proposal["parcel"]["jurisdiction"]
     assert public["parcel"]["geometryFormat"] == proposal["parcel"]["geometryFormat"]
+    assert "geometry" not in public["parcel"]
     assert public["activity"]["code"] == proposal["activity"]["code"]
 
 

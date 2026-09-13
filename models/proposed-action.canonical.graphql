@@ -28,7 +28,7 @@ type Proposal implements Node @key(fields: "id") @shareable {
   lifecycle: Lifecycle!
   """Append-only list of prior revisions. The current revision is the proposal body itself; prior revisions are listed here."""
   revisions: [Revision]
-  """Detached proof envelope (RFC 8785-style canonicalisation; Ed25519 by default). Optional — absence indicates draft / walletless path."""
+  """Detached proof envelope. The signature covers RFC 8785-style canonical bytes of the proposal plus protected proof context; signedDigest and signature are excluded to avoid circularity. Optional — absence indicates draft / walletless path."""
   proof: JSON
 }
 
@@ -121,7 +121,7 @@ type Revision {
   supersededBy: String
 }
 
-"""Detached proof envelope (plan §5.7). Signature is over RFC 8785-style JCS of the proposal with `proof` excluded."""
+"""Detached proof envelope (plan §5.7). The content digest excludes `proof`; the signature covers the proposal plus protected proof context, excluding only `signedDigest` and `signature`."""
 type Proof {
   signedDigest: String!
   hashAlgorithm: String!

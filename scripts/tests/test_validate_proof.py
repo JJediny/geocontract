@@ -11,6 +11,7 @@ End-to-end round-trip:
 from __future__ import annotations
 
 import base64
+import json
 import sys
 from pathlib import Path
 
@@ -23,7 +24,10 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from geocontract_tools.canonicalize import canonicalize_for_signing  # noqa: E402
+from geocontract_tools.canonicalize import (  # noqa: E402
+    canonicalize_proof_input,
+    canonicalize_for_signing,
+)
 from geocontract_tools.validate_proof import (  # noqa: E402
     ProofInvalid,
     verify_proof,
@@ -56,7 +60,6 @@ def _sign(proposal: dict) -> dict:
     key_id = "k-1"
     _register(pub, did=did, key_id=key_id)
 
-    signature = priv.sign(canonicalize_for_signing(proposal))
     proposal["proof"] = {
         "signedDigest": "sha256:" + __import__("hashlib").sha256(
             canonicalize_for_signing(proposal)
@@ -64,12 +67,15 @@ def _sign(proposal: dict) -> dict:
         "hashAlgorithm": "sha-256",
         "signatureAlgorithm": "ed25519",
         "signingKey": did,
-        "signature": _b64(signature),
+        # The signature field is excluded from canonicalize_for_proof_input.
+        "signature": "",
         "signedAt": "2026-09-12T14:30:00Z",
         "domain": "geocontract.test",
         "nonce": _b64(b"\x00" * 16),
         "keyId": key_id,
     }
+    signature = priv.sign(canonicalize_proof_input(proposal))
+    proposal["proof"]["signature"] = _b64(signature)
     return proposal
 
 
@@ -128,6 +134,14 @@ def test_tampered_field_breaks_signature() -> None:
         verify_proof(proposal, did_resolver=_resolver)
 
 
+def test_tampered_proof_context_breaks_signature() -> None:
+    """Replay/domain metadata must be bound to the detached signature."""
+    proposal = _sign(_base_proposal())
+    proposal["proof"]["domain"] = "other.example"
+    with pytest.raises(ProofInvalid):
+        verify_proof(proposal, did_resolver=_resolver)
+
+
 def test_missing_required_field_rejected() -> None:
     proposal = _sign(_base_proposal())
     del proposal["proof"]["nonce"]
@@ -168,6 +182,45 @@ def test_unknown_did_resolves_to_invalid_signature() -> None:
     # Replace the DID with one that is NOT registered.
     proposal["proof"]["signingKey"] = "did:example:unregistered"
     with pytest.raises(ProofInvalid):
+        verify_proof(proposal, did_resolver=_resolver)
+
+
+def test_non_object_proof_is_rejected() -> None:
+    proposal = _base_proposal()
+    proposal["proof"] = "not-an-object"
+    with pytest.raises(ProofInvalid, match="expected an object"):
+        verify_proof(proposal, did_resolver=_resolver)
+
+
+def test_invalid_proof_does_not_consume_replay_nonce() -> None:
+    proposal = _sign(_base_proposal())
+    proposal["lifecycle"] = {"state": "under_review"}
+    proposal = _sign(proposal)
+    invalid = json.loads(json.dumps(proposal))
+    invalid["proof"]["signature"] = "base64:" + "A" * 88
+    seen: set[str] = set()
+
+    with pytest.raises(ProofInvalid):
+        verify_proof(invalid, did_resolver=_resolver, seen_nonces=seen)
+    assert not seen
+
+    verify_proof(proposal, did_resolver=_resolver, seen_nonces=seen)
+
+
+def test_resolver_errors_are_reported_as_proof_invalid() -> None:
+    proposal = _sign(_base_proposal())
+
+    def failing_resolver(_did: str, _key_id: str) -> bytes:
+        raise RuntimeError("resolver unavailable")
+
+    with pytest.raises(ProofInvalid, match="DID resolver failed"):
+        verify_proof(proposal, did_resolver=failing_resolver)
+
+
+def test_signature_must_be_an_ed25519_signature_length() -> None:
+    proposal = _sign(_base_proposal())
+    proposal["proof"]["signature"] = "base64:AAAA"
+    with pytest.raises(ProofInvalid, match="64 bytes"):
         verify_proof(proposal, did_resolver=_resolver)
 
 
