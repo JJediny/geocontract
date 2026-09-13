@@ -32,7 +32,18 @@ YAML_EXAMPLE = ROOT / "examples" / "groton-rhine-002.example.data.yaml"
 
 TEST_PRIV_SEED = b"\x01" * 32
 TEST_PUB_HEX = "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c"
-TEST_DID = "did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA"
+# Derive the W3C did:key for the test pubkey (multicodec 0xed 0x01 + base58btc).
+# Matched against scripts/build_signed_example.py:TEST_DID.
+try:
+    import base58  # noqa: PLC0415
+except ImportError:  # base58 is a build-time-only dep; tests should
+                     # run with the default install too.
+    TEST_DID = None  # type: ignore[assignment]
+else:
+    _priv = Ed25519PrivateKey.from_private_bytes(TEST_PRIV_SEED)
+    _pub = _priv.public_key().public_bytes_raw()
+    assert _pub.hex() == TEST_PUB_HEX, "test keypair drift"
+    TEST_DID = "did:key:z" + base58.b58encode(b"\xed\x01" + _pub).decode("ascii")
 
 
 def _resolver_for_test_did(did: str, key_id: str) -> bytes:

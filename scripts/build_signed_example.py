@@ -50,13 +50,20 @@ from geocontract_tools.validate_ontology import ActivityOntology  # noqa: E402
 
 # ── TEST KEYPAIR (deterministic seed; documented in repo) ────────────────
 # Private-key seed bytes. Hex: 0101010101…01 (32 bytes).
-# Public key (derived): 8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c
-# DID:key (Ed25519 multibase): did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA
+# Public key (derived at import time, pinned below for grep-ability):
+#   8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c
+# DID:key (W3C did:key Ed25519, multicodec 0xed01 + base58btc):
+#   did:key:z6Mkon3Necd6NkkyfoGoHxid2znGc59LU3K7mubaRcFbLfLX
 #
 # ⚠ TEST ONLY. Never use this keypair in production.
+import base58  # local import: the test-only build script pulls base58
+                # on demand. Not a runtime dependency of the validator.
 TEST_PRIV_SEED = b"\x01" * 32
 TEST_PUB_HEX = "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c"
-TEST_DID = "did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA"
+TEST_PRIV = Ed25519PrivateKey.from_private_bytes(TEST_PRIV_SEED)
+TEST_PUB = TEST_PRIV.public_key().public_bytes_raw()
+assert TEST_PUB.hex() == TEST_PUB_HEX, "test keypair drift"
+TEST_DID = "did:key:z" + base58.b58encode(b"\xed\x01" + TEST_PUB).decode("ascii")
 
 OUTPUT_PATH = ROOT / "examples" / "groton-rhine-002.example.data.json"
 YAML_OUTPUT_PATH = ROOT / "examples" / "groton-rhine-002.example.data.yaml"
@@ -138,10 +145,8 @@ def _build_proposal_body() -> dict:
 
 def _attach_proof(proposal: dict) -> dict:
     """Sign the proposal and attach the detached proof envelope."""
-    priv = Ed25519PrivateKey.from_private_bytes(TEST_PRIV_SEED)
-    pub = priv.public_key().public_bytes_raw()
-    assert pub.hex() == TEST_PUB_HEX, "test keypair drift"
-
+    # Reuse the module-level TEST_PRIV (already asserted against TEST_PUB_HEX
+    # at import time) instead of re-deriving the keypair here.
     payload = dict(proposal)
     payload.pop("proof", None)
     canonical = canonicalize_for_signing(payload)
@@ -161,7 +166,7 @@ def _attach_proof(proposal: dict) -> dict:
         "keyId": "k-1",
     }
     proposal["proof"]["signature"] = _b64(
-        priv.sign(canonicalize_proof_input(proposal))
+        TEST_PRIV.sign(canonicalize_proof_input(proposal))
     )
     return proposal
 

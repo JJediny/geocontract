@@ -271,19 +271,22 @@ def test_worked_signed_example_validates() -> None:
 
     test_priv_seed = b"\x01" * 32
     expected_pub_hex = "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c"
-    test_did = "did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA"
+    # Derive the W3C did:key for the test pubkey so this test cannot
+    # drift away from scripts/build_signed_example.py:TEST_DID.
+    try:
+        import base58 as _base58  # noqa: PLC0415
+    except ImportError:
+        pytest.skip("base58 not installed; install with: uv sync --extra dev")
+    priv = Ed25519PrivateKey.from_private_bytes(test_priv_seed)
+    pub_bytes = priv.public_key().public_bytes_raw()
+    assert pub_bytes.hex() == expected_pub_hex
+    test_did = "did:key:z" + _base58.b58encode(b"\xed\x01" + pub_bytes).decode("ascii")
 
     example_path = EXAMPLES_DIR / "groton-rhine-002.example.data.json"
     if not example_path.exists():
         pytest.skip(f"{example_path} not yet generated; run scripts/build_signed_example.py")
     doc = _json.loads(example_path.read_text())
     proposal = doc["proposal"]
-
-    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-
-    priv = Ed25519PrivateKey.from_private_bytes(test_priv_seed)
-    pub_bytes = priv.public_key().public_bytes_raw()
-    assert pub_bytes.hex() == expected_pub_hex
 
     # Register the test DID in the resolver.
     _register(pub_bytes, did=test_did, key_id="k-1")
