@@ -144,7 +144,7 @@ def test_example_is_byte_reproducible() -> None:
     before_json = EXAMPLE.read_bytes()
     before_yaml = YAML_EXAMPLE.read_bytes()
     subprocess.run(
-        ["uv", "run", "python", "scripts/build_signed_example.py"],
+        ["mise", "run", "build-signed-example"],
         cwd=ROOT,
         check=True,
         capture_output=True,
