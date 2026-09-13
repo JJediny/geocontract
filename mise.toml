@@ -60,7 +60,13 @@ fmt-check = "dprint check"
 test = "uv run pytest scripts/tests/ -v"
 
 # End-to-end smoke test: validate, lint, and run pytest.
-ci = ["validate-odcs", "datacontract-lint", "fmt-check", "test"]
+ci = ["validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test"]
+
+# Run the full v2 core pipeline against the committed worked
+# example (scripts/tests/test_pipeline_end_to_end.py). Catches
+# cross-module regressions in the validate → canonicalise → proof →
+# ontology → ODCS-flatten → public-projection → harvest chain.
+pipeline-test = "uv run pytest scripts/tests/test_pipeline_end_to_end.py -v"
 
 # Generate GraphQL SDL from the x-graphql-annotated templates using the
 # vendored jxql converter. The models/*.canonical.graphql files are build
