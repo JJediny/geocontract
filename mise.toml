@@ -82,5 +82,9 @@ vendor-jxql = "bash scripts/vendor.sh"
 # projection requires --projection=restricted --authority-token <token>.
 harvest-citizen = "uv run geocontract-harvest-citizen"
 
+# Harvest a citizen-initiated source-set into a directory (manifest +
+# records.jsonl + contracts/). See docs/design-harvester.md §"Pipeline".
+harvest-citizen-dir = "uv run geocontract-harvest-citizen-dir"
+
 # Initialize pre-commit hooks. Idempotent.
 prek-install = "prek install"
