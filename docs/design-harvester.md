@@ -123,6 +123,28 @@ needing the parent contract context — but the `contract_id` /
 `contract_version` / `schema_hash` triplet lets them reconstruct the
 graph when needed.
 
+### Citizen-initiated contract fields (additive; v2)
+
+For contracts authored under the citizen-permitting flow
+(`docs/plan-citizen-permitting-standard.md` §6), the per-entity
+JSONL record carries the additive fields below. **All are optional
+and only present when the source has the data.**
+
+| Field                  | Type     | Notes                                                  |
+| ---------------------- | -------- | ------------------------------------------------------ |
+| `content_hash`         | string   | `sha256:…` over canonicalised bytes of the proposal (proof excluded). Required. |
+| `submission_id`        | string   | Opaque id returned by the anchor service. Optional.    |
+| `anchor_service_ref`   | string   | URI of the anchor service (for re-checking). Optional.  |
+| `lifecycle_state`      | string   | FSM state (draft / submitted / anchored / under_review / approved / rejected / amended / superseded / revoked / expired). Required. |
+| `supersedes`           | string   | Content hash of the predecessor revision. Optional.    |
+| `projection`           | string   | `public` (default) or `restricted`. Required.          |
+
+The fields are surfaced by `geocontract-harvest-citizen`
+(`src/geocontract_tools/citizen_source.py`). The **restricted**
+projection carries applicant / proof / raw geometry and requires
+`--authority-token <token>`; without it, the CLI refuses. This
+mirrors the plan §5.8 split.
+
 ---
 
 ## CLI surface (tentative)

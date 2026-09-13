@@ -34,6 +34,7 @@ dev = [
 [project.scripts]
 geocontract-validate = "geocontract_tools.validate_odcs:main"
 geocontract-harvest = "geocontract_tools.harvester:main"
+geocontract-harvest-citizen = "geocontract_tools.citizen_source:main"
 
 [project.urls]
 Homepage = "https://github.com/JJediny/geocontract"

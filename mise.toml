@@ -77,5 +77,10 @@ build-master-schema = "uv run python scripts/build_master_schema.py"
 # Run once after `mise install`; subsequent runs are no-ops.
 vendor-jxql = "bash scripts/vendor.sh"
 
+# Harvest one or more citizen-initiated Proposal files into JSONL.
+# Public projection is the default (plan §5.8); the restricted
+# projection requires --projection=restricted --authority-token <token>.
+harvest-citizen = "uv run geocontract-harvest-citizen"
+
 # Initialize pre-commit hooks. Idempotent.
 prek-install = "prek install"

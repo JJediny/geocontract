@@ -708,7 +708,8 @@ not pre-emptively add state-specific citations; the partner's
 counsel owns that.
 
 **Q10 — Harvester changes.** v2 harvester is **additive JSONL
-fields** (PR #9); no other design changes. Confirmed.
+fields** (PR #9 — `geocontract-harvest-citizen` + the public /
+restricted split); no other design changes. Confirmed and delivered.
 
 **Q11 — Privacy review.** Per §2.3 gate. The §5.8 split is the
 schema side; the privacy review is the policy side.
