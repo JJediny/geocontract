@@ -223,8 +223,12 @@ def load_canonical(path: Path) -> dict[str, Any]:
     if suffix in {".json"}:
         return _load_nested_json(path)
     if suffix in {".yaml", ".yml"}:
-        # We rebuild via the physicalName → dotted-path mapping
-        # (the round-trip in odcs_flatten.unflatten handles this).
+        document = yaml.safe_load(path.read_text())
+        if isinstance(document, dict) and isinstance(document.get("proposal"), dict):
+            # Canonical YAML serialization of the nested model.
+            return document["proposal"]
+        # Otherwise rebuild via the physicalName → dotted-path mapping
+        # for an ODCS-flatten contract.
         return _canonical_from_odcs_examples(path)
     raise ValueError(f"unsupported source format: {suffix} ({path})")
 
