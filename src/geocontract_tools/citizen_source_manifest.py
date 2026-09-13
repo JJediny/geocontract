@@ -21,7 +21,8 @@ The ``manifest.json`` shape is:
           "kind":          "file" | "url" | "git",
           "contract_id":   "<proposal.id>",
           "schema_version":"<proposal.schemaVersion>",
-          "content_hash":  "sha256:...",
+          "content_hash":  "sha256:...",       # canonical proposal hash
+          "source_hash":   "sha256:...",       # exact source-file hash
           "lifecycle_state":"<proposal.lifecycle.state>",
           "status":        "ok" | "error",
           "error":         "<message>"   # only on error
@@ -97,6 +98,7 @@ class SourceOutcome:
     schema_version: str | None
     contract_version: str | None
     content_hash: str | None
+    source_hash: str | None
     lifecycle_state: str | None
     status: Literal["ok", "error"]
     error: str | None = None
@@ -215,6 +217,7 @@ def harvest_directory(
 
     records: list[HarvestRecord] = []
     outcomes: list[SourceOutcome] = []
+    copied_names: set[str] = set()
     timestamp = fetched_at or dt.datetime.now(dt.timezone.utc).isoformat()
 
     for src in sources:
@@ -226,6 +229,21 @@ def harvest_directory(
                     contract_version = yaml.safe_load(src.read_text()).get("version")
                 except Exception:  # noqa: BLE001
                     contract_version = None
+
+            # A basename collision would make the self-contained copy
+            # ambiguous and could silently replace an earlier source.
+            if src.name in copied_names:
+                raise ValueError(
+                    f"source basename collision in output: {src.name!r}; "
+                    "use unique source filenames"
+                )
+
+            source_hash = "sha256:" + hashlib.sha256(src.read_bytes()).hexdigest()
+            # Copy the source before publishing its record. A failed copy
+            # must not leave a successful record in records.jsonl.
+            target = contracts_dir / src.name
+            shutil.copy2(src, target)
+            copied_names.add(src.name)
 
             record = _record(
                 proposal=proposal,
@@ -243,14 +261,11 @@ def harvest_directory(
                     schema_version=record.schema_version,
                     contract_version=record.contract_version,
                     content_hash=record.content_hash,
+                    source_hash=source_hash,
                     lifecycle_state=record.lifecycle_state,
                     status="ok",
                 )
             )
-
-            # Copy the source into contracts/ for self-contained output.
-            target = contracts_dir / src.name
-            shutil.copy2(src, target)
         except Exception as exc:  # noqa: BLE001
             outcomes.append(
                 SourceOutcome(
@@ -260,6 +275,7 @@ def harvest_directory(
                     schema_version=None,
                     contract_version=None,
                     content_hash=None,
+                    source_hash=None,
                     lifecycle_state=None,
                     status="error",
                     error=str(exc),

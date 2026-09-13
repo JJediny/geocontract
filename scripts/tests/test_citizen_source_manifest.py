@@ -56,6 +56,7 @@ def test_manifest_shape(tmp_path: Path) -> None:
     assert src["contract_id"] == "groton-rhine-001"
     assert src["lifecycle_state"] == "draft"
     assert src["content_hash"].startswith("sha256:")
+    assert src["source_hash"].startswith("sha256:")
     assert src["kind"] == "file"
 
 
@@ -77,6 +78,24 @@ def test_multiple_sources_emit_multiple_records(tmp_path: Path) -> None:
     assert len(manifest["sources"]) == 2
     lines = (out / "records.jsonl").read_text().strip().splitlines()
     assert len(lines) == 2
+
+
+def test_duplicate_basenames_are_recorded_as_an_error(tmp_path: Path) -> None:
+    first_dir = tmp_path / "first"
+    second_dir = tmp_path / "second"
+    first_dir.mkdir()
+    second_dir.mkdir()
+    first = first_dir / EXAMPLE.name
+    second = second_dir / EXAMPLE.name
+    first.write_bytes(EXAMPLE.read_bytes())
+    second.write_bytes(EXAMPLE.read_bytes())
+
+    out = tmp_path / "harvest"
+    harvest_directory([first, second], out_dir=out)
+    manifest = json.loads((out / "manifest.json").read_text())
+    assert [source["status"] for source in manifest["sources"]] == ["ok", "error"]
+    assert manifest["records_count"] == 1
+    assert "basename collision" in manifest["sources"][1]["error"]
 
 
 def test_error_source_recorded_but_does_not_abort(tmp_path: Path) -> None:
