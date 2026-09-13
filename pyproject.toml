@@ -29,6 +29,8 @@ dev = [
   "pytest>=8.3",
   "pytest-cov>=6.0",
   "ruff>=0.7",
+  # build_signed_example.py derives the W3C did:key for the test pubkey.
+  "base58>=2.1.0",
 ]
 
 [project.scripts]
