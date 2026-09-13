@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -33,6 +34,15 @@ def test_load_canonical_from_nested_json() -> None:
     assert proposal["id"] == "groton-rhine-001"
     assert proposal["activity"]["code"] == "housing.rehabilitation.facade"
     assert proposal["lifecycle"]["state"] == "draft"
+
+
+def test_load_canonical_from_canonical_yaml(tmp_path: Path) -> None:
+    document = json.loads(EXAMPLE_PATH.read_text())
+    path = tmp_path / "proposal.yaml"
+    path.write_text(yaml.safe_dump(document, sort_keys=False))
+    proposal = load_canonical(path)
+    assert proposal["id"] == "groton-rhine-001"
+    assert proposal["parcel"]["authoritativeParcelId"] == "M:123 B:45 L:678"
 
 
 def test_load_canonical_from_odcs_yaml() -> None:
