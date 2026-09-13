@@ -60,7 +60,7 @@ fmt-check = "dprint check"
 test = "uv run pytest scripts/tests/ -v"
 
 # End-to-end smoke test: validate, lint, and run pytest.
-ci = ["validate-odcs", "datacontract-lint", "fmt-check", "test"]
+ci = ["validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test"]
 
 # Run the full v2 core pipeline against the committed worked
 # example (scripts/tests/test_pipeline_end_to_end.py). Catches
