@@ -249,8 +249,8 @@ Every field in the canonical model is tagged with an `accessClass`:
 
 | Class        | Default access | Examples                                |
 |--------------|----------------|-----------------------------------------|
-| `public`     | everyone       | `id`, `schemaVersion`, `parcel.jurisdiction`, `parcel.authoritativeParcelId`, `activity.code`, `lifecycle.state` |
-| `restricted` | authority only | `applicant.*`, `parcel.geometry` (raw), `proof.signature`, `anchorReceipt.*` |
+| `public`      | everyone       | `id`, `schemaVersion`, `parcel.jurisdiction`, `parcel.authoritativeParcelId`, `activity.code`, `lifecycle.state`, anchor receipt metadata |
+| `restricted` | authority only | `applicant.*`, `parcel.geometry` (raw), `proof.*` |
 
 Default-deny means **a field is `restricted` unless explicitly
 tagged `public`**. The public projection (§5.8) emits only the
@@ -412,13 +412,19 @@ must not require any specific ledger.
 
 ### 5.7 Detached signature envelope
 
-The signature is **detached** — stored in `proof` *outside* the
-canonical payload that is hashed. The v2 envelope:
+The signature is **detached** — stored in `proof` outside the
+canonical content payload. The content digest excludes the complete
+`proof` object. The Ed25519 signature covers the canonical proposal body
+plus the protected proof context (`hashAlgorithm`, `signatureAlgorithm`,
+`signingKey`, `signedAt`, `domain`, `nonce`, and `keyId`), excluding only
+`signedDigest` and `signature` to avoid circularity.
+
+The v2 envelope:
 
 ```jsonc
 {
   "proof": {
-    "signedDigest": "sha256:…",          // over canonicalised bytes, excluding `proof` itself
+    "signedDigest": "sha256:…",          // content hash over canonical bytes, excluding `proof`
     "hashAlgorithm": "sha-256",
     "signatureAlgorithm": "ed25519",     // pinned, not free-form
     "signingKey": "did:example:…",       // DID, not raw wallet address
@@ -431,9 +437,9 @@ canonical payload that is hashed. The v2 envelope:
 }
 ```
 
-Mandatory fields; validator rejects if any are missing or
-malformed. Test vectors (RFC 8785 JCS-style canonical JSON with a
-specified subset, then Ed25519) committed to the repo.
+Mandatory fields; the validator rejects missing or malformed values.
+Test vectors cover both the content hash and the protected proof-context
+signature (RFC 8785 JCS-style canonical JSON, then Ed25519).
 
 **Walletless path**: the v2 core **does not require a crypto
 wallet**. If `proof` is absent the proposal is `draft` and may be
@@ -486,10 +492,11 @@ refer to the same location (lat/lon centroid equality, ±5 m).
 1. CITIZEN FILLS FORM (any client; walletless OK)
    fields: id, parcel, activity.code, purpose, estimatedCostUsd?
    ──▶ validates against canonical nested JSON Schema
-   ──▶ canonicalises to bytes (RFC 8785-style JCS, excluding `proof`)
+   ──▶ canonicalises content bytes (RFC 8785-style JCS, excluding `proof`)
 
 2. CITIZEN SIGNS (optional; absent = draft, manual review path)
-   proof = { signedDigest: sha256(canonical_bytes), … }
+   proof = { signedDigest: sha256(content_bytes), … }
+   ──▶ signature covers content bytes plus protected proof context
    ──▶ proposal.lifecycle.state = submitted (if signed) or draft (if not)
 
 3. (OPTIONAL) ANCHOR ON EXTERNAL SERVICE
@@ -732,8 +739,10 @@ this repo's data model.
 | #11 | feat: directory-mode citizen-source harvester with manifest     | §6 + `docs/design-harvester.md` §"Pipeline" output     |
 | #12 | test: end-to-end pipeline integration test                      | §7.2 cross-module regression net                       |
 
-Tests: **107+ passing** (85 from #8 + 17 from #9 + 10 from #10 + 10
-from #11 + 12 from #12 with cross-branch skipping).
+Tests: **143 passing on the consolidated stack** (90 from #8,
+19 additional from #9, 11 additional from #10, 11 additional from
+#11, and 12 from #12; no cross-branch skips remain after the dependency
+chain is rebased).
 
 Upstream jxql issues filed: **#231–#237** (v1) and **#245** (v2's
 `oneOf [{type:null}, {$ref:...}]` collapse, filed during #8 / #9).
@@ -763,11 +772,12 @@ Upstream jxql issues filed: **#231–#237** (v1) and **#245** (v2's
 
 ### 12.5 Future (out of this repo, separate PRs)
 
-- **PR #13 (separate repo, §13.2)** — `geocontract-anchor`: the
-  optional external anchor service (smart contract or signed
+- **Future separate-repo change** (§13.2) — `geocontract-anchor`,
+  the optional external anchor service (smart contract or signed
   transparency log). Ledger-agnostic — the core treats anchoring
   as an opaque service.
-- **PR #14 (separate repo, §13.5)** — form UI. Out of scope here.
+- **Future partner/downstream change** (§13.5) — form UI. Out of scope
+  here; no PR number is assigned in this repository.
 
 ---
 
