@@ -1,0 +1,32 @@
+{
+  "$schema": "https://geocontract.dev/schemas/proposed-action.template.schema.json",
+  "proposedAction": {
+    "id": "groton-pha-2026-rhine-001",
+    "title": "42 Rhine Street façade repair",
+    "purpose": "Repoint failed mortar joints on the south elevation, replace three cracked steel lintels above the second-story windows, and reattach the decorative cornice that detached during the November 2024 nor'easter. Estimated total cost USD 38,500; the resident proposes to fundraise USD 25,000 via a project-specific token issuance on Base under the symbol RHINE25.",
+    "parcel": {
+      "parcelId": "M:123 B:45 L:678",
+      "address": "42 Rhine Street, Groton, CT 06340",
+      "municipality": "us-ct-groton",
+      "geometry": "POLYGON((-72.0821 41.3472, -72.0819 41.3472, -72.0819 41.3474, -72.0821 41.3474, -72.0821 41.3472))"
+    },
+    "activityCode": "housing.rehabilitation.facade",
+    "estimatedCostUsd": 38500.00,
+    "fundingGoal": {
+      "raiseTarget": 25000.00,
+      "tokenSymbol": "RHINE25",
+      "acceptChainIds": [8453],
+      "tokenAddress": null
+    },
+    "citizenClaim": {
+      "claimantAddress": "0xA11CE00000000000000000000000000000000000",
+      "residencyProofUri": "ipfs://bafy...groton-residency-vc",
+      "signature": "0xDEADBEEF...00000000000000000000000000000000000000000000000000000000",
+      "issuedAt": "2026-09-12T14:30:00-04:00"
+    },
+    "approvalCode": null,
+    "chainId": null,
+    "createdAt": "2026-09-12T14:30:00-04:00",
+    "schemaVersion": "1.0.0"
+  }
+}

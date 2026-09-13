@@ -1,0 +1,468 @@
+# ODCS v3.1.0 Data Contract — Groton Housing Authority Rhine St. Façade Repair
+#
+# Source: citizen-initiated submission by a Groton, CT resident
+# Worked example for the citizen-permitting flow described in
+# docs/plan-citizen-permitting-standard.md.
+#
+# Mirrors: geocontract/templates/proposed-action.template.schema.json
+#          (json-schema-x-graphql annotated JSON Schema)
+# Companion: contracts/shim/groton-rhine-001.datacontract-shim.json
+#
+# This contract is the first instance record for a citizen-initiated
+# ProposedAction. It uses only ODCS v3.1.0 primitive fields — no
+# geocontract extensions — so it validates against the bare ODCS
+# master schema (`scripts/validate_odcs.py --master`) the same way
+# the federal CATEX and PIC contracts do.
+#
+# Validated against the canonical ODCS v3.1.0 JSON Schema via
+# scripts/validate_odcs.py.
+
+apiVersion: v3.1.0
+kind: DataContract
+id: groton-pha-2026-rhine-001
+name: "Groton Housing Authority — 42 Rhine St. Façade Repair"
+version: 0.1.0
+status: draft
+tenant: us-ct-groton-housing-authority
+domain: housing-rehabilitation
+
+description:
+  purpose: |
+    A resident of Groton, CT proposes repairing the masonry façade of
+    the Groton Housing Authority property at 42 Rhine Street. The
+    action covers repointing of failed mortar joints, replacement of
+    three cracked lintels, and reattachment of a decorative cornice
+    that detached during the 2024 nor'easter season. The estimated
+    cost is USD 38,500; the resident proposes to fundraise USD 25,000
+    of that via a project-specific token issuance on Base (chain id
+    8453) under the symbol RHINE25.
+  usage: |
+    This contract is filed by a single resident under the citizen-
+    permitting flow. Once hash-anchored on the geocontract anchor
+    registry, the approval code is recorded on-chain and the contract
+    becomes harvestable by `geocontract-harvest` like any other
+    `*.geocontract.yaml`. The Groton Housing Authority reviews the
+    proposal out-of-band; their decision is recorded by amending the
+    contract's status field, not by re-anchoring.
+  limitations: |
+    This is a fictional worked example for the citizen-permitting
+    plan. It does not represent a live submission. The citizen-claim
+    signature below is illustrative and was not produced by any real
+    wallet.
+
+tags:
+  - geocontract
+  - citizen-initiated
+  - groton
+  - housing-authority
+  - housing-rehabilitation
+  - facade-repair
+  - proposed-action
+
+servers:
+  # Citizen-initiated contracts typically do not have a public data
+  # endpoint of their own. The YAML file itself, version-controlled in
+  # a public GitHub repository and pinned to IPFS at anchor time, is the
+  # canonical artifact. We declare a `local` server with a path pointing
+  # at the file so the contract parses under ODCS.
+  - server: groton-rhine-001-yaml
+    type: local
+    path: "./groton-rhine-001.datacontract.yaml"
+    format: yaml
+    description: |
+      Citizen-initiated proposal; no public server. The canonical
+      artifact is the YAML file itself, version-controlled in a
+      public GitHub repository and pinned to IPFS at anchor time.
+
+schema:
+  # The single entity that the citizen file produces.
+  - name: ProposedAction
+    physicalName: proposed_action
+    logicalType: object
+    description: |
+      The resident's proposed action on a specific municipal parcel.
+      This is the head entity for citizen-initiated geocontracts.
+    dataGranularityDescription: "One ProposedAction per citizen submission."
+    properties:
+
+      # ── Identity ───────────────────────────────────────────────────────
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 64
+          pattern: "^[a-z0-9-]+$"
+        physicalType: VARCHAR(64)
+        physicalName: proposed_action.id
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          Globally unique contract id (lowercase kebab). For citizen-
+          initiated contracts the convention is
+          `<tenant-slug>-<year>-<parcel-slug>-<seq>`.
+        examples:
+          - "groton-pha-2026-rhine-001"
+        quality:
+          - type: library
+            dimension: uniqueness
+            metric: duplicateValues
+            description: "ids must be globally unique within the harvest."
+            mustBe: 0
+            severity: error
+            businessImpact: operational
+
+      - name: title
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 120
+        physicalType: VARCHAR(120)
+        physicalName: proposed_action.title
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Human-readable title (≤ 120 chars)."
+        examples:
+          - "42 Rhine Street façade repair"
+          - "South Commons playground resurfacing"
+
+      - name: purpose
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 0
+          maxLength: 500
+        physicalType: VARCHAR(500)
+        physicalName: proposed_action.purpose
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Free-text description of the proposed action."
+        examples:
+          - "Repoint failed mortar joints and replace three cracked lintels on the south elevation."
+        quality:
+          - type: library
+            dimension: completeness
+            metric: nullValues
+            description: "purpose is recommended for every citizen submission."
+            mustBe: 0
+            severity: warning
+            businessImpact: operational
+
+      # ── Parcel ─────────────────────────────────────────────────────────
+      - name: parcelId
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 64
+        physicalType: VARCHAR(64)
+        physicalName: proposed_action.parcel.parcelId
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          Municipal parcel identifier (e.g. `M:123 B:45 L:678`). The
+          exact format is municipality-specific.
+        examples:
+          - "M:123 B:45 L:678"
+
+      - name: address
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 256
+        physicalType: VARCHAR(256)
+        physicalName: proposed_action.parcel.address
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: "Street address of the parcel."
+        examples:
+          - "42 Rhine Street, Groton, CT 06340"
+
+      - name: municipality
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 64
+          pattern: "^[a-z]{2}-[a-z]{2}-[a-z0-9-]+$"
+        physicalType: VARCHAR(64)
+        physicalName: proposed_action.parcel.municipality
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: "Municipality slug (`<country>-<state>-<name>`)."
+        examples:
+          - "us-ct-groton"
+
+      - name: geometry
+        logicalType: string
+        logicalTypeOptions:
+          maxLength: 4096
+        physicalType: TEXT
+        physicalName: proposed_action.parcel.geometry
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: |
+          Geometry as GeoJSON, WKT, or H3 cell id. Optional at filing
+          time; the municipal review may require it before approval.
+        examples:
+          - "POLYGON((-72.0821 41.3472, -72.0819 41.3472, -72.0819 41.3474, -72.0821 41.3474, -72.0821 41.3472))"
+
+      # ── Activity & cost ───────────────────────────────────────────────
+      - name: activityCode
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 3
+          maxLength: 64
+          pattern: "^[a-z][a-z0-9_]*\\.[a-z0-9_.]+$"
+        physicalType: VARCHAR(64)
+        physicalName: proposed_action.activityCode
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          Activity ontology code. Seeded by the federal CATEX
+          catalogue (used as a vocabulary source only) and broadened
+          by a corpus scan of the user's starred projects. See
+          `docs/plan-citizen-permitting-standard.md` §4.
+        examples:
+          - "housing.rehabilitation.facade"
+          - "civic.infrastructure.sidewalk"
+
+      - name: estimatedCostUsd
+        logicalType: number
+        logicalTypeOptions:
+          minimum: 0
+          maximum: 100000000
+        physicalType: NUMERIC(12,2)
+        physicalName: proposed_action.estimatedCostUsd
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Estimated total cost in USD."
+        examples:
+          - 38500.00
+
+      # ── Funding goal (optional) ───────────────────────────────────────
+      - name: raiseTarget
+        logicalType: number
+        logicalTypeOptions:
+          minimum: 0
+          maximum: 100000000
+        physicalType: NUMERIC(12,2)
+        physicalName: proposed_action.fundingGoal.raiseTarget
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Total target raise in USD (sub-amount of estimatedCostUsd if partial)."
+
+      - name: tokenSymbol
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 3
+          maxLength: 5
+          pattern: "^[A-Z]{3,5}$"
+        physicalType: VARCHAR(5)
+        physicalName: proposed_action.fundingGoal.tokenSymbol
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Proposed ERC-20 / SUI coin symbol."
+        examples:
+          - "RHINE25"
+
+      - name: acceptChainIds
+        logicalType: array
+        logicalTypeOptions:
+          minItems: 1
+          maxItems: 16
+        physicalType: INTEGER[]
+        physicalName: proposed_action.fundingGoal.acceptChainIds
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "EVM chain ids where the project token will be deployed."
+        examples:
+          - 8453
+
+      - name: tokenAddress
+        logicalType: string
+        logicalTypeOptions:
+          maxLength: 64
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        physicalType: VARCHAR(64)
+        physicalName: proposed_action.fundingGoal.tokenAddress
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Deployed token contract address (null until issued)."
+
+      # ── Citizen claim ─────────────────────────────────────────────────
+      - name: claimantAddress
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 64
+        physicalType: VARCHAR(64)
+        physicalName: proposed_action.citizenClaim.claimantAddress
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "Wallet address (0x… for EVM, base58 for Solana/Sui)."
+
+      - name: residencyProofUri
+        logicalType: string
+        logicalTypeOptions:
+          maxLength: 256
+        physicalType: VARCHAR(256)
+        physicalName: proposed_action.citizenClaim.residencyProofUri
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "URI (ipfs:// or https://) to a W3C VC issued by a municipal clerk."
+
+      - name: signature
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 256
+        physicalType: VARCHAR(256)
+        physicalName: proposed_action.citizenClaim.signature
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "EIP-191 / Ed25519 signature over sha256(canonical_yaml_bytes)."
+
+      - name: claimIssuedAt
+        logicalType: timestamp
+        physicalType: TIMESTAMP
+        physicalName: proposed_action.citizenClaim.issuedAt
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "ISO 8601 timestamp at which the signature was produced."
+        logicalTypeOptions:
+          format: "yyyy-MM-dd'T'HH:mm:ssXXX"
+
+      # ── Approval & audit ─────────────────────────────────────────────
+      - name: approvalCode
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 32
+          pattern: "^0x[a-fA-F0-9]+$"
+        physicalType: VARCHAR(32)
+        physicalName: proposed_action.approvalCode
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "On-chain approval code once the contract is anchored. Null until anchored."
+
+      - name: chainId
+        logicalType: integer
+        logicalTypeOptions:
+          minimum: 1
+          maximum: 2147483647
+        physicalType: BIGINT
+        physicalName: proposed_action.chainId
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "EVM chain id (e.g. 8453 = Base) on which the approval code is anchored."
+
+      - name: createdAt
+        logicalType: timestamp
+        physicalType: TIMESTAMP
+        physicalName: proposed_action.createdAt
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: "ISO 8601 timestamp at which the contract was authored."
+        logicalTypeOptions:
+          format: "yyyy-MM-dd'T'HH:mm:ssXXX"
+        examples:
+          - "2026-09-12T14:30:00-04:00"
+
+      - name: schemaVersion
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 16
+        physicalType: VARCHAR(16)
+        physicalName: proposed_action.schemaVersion
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: "Version of `templates/proposed-action.template.schema.json` the contract was authored against."
+        examples:
+          - "1.0.0"
+
+# Support channels for this contract — handled by the harvester / anchor CLI.
+support:
+  - channel: email
+    url: "mailto:permits@groton-ct.gov"
+
+# Pricing — citizen-initiated contracts are zero-cost.
+price:
+  priceCurrency: USD
+  priceAmount: 0.00
+  priceUnit: dataset
+
+# Team ownership — placeholder; populated when the contract is anchored.
+team:
+  name: groton-pha-permitting
+  description: "Groton Housing Authority permitting intake (worked example)."
+  members:
+    - username: jane.groton.resident
+      name: Jane Groton-Resident
+      role: owner
+      description: Worked-example placeholder claimant.
+      dateIn: "2026-09-12"
+
+# Roles — read-only public consumers + the municipal reviewer.
+roles:
+  - role: PublicReader
+    description: "Read access for any harvest consumer."
+    access: read
+    firstLevelApprovers: "permits@groton-ct.gov"
+  - role: MunicipalReviewer
+    description: "Reviewer role for the Groton Housing Authority."
+    access: read
+    firstLevelApprovers: "permits@groton-ct.gov"
+
+# SLA — none yet; populated by the municipal reviewer upon approval.
+slaProperties:
+  - property: review-turnaround
+    value: "p50 < 14 days"
+    unit: days
+    element: proposed_action.id
+    driver: operational
+    description: "Median review turnaround for citizen-initiated proposals."
+    scheduler: cron
+    schedule: "0 9 * * 1"
+
+# Authoritative definitions — point to the template and the plan.
+authoritativeDefinitions:
+  - url: "https://github.com/JJediny/geocontract/blob/main/templates/proposed-action.template.schema.json"
+    type: glossary
+    description: "The x-graphql-annotated template that this instance record conforms to."
+  - url: "https://github.com/JJediny/geocontract/blob/main/docs/plan-citizen-permitting-standard.md"
+    type: glossary
+    description: "The citizen-permitting implementation plan that this contract instantiates."
+
+# Custom properties — surfaced in the harvest JSONL output.
+customProperties:
+  - property: isCitizenInitiated
+    value: true
+  - property: municipalitySlug
+    value: "us-ct-groton"
+  - property: plannedChainId
+    value: 8453
+
+# Contract creation timestamp.
+contractCreatedTs: "2026-09-12T14:30:00Z"

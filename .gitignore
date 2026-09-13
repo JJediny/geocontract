@@ -29,3 +29,7 @@ Cargo.lock
 *.swp
 *.swo
 .DS_Store
+
+# ── Working notes / temp files ────────────────────────────────────────────────
+# Stash files used to populate PR bodies via `gh pr create --body-file`
+/.pr-body*.md

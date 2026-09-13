@@ -35,6 +35,7 @@ specific implementation.
 | Git repo    | `https://github.com/permits/pyper`                       | `git clone --depth 1`     |
 | HTTPS       | `https://ce.permitting.innovation.gov/data/exclusions.json` (raw upstream) | `httpx`/`urllib`          |
 | S3          | `s3://permits-pic-public/contracts/*.yaml`               | `boto3`                    |
+| Citizen-initiated YAML | `contracts/groton-rhine-001.datacontract.yaml` | Direct file + on-chain anchor lookup (Phase E) |
 
 Each source yields one or more `*.geocontract.yaml` files. The harvester
 discovers them by:
@@ -122,6 +123,24 @@ search index, dashboards) can ingest one line per entity without
 needing the parent contract context — but the `contract_id` /
 `contract_version` / `schema_hash` triplet lets them reconstruct the
 graph when needed.
+
+### Citizen-initiated contract fields (additive)
+
+For contracts authored under the citizen-permitting flow (see
+`docs/plan-citizen-permitting-standard.md`), the per-entity JSONL
+record carries three additional fields. **All are optional and only
+present when the contract has been anchored on chain.**
+
+| Field           | Type    | Example                            | Source                       |
+| --------------- | ------- | ---------------------------------- | ---------------------------- |
+| `approval_code` | string  | `"0xABCDEF…"`                      | On-chain anchor event log    |
+| `chain_id`      | integer | `8453` (Base)                      | On-chain anchor event log    |
+| `token_address` | string  | `"0x1234…"` (if token was issued)  | On-chain token-deploy event  |
+
+These are surfaced by the harvester when it has been pointed at the
+anchor registry RPC (`--chain-rpc <url>`) and the token factory
+address. Without those flags, citizen contracts are still harvested
+but the three fields are simply absent.
 
 ---
 

@@ -1,0 +1,122 @@
+{
+  "version": "1.0",
+  "schema": { "source": "../../templates/proposed-action.template.schema.json" },
+  "contract": {
+    "name": "Groton Housing Authority — 42 Rhine St. Façade Repair",
+    "description": "Citizen-initiated proposed action on the Groton Housing Authority property at 42 Rhine Street. Worked example for the citizen-permitting flow.",
+    "version": "0.1.0",
+    "status": "draft",
+    "domain": "housing-rehabilitation"
+  },
+  "ownership": {
+    "team": "Groton Housing Authority",
+    "contact": "permits@groton-ct.gov",
+    "slack": "#groton-permitting",
+    "oncall": "groton-oncall",
+    "docs_url": "https://github.com/JJediny/geocontract/blob/main/docs/plan-citizen-permitting-standard.md"
+  },
+  "quality": [
+    {
+      "metric": "uniqueness",
+      "field": "#/$defs/ProposedAction/properties/id",
+      "threshold": 1.0,
+      "description": "Contract ids must be globally unique within the harvest."
+    },
+    {
+      "metric": "conformity",
+      "field": "#/$defs/ProposedAction/properties/activityCode",
+      "threshold": "^[a-z][a-z0-9_]*\\.[a-z0-9_.]+$",
+      "description": "activityCode must follow the dotted ontology leaf pattern."
+    },
+    {
+      "metric": "completeness",
+      "field": "#/$defs/ProposedAction/properties/parcelId",
+      "threshold": 1.0,
+      "description": "Every ProposedAction must declare a parcelId."
+    },
+    {
+      "metric": "completeness",
+      "field": "#/$defs/ProposedAction/properties/municipality",
+      "threshold": 1.0,
+      "description": "Every ProposedAction must declare a municipality slug."
+    },
+    {
+      "metric": "conformity",
+      "field": "#/$defs/Parcel/properties/municipality",
+      "threshold": "^[a-z]{2}-[a-z]{2}-[a-z0-9-]+$",
+      "description": "municipality slug must follow the `<country>-<state>-<name>` pattern."
+    },
+    {
+      "metric": "completeness",
+      "field": "#/$defs/CitizenClaim/properties/signature",
+      "threshold": 1.0,
+      "description": "Every citizen claim must include a signature."
+    }
+  ],
+  "sla": [
+    { "name": "anchor-latency", "target": "p95 < 60s", "window": "rolling-7d" },
+    { "name": "review-turnaround", "target": "p50 < 14 days", "window": "monthly" }
+  ],
+  "lineage": {
+    "upstream": [
+      {
+        "source": "geocontract://templates/proposed-action.template.schema.json",
+        "type": "schema",
+        "format": "json-schema"
+      },
+      {
+        "source": "https://ce.permitting.innovation.gov/data/exclusions.json",
+        "type": "corpus",
+        "description": "Federal CATEX catalogue consumed strictly as a vocabulary source for the activity ontology."
+      }
+    ],
+    "downstream": [
+      { "consumer": "groton-permitting-portal", "type": "ui", "endpoint": "https://permits.groton-ct.gov/" },
+      { "consumer": "geocontract-harvest", "type": "harvester", "endpoint": "graphql://harvester/v1" }
+    ]
+  },
+  "retention": {
+    "policy": "permanent-municipal-record",
+    "description": "Citizen-initiated proposals are permanent municipal records; never deleted.",
+    "delete_after": "never",
+    "archive_after": "never",
+    "partition_strategy": "municipality"
+  },
+  "access": {
+    "classification": "public",
+    "pii_fields": ["#/$defs/CitizenClaim/properties/claimantAddress"],
+    "compliance": [
+      { "regulation": "FOIA", "justification": "Public municipal record." },
+      { "regulation": "5 U.S.C. § 552", "justification": "Public-access statute." },
+      { "regulation": "Conn. Gen. Stat. § 1-200 et seq.", "justification": "Connecticut Freedom of Information Act." }
+    ]
+  },
+  "lifecycle": {
+    "created": "2026-09-12",
+    "last_modified": "2026-09-12",
+    "sunset_date": null,
+    "changelog": [
+      { "version": "0.1.0", "date": "2026-09-12", "summary": "Initial citizen-initiated submission (worked example)." }
+    ]
+  },
+  "partitioning": {
+    "strategy": "value",
+    "column": "municipality",
+    "granularity": "municipality-slug",
+    "retention_days": null
+  },
+  "cost": { "center": "groton-permitting", "budget_code": "GROTON-PHA-CORE", "estimated_annual_cost_usd": 0 },
+  "tags": ["geocontract", "citizen-initiated", "groton", "housing-authority", "proposed-action", "tier-2"],
+  "entities": {
+    "$defs/ProposedAction": { "classification": "public", "pii": false },
+    "$defs/Parcel": { "classification": "public", "pii": false },
+    "$defs/FundingGoal": { "classification": "public", "pii": false },
+    "$defs/CitizenClaim": {
+      "classification": "public",
+      "pii": true,
+      "notes": "claimantAddress is a public wallet address; not PII but signature should be reviewed before public release."
+    },
+    "$defs/ProposedAction/properties/id": { "quality": [{ "metric": "uniqueness", "threshold": 1.0 }] },
+    "$defs/ProposedAction/properties/parcelId": { "quality": [{ "metric": "completeness", "threshold": 1.0 }] }
+  }
+}

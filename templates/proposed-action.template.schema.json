@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geocontract.dev/schemas/proposed-action.template.schema.json",
+  "title": "Citizen-Initiated Proposed Action — x-graphql Interoperability Template",
+  "description": "Template for a single citizen-initiated ProposedAction record on a denoted parcel, annotated with x-graphql-* extensions so it round-trips into a federated GraphQL subgraph. The activityCode values are drawn from the activity ontology seeded by https://ce.permitting.innovation.gov/data/exclusions.json (treated strictly as a vocabulary source, not a federal regulatory gate).",
+  "type": "object",
+  "required": ["proposedAction"],
+  "properties": {
+    "proposedAction": {
+      "type": "object",
+      "description": "The citizen's proposed action on a specific parcel.",
+      "x-graphql-type-name": "ProposedAction",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-federation-keys": [{ "fields": "id" }],
+      "x-graphql-federation-shareable": true,
+      "x-graphql-implements": ["Node"],
+      "required": ["id", "parcel", "activityCode", "citizenClaim"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Globally unique contract id (lowercase kebab).",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Human-readable title (≤ 120 chars).",
+          "x-graphql-field-type": "String"
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Free-text description of the action (≤ 500 chars).",
+          "x-graphql-field-type": "String"
+        },
+        "parcel": { "$ref": "#/$defs/Parcel" },
+        "activityCode": {
+          "type": "string",
+          "description": "Code drawn from the activity ontology (e.g. `housing.rehabilitation.facade`).",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "estimatedCostUsd": {
+          "type": ["null", "number"],
+          "description": "Estimated total cost in USD.",
+          "x-graphql-field-type": "Float"
+        },
+        "fundingGoal": { "$ref": "#/$defs/FundingGoal" },
+        "citizenClaim": { "$ref": "#/$defs/CitizenClaim" },
+        "approvalCode": {
+          "type": ["null", "string"],
+          "description": "On-chain approval code once the contract is anchored. Null until anchored.",
+          "x-graphql-field-type": "String"
+        },
+        "chainId": {
+          "type": ["null", "integer"],
+          "description": "EVM chain id (e.g. 8453 = Base) on which the approval code is anchored.",
+          "x-graphql-field-type": "Int"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp at which the contract was authored.",
+          "x-graphql-field-type": "String"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "description": "Version of this template the contract was authored against.",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "Parcel": {
+      "type": "object",
+      "description": "The municipal parcel on which the proposed action will be carried out.",
+      "x-graphql-type-name": "Parcel",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "required": ["parcelId", "address", "municipality"],
+      "properties": {
+        "parcelId": {
+          "type": "string",
+          "description": "Municipal parcel identifier (e.g. `M:123 B:45 L:678`).",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true
+        },
+        "address": {
+          "type": "string",
+          "description": "Street address (e.g. `42 Rhine Street, Groton, CT 06340`).",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "municipality": {
+          "type": "string",
+          "description": "Municipality / town slug (e.g. `us-ct-groton`).",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "geometry": {
+          "type": ["null", "string"],
+          "description": "Geometry as GeoJSON, WKT, or H3 cell id.",
+          "x-graphql-field-type": "String"
+        }
+      }
+    },
+    "FundingGoal": {
+      "type": "object",
+      "description": "Optional fundraising target for the proposed action.",
+      "x-graphql-type-name": "FundingGoal",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "raiseTarget": {
+          "type": ["null", "number"],
+          "description": "Total target raise in USD.",
+          "x-graphql-field-type": "Float"
+        },
+        "tokenSymbol": {
+          "type": ["null", "string"],
+          "description": "Proposed ERC-20 / SUI coin symbol (^[A-Z]{3,5}$).",
+          "x-graphql-field-type": "String"
+        },
+        "acceptChainIds": {
+          "type": "array",
+          "description": "EVM chain ids where the project token will be deployed.",
+          "items": { "type": "integer" },
+          "x-graphql-field-type": "[Int]"
+        },
+        "tokenAddress": {
+          "type": ["null", "string"],
+          "description": "Deployed token contract address (null until issued).",
+          "x-graphql-field-type": "String"
+        }
+      }
+    },
+    "CitizenClaim": {
+      "type": "object",
+      "description": "Residency claim binding the proposal to a real resident.",
+      "x-graphql-type-name": "CitizenClaim",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-implements": ["Node"],
+      "required": ["claimantAddress", "signature"],
+      "properties": {
+        "claimantAddress": {
+          "type": "string",
+          "description": "Wallet address (0x… for EVM, base58 for Solana/Sui).",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "residencyProofUri": {
+          "type": ["null", "string"],
+          "description": "URI (ipfs:// or https://) to a W3C Verifiable Credential issued by a municipal clerk.",
+          "x-graphql-field-type": "String"
+        },
+        "signature": {
+          "type": "string",
+          "description": "EIP-191 / Ed25519 signature over sha256(canonical_yaml_bytes).",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "issuedAt": {
+          "type": ["null", "string"],
+          "format": "date-time",
+          "description": "ISO 8601 timestamp at which the signature was produced.",
+          "x-graphql-field-type": "String"
+        }
+      }
+    }
+  },
+  "x-graphql-scalars": { "DateTime": { "description": "ISO 8601 timestamp with timezone.", "serialize": "String" } },
+  "x-graphql-operations": {
+    "queries": {
+      "proposedAction": {
+        "type": "ProposedAction",
+        "description": "Look up a single citizen-initiated proposed action by id.",
+        "args": { "id": { "type": "ID!", "description": "Contract id (e.g. `groton-pha-2026-rhine-001`)." } }
+      },
+      "proposedActionsByMunicipality": {
+        "type": "[ProposedAction!]!",
+        "description": "List proposed actions filed under a given municipality slug.",
+        "args": { "municipality": { "type": "String!", "description": "Municipality slug (e.g. `us-ct-groton`)." } }
+      },
+      "proposedActionsByActivity": {
+        "type": "[ProposedAction!]!",
+        "description": "List proposed actions filed under a given activity ontology code.",
+        "args": {
+          "activityCode": { "type": "String!", "description": "Activity code (e.g. `housing.rehabilitation.facade`)." }
+        }
+      }
+    }
+  },
+  "x-graphql-federation-shareable": true
+}
