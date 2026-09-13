@@ -1,0 +1,483 @@
+# ODCS v3.1.0 Data Contract — Groton Rhine St. Façade Repair (v2 Canonical)
+#
+# Source: citizen-initiated worked example for the citizen-permitting flow.
+# Companion to: docs/plan-citizen-permitting-standard.md §3, §3.6, §5.
+#
+# Mirrors: geocontract/templates/proposed-action.template.schema.json (nested JSON)
+#          ontology/activity-concept-catalog.v1.0.json
+# Companion: contracts/shim/groton-rhine-001.datacontract-shim.json
+#
+# This contract uses only ODCS v3.1.0 primitive fields — no geocontract
+# extensions. The schema below is the ODCS-FLATTEN projection of the
+# canonical nested-JSON model per plan §3.6. RESTRICTED fields
+# (applicant.*, proof.*, raw parcel.geometry) are deliberately
+# NOT included in this public-facing contract.
+#
+# Fictional worked example. No real submission. No chain deployed.
+
+apiVersion: v3.1.0
+kind: DataContract
+id: groton-rhine-001
+name: "Groton Rhine St. Façade Repair — Worked Example (v2)"
+version: 0.2.0
+status: draft
+tenant: us-ct-groton
+domain: housing-rehabilitation
+
+description:
+  purpose: |
+    v2 canonical worked example for the citizen-permitting flow. A
+    resident of Groton, CT (fictional) proposes repairing the
+    masonry façade of a property at 42 Rhine Street. The action
+    covers repointing of failed mortar joints, replacement of
+    three cracked lintels, and reattachment of a decorative cornice.
+  usage: |
+    Validates against the bare ODCS v3.1.0 schema. The companion
+    shim file (contracts/shim/groton-rhine-001.datacontract-shim.json)
+    records the governance / quality / SLA / lineage metadata that
+    is not represented in the ODCS body.
+  limitations: |
+    Fictional. Illustrative only. The applicant, parcel, signature,
+    and signatures are placeholders. The activity-code comes from
+    the hand-curated ActivityConcept catalog v1.0
+    (ontology/activity-concept-catalog.v1.0.json).
+    Anchoring is not approval; this contract's lifecycle.state is
+    `draft` and the anchorReceipt is null.
+
+tags:
+  - geocontract
+  - citizen-initiated
+  - groton
+  - housing-rehabilitation
+  - facade-repair
+  - proposed-action
+  - v2-prototype
+
+servers:
+  # Citizen-initiated contracts typically do not have a public data
+  # endpoint of their own. The YAML file is the canonical artifact.
+  - server: groton-rhine-001-yaml
+    type: local
+    path: "./groton-rhine-001.datacontract.yaml"
+    format: yaml
+    description: |
+      Citizen-initiated proposal; no public server. The canonical
+      artifact is this YAML file, version-controlled in a public
+      GitHub repository.
+
+schema:
+  # The single entity for a citizen-initiated proposal.
+  - name: Proposal
+    physicalName: proposal
+    logicalType: object
+    description: |
+      A citizen's request that a specific activity be permitted on a
+      specific parcel. v2 canonical entity; the ODCS-flatten
+      projection of `proposal` in the nested-JSON model. RESTRICTED
+      fields (applicant.*, proof.*, raw geometry) are NOT included.
+    dataGranularityDescription: "One Proposal per citizen submission."
+    properties:
+
+      # ── Identity ───────────────────────────────────────────────────────
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 3
+          maxLength: 63
+          pattern: "^[a-z0-9][a-z0-9-]+$"
+        physicalType: VARCHAR(63)
+        physicalName: proposal.id
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: "Globally unique proposal id (kebab-case, 3–63 chars)."
+        examples:
+          - "groton-rhine-001"
+        quality:
+          - type: library
+            dimension: uniqueness
+            metric: duplicateValues
+            description: "ids must be globally unique within the harvest."
+            mustBe: 0
+            severity: error
+            businessImpact: operational
+
+      - name: schemaVersion
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 5
+          maxLength: 16
+          pattern: "^\\d+\\.\\d+\\.\\d+$"
+        physicalType: VARCHAR(16)
+        physicalName: proposal.schemaVersion
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: "Version of the proposed-action JSON Schema the contract was authored against."
+        examples:
+          - "2.0.0"
+
+      - name: createdAt
+        logicalType: timestamp
+        physicalType: TIMESTAMP
+        physicalName: proposal.createdAt
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: "ISO 8601 timestamp with timezone at which the proposal was authored."
+        logicalTypeOptions:
+          format: "yyyy-MM-dd'T'HH:mm:ssXXX"
+        examples:
+          - "2026-09-12T14:30:00-04:00"
+
+      # ── Parcel (typed; plan §5.9) ─────────────────────────────────────
+      - name: jurisdiction
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 5
+          maxLength: 64
+          pattern: "^[a-z]{2}-[a-z]{2}-[a-z0-9-]+$"
+        physicalType: VARCHAR(64)
+        physicalName: proposal.parcel.jurisdiction
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: "Municipality slug (`<country>-<state>-<name>`)."
+        examples:
+          - "us-ct-groton"
+
+      - name: parcelAuthority
+        logicalType: string
+        logicalTypeOptions:
+          format: uri
+          maxLength: 256
+        physicalType: VARCHAR(256)
+        physicalName: proposal.parcel.parcelAuthority
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: "URI to the authoritative parcel registry."
+        examples:
+          - "https://permits.groton-ct.gov/parcels/"
+
+      - name: parcelId
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 64
+        physicalType: VARCHAR(64)
+        physicalName: proposal.parcel.authoritativeParcelId
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "Parcel identifier as issued by parcelAuthority."
+
+      - name: authorityRecordVersion
+        logicalType: string
+        logicalTypeOptions:
+          maxLength: 32
+        physicalType: VARCHAR(32)
+        physicalName: proposal.parcel.authorityRecordVersion
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Version of the parcel-authority snapshot this reference was drawn from."
+
+      - name: authorityRetrievedAt
+        logicalType: timestamp
+        physicalType: TIMESTAMP
+        physicalName: proposal.parcel.authorityRetrievedAt
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "When the parcel-authority record was retrieved."
+        logicalTypeOptions:
+          format: "yyyy-MM-dd'T'HH:mm:ssXXX"
+
+      - name: geometryFormat
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 6
+          maxLength: 8
+        physicalType: VARCHAR(8)
+        physicalName: proposal.parcel.geometryFormat
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: "Format of the geometry (geojson | wkt | h3)."
+
+      - name: crs
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 9
+          maxLength: 32
+          pattern: "^EPSG:\\d+$"
+        physicalType: VARCHAR(32)
+        physicalName: proposal.parcel.crs
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: "Coordinate reference system (e.g. `EPSG:4326`)."
+        examples:
+          - "EPSG:4326"
+
+      - name: snapshotHash
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 71
+          maxLength: 71
+          pattern: "^sha256:[a-f0-9]{64}$"
+        physicalType: VARCHAR(71)
+        physicalName: proposal.parcel.snapshotHash
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "sha256 of (authorityRecordVersion + retrievedAt + geometryFormat + crs + geometry)."
+
+      - name: parcelOwnershipStatus
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 4
+          maxLength: 32
+        physicalType: VARCHAR(32)
+        physicalName: proposal.parcel.ownershipStatus
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: |
+          PUBLIC field — sourced from the parcel authority. Separate
+          from applicant.authorityProof.kind (which is RESTRICTED).
+
+      - name: address
+        logicalType: string
+        logicalTypeOptions:
+          maxLength: 256
+        physicalType: VARCHAR(256)
+        physicalName: proposal.parcel.address
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Public street address."
+
+      # ── Activity (ontology membership enforced) ────────────────────────
+      - name: activityCode
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 5
+          maxLength: 64
+          pattern: "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+$"
+        physicalType: VARCHAR(64)
+        physicalName: proposal.activity.code
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          Activity code, validated against
+          ontology/activity-concept-catalog.v1.0.json. Seeded by the
+          federal CATEX catalogue (used as a vocabulary source only)
+          and broadened by a small set of municipal-intake activities.
+        examples:
+          - "housing.rehabilitation.facade"
+          - "civic.infrastructure.sidewalk"
+
+      - name: activityPreferredLabel
+        logicalType: string
+        logicalTypeOptions:
+          maxLength: 200
+        physicalType: VARCHAR(200)
+        physicalName: proposal.activity.preferredLabel
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Cached human-readable label from the catalog (denormalised for offline readers)."
+        examples:
+          - "Building façade rehabilitation"
+
+      - name: purpose
+        logicalType: string
+        logicalTypeOptions:
+          maxLength: 500
+        physicalType: VARCHAR(500)
+        physicalName: proposal.purpose
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Free-text description of the proposed action (≤ 500 chars)."
+
+      - name: estimatedCostUsd
+        logicalType: number
+        logicalTypeOptions:
+          minimum: 0
+          maximum: 100000000
+        physicalType: NUMERIC(12,2)
+        physicalName: proposal.estimatedCostUsd
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Estimated total cost in USD."
+        examples:
+          - 38500.00
+
+      # ── Lifecycle / FSM ───────────────────────────────────────────────
+      - name: lifecycleState
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 4
+          maxLength: 32
+        physicalType: VARCHAR(32)
+        physicalName: proposal.lifecycle.state
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          Current state in the FSM
+          (draft|submitted|anchored|under_review|approved|rejected|
+           amended|superseded|revoked|expired).
+        examples:
+          - "draft"
+
+      - name: decisionIssuer
+        logicalType: string
+        logicalTypeOptions:
+          maxLength: 200
+        physicalType: VARCHAR(200)
+        physicalName: proposal.lifecycle.decisionIssuer
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: |
+          Authority that issued the most recent municipal decision.
+          Required iff lifecycleState ∈ {approved, rejected, revoked}.
+
+      - name: decisionAt
+        logicalType: timestamp
+        physicalType: TIMESTAMP
+        physicalName: proposal.lifecycle.decisionAt
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Timestamp of the most recent municipal decision."
+        logicalTypeOptions:
+          format: "yyyy-MM-dd'T'HH:mm:ssXXX"
+
+      - name: decisionEvidence
+        logicalType: string
+        logicalTypeOptions:
+          maxLength: 2048
+        physicalType: VARCHAR(2048)
+        physicalName: proposal.lifecycle.decisionEvidence
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Free-text justification, conditions, or municipal record reference."
+
+      - name: supersedes
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 71
+          maxLength: 71
+          pattern: "^sha256:[a-f0-9]{64}$"
+        physicalType: VARCHAR(71)
+        physicalName: proposal.lifecycle.supersedes
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Content hash of the predecessor revision this one replaces."
+
+      - name: revokedAt
+        logicalType: timestamp
+        physicalType: TIMESTAMP
+        physicalName: proposal.lifecycle.revokedAt
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Set iff lifecycleState = revoked."
+        logicalTypeOptions:
+          format: "yyyy-MM-dd'T'HH:mm:ssXXX"
+
+      # ── Anchor receipt (independent of FSM) ───────────────────────────
+      - name: anchorContentHash
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 71
+          maxLength: 71
+          pattern: "^sha256:[a-f0-9]{64}$"
+        physicalType: VARCHAR(71)
+        physicalName: proposal.anchorReceipt.contentHash
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "SHA-256 of canonicalised bytes of this revision (per the anchor service)."
+
+      - name: anchorSubmissionId
+        logicalType: string
+        logicalTypeOptions:
+          maxLength: 128
+        physicalType: VARCHAR(128)
+        physicalName: proposal.anchorReceipt.submissionId
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Opaque id returned by the anchor service."
+
+      - name: anchorAnchoredAt
+        logicalType: timestamp
+        physicalType: TIMESTAMP
+        physicalName: proposal.anchorReceipt.anchoredAt
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "Timestamp from the anchor service."
+        logicalTypeOptions:
+          format: "yyyy-MM-dd'T'HH:mm:ssXXX"
+
+      - name: anchorServiceRef
+        logicalType: string
+        logicalTypeOptions:
+          format: uri
+          maxLength: 256
+        physicalType: VARCHAR(256)
+        physicalName: proposal.anchorReceipt.serviceRef
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: "URI of the anchor service (for re-checking)."
+
+# Pricing — citizen-initiated contracts are zero-cost.
+price:
+  priceCurrency: USD
+  priceAmount: 0.00
+  priceUnit: dataset
+
+# Authoritative definitions — point to the v2 plan, template, and
+# ontology catalog.
+authoritativeDefinitions:
+  - url: "https://github.com/JJediny/geocontract/blob/main/templates/proposed-action.template.schema.json"
+    type: glossary
+    description: "The x-graphql-annotated JSON Schema (v2 canonical nested model) that this instance record's ODCS-flatten projection conforms to."
+  - url: "https://github.com/JJediny/geocontract/blob/main/ontology/activity-concept-catalog.v1.0.json"
+    type: glossary
+    description: "Hand-curated activity ontology catalog v1.0 against which proposal.activity.code is validated."
+  - url: "https://github.com/JJediny/geocontract/blob/main/docs/plan-citizen-permitting-standard.md"
+    type: glossary
+    description: "The citizen-permitting implementation plan (v2) that this contract instantiates."
+  - url: "https://github.com/JJediny/geocontract/blob/main/docs/agent-review-response.md"
+    type: glossary
+    description: "The agent review that prompted the v1 → v2 revision."
+
+# Custom properties — surfaced in the harvest JSONL output.
+customProperties:
+  - property: isCitizenInitiated
+    value: true
+  - property: jurisdiction
+    value: "us-ct-groton"
+  - property: schemaVersion
+    value: "2.0.0"
+  - property: accessClass
+    value: "public"
+
+# Contract creation timestamp.
+contractCreatedTs: "2026-09-12T14:30:00Z"
