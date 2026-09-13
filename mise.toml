@@ -92,5 +92,11 @@ harvest-citizen = "uv run geocontract-harvest-citizen"
 # records.jsonl + contracts/). See docs/design-harvester.md §"Pipeline".
 harvest-citizen-dir = "uv run geocontract-harvest-citizen-dir"
 
+# Regenerate examples/groton-rhine-002.example.data.json — the
+# full-coverage signed worked example. Uses a documented test
+# keypair (committed to the repo, marked TEST ONLY); output is
+# byte-reproducible for non-timestamp fields.
+build-signed-example = "uv run python scripts/build_signed_example.py"
+
 # Initialize pre-commit hooks. Idempotent.
 prek-install = "prek install"
