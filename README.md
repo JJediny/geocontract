@@ -82,6 +82,74 @@ design notes (phasing, open questions, output schema).
 
 ---
 
+## The citizen-initiated flow (v2)
+
+The v2 plan ([`docs/plan-citizen-permitting-standard.md`](docs/plan-citizen-permitting-standard.md))
+adds a bottom-up, citizen-initiated flow on top of the same ODCS v3.1.0
+machinery. Any resident of a municipality can author a minimal
+`*.geocontract.yaml` describing a proposed action on a denoted
+parcel; the contract validates against the canonical ODCS schema
+the same way the federal CATEX and PIC contracts do.
+
+### Components
+
+| Component                            | Path                                                                |
+|--------------------------------------|---------------------------------------------------------------------|
+| Nested-JSON canonical model          | `templates/proposed-action.template.schema.json`                     |
+| Hand-curated activity ontology       | `ontology/activity-concept-catalog.v1.0.json` (+ JSON-Schema)       |
+| Worked example (minimal)             | `examples/groton-rhine-001.example.data.json`                        |
+| Worked example (full coverage, signed)| `examples/groton-rhine-002.example.data.json`                        |
+| ODCS-flatten projection              | `contracts/groton-rhine-001.datacontract.yaml`                       |
+| Companion `DataContractShim`         | `contracts/shim/groton-rhine-001.datacontract-shim.json`            |
+| Generated GraphQL SDL                | `models/proposed-action.canonical.graphql`                           |
+| RFC 8785 JCS canonicalisation        | `src/geocontract_tools/canonicalize.py`                              |
+| Detached proof envelope validator    | `src/geocontract_tools/validate_proof.py`                            |
+| Ontology membership validator        | `src/geocontract_tools/validate_ontology.py`                         |
+| ODCS-flatten mapping (round-trip)    | `src/geocontract_tools/odcs_flatten.py`                              |
+| Public projection (restricted strip) | `src/geocontract_tools/public_projection.py`                         |
+| Citizen-source harvester (JSONL)     | `src/geocontract_tools/citizen_source.py` + `geocontract-harvest-citizen` |
+| Directory-mode harvester (manifest)  | `src/geocontract_tools/citizen_source_manifest.py` + `geocontract-harvest-citizen-dir` |
+| End-to-end integration test          | `scripts/tests/test_pipeline_end_to_end.py` (run via `mise run pipeline-test`) |
+
+### Working with it
+
+```bash
+# Regenerate the full-coverage signed example (TEST keypair):
+mise run build-signed-example
+
+# Harvest one or more Proposal files into a JSONL stream:
+mise run harvest-citizen -- examples/groton-rhine-001.example.data.json
+
+# Harvest into a directory (manifest + records.jsonl + contracts/):
+mise run harvest-citizen-dir -- examples/groton-rhine-001.example.data.json \
+                              contracts/groton-rhine-001.datacontract.yaml \
+                              --out /tmp/harvest
+
+# Run the cross-module pipeline test:
+mise run pipeline-test
+```
+
+### Key v2 design decisions (per plan v2 §0)
+
+- **Federal catalogue is vocabulary-only.** No NEPA / federal
+  regulatory fields appear in `ProposedAction`.
+- **No tokens in core.** Token issuance moved to §13.1 (out-of-core
+  experimental).
+- **Anchor ≠ approval.** Disjoint `anchorReceipt` and `lifecycle`
+  fields; never share a single mutable `approvalCode`.
+- **Detached proof.** Ed25519 only; RFC 8785-style JCS over the
+  proposal with `proof` excluded.
+- **Public/restricted split.** Default-deny access class.
+- **Walletless path supported.** No crypto wallet required.
+- **Pure ODCS v3.1.0.** Every citizen contract field is a primitive
+  ODCS `SchemaProperty`.
+
+See [`docs/plan-citizen-permitting-standard.md`](docs/plan-citizen-permitting-standard.md)
+for the full plan and [`docs/agent-review-response.md`](docs/agent-review-response.md)
+for the reviewer feedback that prompted the v1 → v2 revision.
+
+---
+
 ## The geocontract master schema
 
 The canonical ODCS v3.1.0 JSON Schema declares `additionalProperties: false`
