@@ -13,10 +13,7 @@
         "issuerDid": "did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA",
         "validUntil": "2027-12-31"
       },
-      "authorityProof": {
-        "kind": "owner",
-        "credentialRef": "town-clerk-deed-2026-08-15"
-      }
+      "authorityProof": { "kind": "owner", "credentialRef": "town-clerk-deed-2026-08-15" }
     },
     "parcel": {
       "jurisdiction": "us-ct-groton",
@@ -31,10 +28,7 @@
       "ownershipStatus": "owner_verified",
       "address": "44 Rhine Street, Groton, CT 06340"
     },
-    "activity": {
-      "code": "housing.rehabilitation.facade.repointing",
-      "preferredLabel": "Mortar repointing"
-    },
+    "activity": { "code": "housing.rehabilitation.facade.repointing", "preferredLabel": "Mortar repointing" },
     "purpose": "Repoint the east elevation's failed mortar joints. Approximately 220 linear feet of joints; lime-based mortar matching the original 1920s spec. No structural work; no colour change; no alteration of window openings.",
     "estimatedCostUsd": 18500.0,
     "lifecycle": {
@@ -52,7 +46,7 @@
       "hashAlgorithm": "sha-256",
       "signatureAlgorithm": "ed25519",
       "signingKey": "did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA",
-      "signature": "base64:eZ8MpXLJkudxW3ybzmbv9/HN3gI16POcVdQcOQGDML6BqbIBeVBd6OUrh7vl9kU7mS/T2d3Oy0pLbFZMKmVUBQ==",
+      "signature": "base64:s45D0GbVbAvKfM3WrDpqJg2uiGmSSYo6fgKzYlrH/Ar3st//MK/rkXXfs5tqeOzazkXrcKh1TRIRIyoU+wFRDw==",
       "signedAt": "2026-09-12T14:30:00-04:00",
       "domain": "geocontract.example",
       "nonce": "base64:QkJCQkJCQkJCQkJCQkJCQg==",
