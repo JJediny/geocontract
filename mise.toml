@@ -22,8 +22,13 @@ python = "3.13"
 node = "22"
 # Rust: for vendoring and re-building the json-schema-x-graphql Rust CLI
 rust = "1.85"
-# System tools required by hooks / validation
-"pipx:datacontract-cli" = "0.10.21"
+# System tools required by hooks / validation.
+# NOTE: the datacontract CLI is deliberately NOT installed via the mise
+# `pipx:` backend. The pinned 0.10.21 release imports `pytz` in
+# datacontract/catalog/catalog.py but does not declare it in Requires-Dist,
+# so the pipx-installed console script crashes on import (upstream
+# packaging bug). The `datacontract-lint` task below runs the CLI through
+# `uvx --with pytz` instead, which injects the missing runtime dependency.
 "npm:dprint" = "0.47.5"
 
 # ── Tasks (run with `mise run <name>`) ──────────────────────────────────────
@@ -48,7 +53,7 @@ validate-dcat = "uv run python scripts/validate_odcs.py --dcat examples/dcat-us-
 # standard that the upstream CLI validates against — `datacontract lint`
 # flags it by design. The authoritative check for that contract is
 # `mise run validate-odcs` (which uses the geocontract master schema).
-datacontract-lint = "for f in contracts/nepa-exclusions.datacontract.yaml contracts/pic-standards.datacontract.yaml contracts/odcs-v3.1.0-template.yaml; do datacontract lint \"$f\"; done"
+datacontract-lint = "for f in contracts/nepa-exclusions.datacontract.yaml contracts/pic-standards.datacontract.yaml contracts/odcs-v3.1.0-template.yaml; do uvx --with pytz --from datacontract-cli==0.10.21 datacontract lint \"$f\"; done"
 
 # Format every checked-in JSON file with dprint. dprint is installed via
 # mise's npm:dprint backend (see [tools]) so the bare `dprint` invocation
@@ -60,7 +65,12 @@ fmt-check = "dprint check"
 test = "uv run pytest scripts/tests/ -v"
 
 # End-to-end smoke test: validate, lint, and run pytest.
-ci = ["validate-odcs", "datacontract-lint", "fmt-check", "test"]
+# NOTE: `depends` lists *tasks* to run in order. A bare array value
+# (e.g. `ci = ["validate-odcs", ...]`) is treated by mise as shell
+# commands to execute, not task references, and fails with
+# "validate-odcs: not found". The v2 stack adds `pipeline-test` here
+# once scripts/tests/test_pipeline_end_to_end.py exists.
+ci = { depends = ["validate-odcs", "datacontract-lint", "fmt-check", "test"] }
 
 # Generate GraphQL SDL from the x-graphql-annotated templates using the
 # vendored jxql converter. The models/*.canonical.graphql files are build
