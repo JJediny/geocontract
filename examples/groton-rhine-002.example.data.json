@@ -10,7 +10,7 @@
       "residencyProof": {
         "kind": "municipal_vc",
         "credentialRef": "ipfs://bafy...groton-residency-vc",
-        "issuerDid": "did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA",
+        "issuerDid": "did:key:z6Mkon3Necd6NkkyfoGoHxid2znGc59LU3K7mubaRcFbLfLX",
         "validUntil": "2027-12-31"
       },
       "authorityProof": { "kind": "owner", "credentialRef": "town-clerk-deed-2026-08-15" }
@@ -42,11 +42,11 @@
     "revisions": [],
     "anchorReceipt": null,
     "proof": {
-      "signedDigest": "sha256:e7f5ad1afb90aae832d6839a87b30dfa387da03bb5efb579972191ab5b267ade",
+      "signedDigest": "sha256:34fd0b51a18b8d7d8e7f48f7ee2ed5fe39789babb976bb9ad2b8ccee6acff770",
       "hashAlgorithm": "sha-256",
       "signatureAlgorithm": "ed25519",
-      "signingKey": "did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA",
-      "signature": "base64:s45D0GbVbAvKfM3WrDpqJg2uiGmSSYo6fgKzYlrH/Ar3st//MK/rkXXfs5tqeOzazkXrcKh1TRIRIyoU+wFRDw==",
+      "signingKey": "did:key:z6Mkon3Necd6NkkyfoGoHxid2znGc59LU3K7mubaRcFbLfLX",
+      "signature": "base64:4FnpDdz6hNv+1FE7pTOULWUvBNUE3mVAv1IISC9j5cowHJgA9ds+ggzuOv2FVsJLO7lklIA5aXhVcl6nzFOkDw==",
       "signedAt": "2026-09-12T14:30:00-04:00",
       "domain": "geocontract.example",
       "nonce": "base64:QkJCQkJCQkJCQkJCQkJCQg==",
