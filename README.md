@@ -131,6 +131,15 @@ mise run harvest-citizen-dir -- examples/groton-rhine-001.example.data.json \
 mise run pipeline-test
 ```
 
+> **Note on the `groton-rhine-002` example.** The example uses a
+> single documented test keypair for *both* the proposal signature
+> (`proof.signingKey`) and the placeholder residency-VC issuer
+> (`applicant.residencyProof.issuerDid`). In a real submission these
+> are **two distinct parties**: the citizen signing the proposal, and
+> the municipal clerk who issued the residency VC. The example
+> collapses them for fixture simplicity only; downstream consumers
+> must resolve the issuer DID independently of the proposal signer.
+
 ### Key v2 design decisions (per plan v2 §0)
 
 - **Federal catalogue is vocabulary-only.** No NEPA / federal
