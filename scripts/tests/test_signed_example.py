@@ -25,6 +25,9 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from geocontract_tools.canonicalize import canonicalize_for_signing  # noqa: E402
 from geocontract_tools.validate_proof import verify_proof  # noqa: E402
+from geocontract_tools._schema_validation import make_format_checker  # noqa: E402
+
+FORMAT_CHECKER = make_format_checker()
 
 TEMPLATE = ROOT / "templates" / "proposed-action.template.schema.json"
 EXAMPLE = ROOT / "examples" / "groton-rhine-002.example.data.json"
@@ -60,7 +63,7 @@ def example() -> dict:
 
 def test_example_validates_against_schema(example: dict) -> None:
     schema = json.loads(TEMPLATE.read_text())
-    Draft202012Validator(schema).validate(example)
+    Draft202012Validator(schema, format_checker=FORMAT_CHECKER).validate(example)
 
 
 def test_example_is_full_coverage(example: dict) -> None:
