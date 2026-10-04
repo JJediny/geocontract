@@ -153,3 +153,11 @@ publish-confirm = "python3 tools/publish.py --confirm"
 # NOTE: `catalog-build` and `catalog-check` arrive with the Phase 1 generator
 # (scripts/build_catalog.py). See docs/plan-portolan-catalog-integration.md §7.
 # They are deliberately absent here so every task in this file runs today.
+
+# Harvest contracts from various sources (URLs, files, git repos, S3)
+# Usage: mise run harvest <source1> <source2> ... [--out .harvest] [--sink jsonl|portolan]
+harvest = "uv run python scripts/harvest.py"
+
+# Harvest contracts to Portolan mirror collections
+# Usage: mise run harvest-portolan <source1> <source2> ...
+harvest-portolan = "uv run python scripts/harvest.py --sink portolan"

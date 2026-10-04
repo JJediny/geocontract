@@ -22,6 +22,7 @@ dependencies = [
   "datacontract-cli>=0.10.21",
   "canonicaljson>=1.6",
   "cryptography>=43.0",
+  "httpx>=0.27.0",
 ]
 
 [project.optional-dependencies]

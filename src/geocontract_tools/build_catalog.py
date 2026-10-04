@@ -459,6 +459,18 @@ def build_root(manifest: dict, themes: list[tuple[str, dict]], out_root: Path) -
     children = []
     for theme, tdoc in themes:
         children.append({"rel": "child", "href": f"./{theme}/catalog.json", "type": "application/json", "title": tdoc["title"]})
+    
+    # Preserve existing child links that aren't part of the manifest themes
+    # (e.g., mirror sub-catalog added by the harvester)
+    existing_catalog = out_root / "catalog.json"
+    if existing_catalog.exists():
+        existing_data = json.loads(existing_catalog.read_text())
+        theme_hrefs = {f"./{theme}/catalog.json" for theme, _ in themes}
+        for link in existing_data.get("links", []):
+            if link.get("rel") == "child" and link.get("href") not in theme_hrefs:
+                # This is an additional child link (e.g., mirror), preserve it
+                children.append(link)
+    
     doc: dict[str, Any] = {
         "type": "Catalog",
         "stac_version": "1.1.0",

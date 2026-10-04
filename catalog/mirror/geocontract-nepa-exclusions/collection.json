@@ -1,0 +1,123 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json"
+  ],
+  "id": "mirror/geocontract-nepa-exclusions",
+  "title": "Mirror: NEPA Categorical Exclusions (CATEX) Catalogue",
+  "description": "The federal Categorical Exclusion (CATEX) catalogue published by the\nPermitting Innovation Center. CATEXs are classes of actions that\nnormally do not require further environmental review under NEPA\n(42 U.S.C. \u00a7\u00a7 4321 et seq.) because they have been found not to\nhave a significant effect on the environment, individually or\ncumulatively. This contract governs the 2,105 records spanning\n78 federal agency units (AFRH, CPSC, DC, DHS, \u2026).",
+  "license": "CC0-1.0",
+  "keywords": [
+    "geocontract",
+    "nepa",
+    "catex",
+    "exclusions",
+    "permitting-innovation-center",
+    "federal-register"
+  ],
+  "providers": [
+    {
+      "name": "us-federal-permitting-innovation-center",
+      "roles": [
+        "producer"
+      ],
+      "url": "https://ce.permitting.innovation.gov/data/exclusions.json"
+    },
+    {
+      "name": "geocontract",
+      "url": "https://github.com/JJediny/geocontract",
+      "email": "permits@innovation.gov",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -180.0,
+          -90.0,
+          180.0,
+          90.0
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2026-10-04T01:59:48.568015+00:00",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "date",
+      "type": "date",
+      "description": "Catalogue release date (YYYY-MM-DD)."
+    },
+    {
+      "name": "version",
+      "type": "varchar",
+      "description": "Semantic version of the catalogue payload\n(e.g. `2.0.0`).\n"
+    }
+  ],
+  "assets": {
+    "source": {
+      "href": "./geocontract-nepa-exclusions.datacontract.yaml",
+      "type": "application/yaml",
+      "title": "Source contract: NEPA Categorical Exclusions (CATEX) Catalogue",
+      "roles": [
+        "source"
+      ],
+      "file:size": 13837,
+      "file:checksum": "12207ac619f90b9b0b14d83428f9246d6c1c096984519047668a9cc178dd92c8778d"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "via",
+      "href": "https://ce.permitting.innovation.gov/data/exclusions.json",
+      "type": "text/html",
+      "title": "Original source"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    }
+  ],
+  "updated": "2026-10-04T01:59:48.568015+00:00",
+  "geocontract:contract_id": "geocontract-nepa-exclusions",
+  "geocontract:contract_version": "2.0.0",
+  "geocontract:status": "active",
+  "geocontract:tenant": "us-federal-permitting-innovation-center",
+  "geocontract:domain": "environmental-review",
+  "geocontract:mirror": true,
+  "geocontract:harvested_from": "contracts/nepa-exclusions.datacontract.yaml",
+  "geocontract:harvested_at": "2026-10-04T01:59:48.568015+00:00"
+}

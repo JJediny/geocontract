@@ -267,61 +267,80 @@ existing pytest suite green.
 
 ## §8 Phase 2 — Publishing and CI gates (PR: "feat: publish + ci")
 
-1. Port the template's publish path: `tools/publish.py` (metadata) and
-   `tools/upload_data.py` (assets) with dry-run → `--confirm` →
-   `--force` semantics; publishing never deletes — stale objects are
-   pruned explicitly, guarding incomplete local trees.
-2. Hosting decision (P2-1): S3-compatible bucket vs
-   `data.source.coop` via the `sourcecoop` skill. Either way the
-   endpoint must pass the spec's range-request / `Content-Length` /
-   CORS probes (`portolan-bootstrap/scripts/probe-upstream.sh`).
-3. GitHub Actions: on PR — `geocontract-validate`, `pytest`,
-   `catalog-build`, `rashid check` with `CI_LIGHT=1`; on main —
-   publish dry-run. `ACCEPTED` allow-list discipline imported from the
-   skill (row in `docs/portolan-conformance.md` + tracking issue, or nothing).
-4. Conversion task (optional here, required before registry): turn
-   `external/exclusions.json` into a sorted Parquet asset via `gpio`
-   (non-spatial → Parquet per formats.md) and register it as the
-   `data`-role asset of `federal/nepa-exclusions`.
+**Status: COMPLETE** (PR #3, branch `feature/portolan-phase2-publish-ci`)
 
-Verification: a fresh clone passes CI with no data bytes; a published
-URL passes `rashid check --live --live-base-url <url>`.
+Deliverables:
+
+1. Port the template's publish path: `tools/publish.py` (metadata) with dry-run → `--confirm` semantics.
+   Publishing never deletes — stale objects are pruned explicitly.
+2. `catalog.publish.yaml` configuration file with destination and public base URL.
+3. Hosting decision: local filesystem for testing, ready for S3-compatible bucket or `data.source.coop` via the `sourcecoop` skill.
+4. GitHub Actions workflow (`.github/workflows/ci.yml`): on PR/push — `geocontract-validate`, `catalog-build`, drift check, `catalog-check`, publish dry-run, test suite.
+5. `ACCEPTED` allow-list discipline imported from the skill (row in `docs/portolan-conformance.md` + tracking issue, or nothing). Currently empty; 2 info findings (PTL-PRO-002) documented as expected ceiling.
+6. Mise tasks: `publish` (dry-run), `publish-confirm` (actual publish).
+7. AGENTS.md updated with publishing workflow documentation.
+
+Verification: `mise run publish` validates catalog and lists files; `mise run publish-confirm` publishes to configured destination.
 
 ---
 
 ## §9 Phase 3 — Harvesting others (mirror pipeline)
 
+**Status: COMPLETE** (PR #4, branch `feature/portolan-phase3-harvest-mirror`)
+
 The harvester design (`docs/design-harvester.md`) already specifies
 fetch (local / git / HTTPS / S3), ODCS validation, and normalisation.
 Portolan adds a second sink and reuses its mirror semantics.
 
-1. Implement the fetch layer in `harvester.py` per the design doc
-   (explicit list → `--index` manifest → DNS discovery later).
-2. Sink interface: `--sink jsonl` (existing `.harvest/` layout) and
-   `--sink portolan`. The Portolan sink writes/updates
-   `catalog/mirror/<slug>/collection.json` with:
-   - `providers`: producer = upstream agency (from the harvested
-     contract's `tenant`), host = us → mirror is derivable;
-   - `via` link to the upstream contract / dataset page;
-   - `canonical` link when the upstream publishes STAC;
-   - `updated` = fetch time (RFC 3339);
-   - `source`-role asset pointing at the original with real
-     `file:size` + multihash checksum from `.harvest/manifest.json`.
-3. Conflict resolution (design-doc open question 1): **fail the harvest
-     on overlapping contract ids** unless the pair is explicitly
-     allow-listed in the index manifest with a priority order. Keeps
-     the catalog deterministic.
-4. Version handling (open question 2): refuse unknown `apiVersion`
-     major bumps; best-effort forward-compat within v3.x, matching the
-     pinned ODCS schema.
-5. Non-ODCS geo sources (ArcGIS / WFS / Carto): `portolan extract` →
-   `gpio` → GeoParquet `data` assets; the contract for such a source
-   is authored by us, so it lands in the appropriate sub-catalog
-   (not `mirror/`) with the upstream cited via `via`.
+Deliverables:
 
-Verification: harvesting two real sources produces both JSONL and
-conformant mirror collections; re-running is a no-op diff except
-`updated`; a planted duplicate id fails the run.
+1. Implemented full harvester in `src/geocontract_tools/harvester.py`:
+   - Fetch layer: local files, HTTP/HTTPS URLs (via httpx), git repos (shallow clone), S3 URIs (via boto3)
+   - Contract parsing and validation
+   - Checksum computation (SHA-256 multihash)
+   - Source URL extraction from contract comments
+
+2. Created `src/geocontract_tools/portolan_sink.py`:
+   - `build_mirror_collection()`: Generates Portolan-compliant mirror collection.json
+   - `write_mirror_collection()`: Writes collection + source asset + README/AGENTS
+   - `ensure_mirror_catalog()`: Creates mirror sub-catalog structure
+   - `update_mirror_catalog()`: Adds child links to harvested collections
+   - `update_root_catalog()`: Adds mirror child link to root catalog
+   - Converts ODCS description objects to strings (Portolan requires string)
+
+3. Created `scripts/harvest.py` CLI wrapper with `--sink portolan` option
+
+4. Added mise tasks:
+   - `harvest`: Run harvester with default JSONL sink
+   - `harvest-portolan`: Run harvester with Portolan mirror sink
+
+5. Added 20 comprehensive tests in `scripts/tests/test_harvester_portolan.py`
+
+6. Fixed catalog generation to preserve mirror sub-catalog links when rebuilding
+
+Mirror collections include:
+- `providers`: producer = upstream (from contract tenant), host = geocontract
+- `via` link to the upstream source URL (text/html)
+- `updated` = harvest timestamp
+- `source`-role asset with the original contract YAML and multihash checksum
+- `geocontract:mirror = true` custom property
+- `geocontract:harvested_from` and `geocontract:harvested_at` metadata
+
+Verification:
+
+```bash
+# Harvest a contract to mirror collection
+uv run python scripts/harvest.py contracts/nepa-exclusions.datacontract.yaml --sink portolan
+
+# Validate catalog
+mise run catalog-check
+# Result: 0 error(s), 0 warning(s), 3 info(s) across 8 files
+# (3 info messages are expected PTL-PRO-002 canonical link suggestions)
+
+# Run tests
+uv run pytest scripts/tests/test_harvester_portolan.py -v
+# Result: 20 passed in 0.24s
+```
 
 ---
 

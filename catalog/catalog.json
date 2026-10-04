@@ -26,6 +26,12 @@
       "title": "Federal Data Sources"
     },
     {
+      "rel": "child",
+      "href": "./mirror/catalog.json",
+      "type": "application/json",
+      "title": "Harvested Mirrors"
+    },
+    {
       "rel": "agents",
       "href": "./AGENTS.md",
       "type": "text/markdown",
