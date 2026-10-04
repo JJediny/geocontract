@@ -65,7 +65,12 @@ validate-dcat = "uv run python scripts/validate_odcs.py --dcat examples/dcat-us-
 # unchanged tree is byte-for-byte a no-op.
 build-dcat = "uv run python scripts/build_dcat.py"
 
-dcat-check = { depends = ["build-dcat", "validate-dcat"] }
+# dcat-check reads catalog/, so it must run AFTER catalog-check has
+# finished writing the tree. Without the depends, the parallel
+# scheduler lets both read/write catalog/ concurrently and
+# build-dcat occasionally catches a half-written collection.json
+# with no matching contract yaml (race observed on CI).
+dcat-check = { depends = ["build-dcat", "validate-dcat", "catalog-check"] }
 
 # Rebuild the DataCite v4.3 records from the generated Portolan tree
 # (issue #21). Deterministic, one record per unique contract id.
@@ -73,7 +78,9 @@ build-datacite = "uv run python scripts/build_datacite.py"
 
 validate-datacite = "uv run python scripts/validate_odcs.py --datacite examples/datacite4.3/*.json"
 
-datacite-check = { depends = ["build-datacite", "validate-datacite"] }
+# datacite-check also reads catalog/, so it depends on both
+# catalog-check and dcat-check to avoid the same race condition.
+datacite-check = { depends = ["build-datacite", "validate-datacite", "dcat-check"] }
 
 # Cross-validate the bare-ODCS contracts with the upstream datacontract CLI
 # (a second-line check; equivalent to `datacontract lint` on each YAML).
