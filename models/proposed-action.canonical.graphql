@@ -29,15 +29,15 @@ type Proposal implements Node @key(fields: "id") @shareable {
   """Append-only list of prior revisions. The current revision is the proposal body itself; prior revisions are listed here."""
   revisions: [Revision]
   """Detached proof envelope. The signature covers RFC 8785-style canonical bytes of the proposal plus protected proof context; signedDigest and signature are excluded to avoid circularity. Optional — absence indicates draft / walletless path."""
-  proof: JSON
+  proof: Proof
 }
 
 "RESTRICTED. The person (or authorised representative) who filed the proposal."
 type Applicant {
   displayName: String!
   contactEmail: String
-  residencyProof: JSON
-  authorityProof: JSON
+  residencyProof: ResidencyProof
+  authorityProof: AuthorityProof
 }
 
 "RESTRICTED. Proof that the applicant resides in the municipality."
@@ -144,18 +144,18 @@ type CitizenInitiatedProposalV2CanonicalModel @shareable {
 type Query {
     """Look up a single Proposal by id."""
   proposedAction(
-
-        """Proposal id."""    id: ID!
+    """Proposal id."""
+    id: ID!
   ): Proposal
     """List Proposals filed under a given municipality slug (public projection)."""
   proposedActionsByMunicipality(
-
-        """Municipality slug."""    jurisdiction: String!
+    """Municipality slug."""
+    jurisdiction: String!
   ): [Proposal!]!
     """List Proposals filed under a given ontology code (public projection)."""
   proposedActionsByActivity(
-
-        """Ontology code."""    activityCode: String!
+    """Ontology code."""
+    activityCode: String!
   ): [Proposal!]!
 }
 

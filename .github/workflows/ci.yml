@@ -69,6 +69,18 @@ jobs:
       - name: Sync Python dependencies (runtime + dev extras)
         run: uv sync --extra dev
 
+      # Build the json-schema-x-graphql Rust CLI once before the
+      # validation suite runs. The
+      # test_generated_graphql_is_reproducible pytest calls `mise run
+      # generate-graphql` via subprocess.run with capture_output=True;
+      # if jxql is missing it surfaces as a Rust-panic-shaped exit
+      # status 101 with empty captured output, which is hard to
+      # diagnose from the test failure alone. Running vendor-jxql here
+      # means the test only sees the script's own behaviour.
+      # vendor.sh is idempotent, so re-runs on warm caches are fast.
+      - name: Vendor jxql (json-schema-x-graphql CLI)
+        run: mise run vendor-jxql
+
       - name: Run the full validation suite
         run: mise run ci
 
