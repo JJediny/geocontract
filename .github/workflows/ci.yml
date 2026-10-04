@@ -32,8 +32,16 @@ jobs:
     timeout-minutes: 20
 
     steps:
+      # actions/checkout@v4 does NOT initialize git submodules by
+      # default. The repo vendors the Portolan specification under
+      # `portolan-spec/` and the skills bundle under `portolan-skills/`;
+      # `scripts/check_drift.py` reads `portolan-skills/pins.toml` and
+      # `mise run catalog-build` reads the spec submodule, so we must
+      # check them out explicitly with `submodules: recursive`.
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install mise
         uses: jdx/mise-action@v2
