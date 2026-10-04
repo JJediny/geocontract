@@ -160,3 +160,87 @@ def test_yaml_source_works(tmp_path: Path) -> None:
     manifest = json.loads((out / "manifest.json").read_text())
     assert manifest["sources"][0]["contract_id"] == "groton-rhine-001"
     assert manifest["sources"][0]["contract_version"] == "0.2.0"
+
+
+def test_portolan_sink_writes_citizen_collection(tmp_path: Path) -> None:
+    """With --sink=portolan, harvest_directory + the new portolan sink
+    produce a Portolan citizen collection under catalog/citizen/<slug>/."""
+    from geocontract_tools.citizen_source_manifest import _portolan_sink, harvest_directory
+
+    out = tmp_path / "harvest"
+    catalog_dir = tmp_path / "catalog"
+
+    # First write the directory sink so the manifest is in place.
+    manifest = harvest_directory([CONTRACT], out_dir=out)
+    fetched_at = manifest["fetched_at"]
+
+    # Then call the portolan sink against the empty catalog.
+    _portolan_sink(
+        [CONTRACT],
+        out_dir=out,
+        projection="public",
+        authority_token=None,
+        catalog_dir=catalog_dir,
+        fetched_at=fetched_at,
+    )
+
+    citizen_dir = catalog_dir / "citizen" / "groton-rhine-001"
+    assert citizen_dir.is_dir()
+    collection = json.loads((citizen_dir / "collection.json").read_text())
+    assert collection["id"] == "citizen/groton-rhine-001"
+    assert collection["type"] == "Collection"
+    # The citizen sub-catalog itself exists.
+    assert (catalog_dir / "citizen" / "catalog.json").is_file()
+
+
+def test_portolan_sink_skips_non_citizen_source(tmp_path: Path) -> None:
+    """Non-citizen Proposal files (no isCitizenInitiated flag) are skipped,
+    not silently dropped or errored out."""
+    from geocontract_tools.citizen_source_manifest import _portolan_sink, harvest_directory
+
+    out = tmp_path / "harvest"
+    catalog_dir = tmp_path / "catalog"
+
+    # A non-citizen contract: pic-standards does not set isCitizenInitiated.
+    non_citizen = REPO_ROOT / "contracts" / "pic-standards.datacontract.yaml"
+    harvest_directory([non_citizen], out_dir=out)
+    _portolan_sink(
+        [non_citizen],
+        out_dir=out,
+        projection="public",
+        authority_token=None,
+        catalog_dir=catalog_dir,
+        fetched_at="2026-10-04T00:00:00Z",
+    )
+
+    # Nothing under catalog/citizen/ was created.
+    citizen_dir = catalog_dir / "citizen"
+    if citizen_dir.exists():
+        # Only catalog.json is allowed, not collection.json.
+        assert not (citizen_dir / "pic-standards").exists()
+
+
+def test_portolan_sink_cli(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+    """End-to-end: --sink portolan on the CLI writes them both.
+    """
+    from geocontract_tools.citizen_source_manifest import main
+
+    out = tmp_path / "harvest"
+    catalog_dir = tmp_path / "catalog"
+
+    rc = main([
+        str(CONTRACT),
+        "--out", str(out),
+        "--sink", "portolan",
+        "--catalog-dir", str(catalog_dir),
+    ])
+    assert rc == 0
+
+    # Directory sink artifacts.
+    assert (out / "manifest.json").is_file()
+    assert (out / "records.jsonl").is_file()
+    assert (out / "contracts" / "groton-rhine-001.datacontract.yaml").is_file()
+
+    # Portolan sink artifacts.
+    assert (catalog_dir / "citizen" / "groton-rhine-001" / "collection.json").is_file()
+    assert (catalog_dir / "citizen" / "catalog.json").is_file()
