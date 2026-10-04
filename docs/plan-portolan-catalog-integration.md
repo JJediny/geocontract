@@ -384,6 +384,16 @@ exercises.
 
 ## §11 Phase 5 — Registry, DCAT-US regeneration, drift control
 
+**Status: items 2–3 complete; item 1 (registry) pending on publishing +
+sign-off.** DCAT-US regeneration: `mise run build-dcat` renders
+`examples/dcat-us-catalog.example.data.json` from the catalog tree;
+`mise run dcat-check` gates it in `ci`. Drift control:
+`mise run drift-check` compares `portolan-skills/pins.toml` with the
+mise `[env]` pins and runs first in `ci`. Registry submission needs a
+published, reachable `catalog.json` URL (blocked on
+`catalog.publish.yaml` TODO placeholders and credentials) and a
+submitter email the user must supply.
+
 1. **Registry submission** via the `register-catalog` skill: PR to the
    portolan-sdi registry adding `catalogs/geocontract.yaml`
    (`url` + `submitter_email` only), gated on

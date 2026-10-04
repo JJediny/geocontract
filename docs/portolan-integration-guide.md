@@ -2,7 +2,9 @@
 
 > Spec baseline: `portolan-spec` @ v0.2.0
 > Tools: `portolan` 0.8.0, `rashid` 0.1.8
-> Status: Phases 0–4 complete; Phase 5 (§11 of the plan) is pending
+> Status: Phases 0–4 complete. Phase 5: DCAT-US generation and pin-drift
+> control complete (§11 items 2–3); registry submission pending a published
+> URL and a submitter email.
 
 This guide explains how to consume, publish, and contribute to the geocontract
 Portolan catalog. Read it alongside the plan at
@@ -165,6 +167,14 @@ Two validators must pass before any PR merges:
 The expected information ceiling is 5 `PTL-PRO-002` findings (canonical link
 suggestions on mirror collections: 2 federal plus 3 harvested mirrors). Zero
 errors and zero warnings are required.
+
+The DCAT-US instance (`examples/dcat-us-catalog.example.data.json`) is also
+generated. Run `mise run build-dcat` after a catalog change; `mise run
+dcat-check` regenerates it and validates the result against the pinned
+DCAT-US 3.0.0 schema. Never hand-edit the file.
+
+Pin drift is checked, not remembered. `mise run drift-check` compares
+`portolan-skills/pins.toml` with the mise pins and runs first in `ci`.
 See `docs/portolan-conformance.md` for the ACCEPTED allow-list.
 
 ---
