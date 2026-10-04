@@ -116,8 +116,10 @@ pipeline-test = "uv run pytest scripts/tests/test_pipeline_end_to_end.py -v"
 # Generate GraphQL SDL from the x-graphql-annotated templates using the
 # vendored jxql converter. The models/*.canonical.graphql files are build
 # artifacts — do not edit them by hand; re-run this task after changing a
-# template. Requires `mise run vendor-jxql` to have built jxql once.
-generate-graphql = "bash scripts/generate_graphql.sh"
+# template. The depends on vendor-jxql means fresh runners get the Rust
+# CLI built on demand; on local dev with jxql already vendored it is a
+# no-op (vendor.sh is idempotent).
+generate-graphql = { depends = ["vendor-jxql"], run = "bash scripts/generate_graphql.sh" }
 
 # (Re)build the geocontract master schema from the pinned ODCS v3.1.0
 # schema. The master schema adds the `embeddedSchemas` extension point.
