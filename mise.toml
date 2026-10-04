@@ -141,6 +141,15 @@ echo "spec schema: $PORTOLAN_SCHEMA_URI"
 # 3 October 2026 with rashid 0.1.8.
 portolan-calibrate = 'uvx --from "$RASHID_SPEC" rashid check portolan-spec/examples/catalog/portolan-reference --no-data --summary'
 
+#
+# ── Publishing ────────────────────────────────────────────────────────────
+
+# Publish the catalog to the configured destination (dry run by default).
+# Reads catalog.publish.yaml for destination and public_base.
+# Use --confirm to actually publish (needs credentials for S3).
+publish = "python3 tools/publish.py"
+publish-confirm = "python3 tools/publish.py --confirm"
+
 # NOTE: `catalog-build` and `catalog-check` arrive with the Phase 1 generator
 # (scripts/build_catalog.py). See docs/plan-portolan-catalog-integration.md §7.
 # They are deliberately absent here so every task in this file runs today.

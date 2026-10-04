@@ -1,0 +1,31 @@
+# Publish configuration for the geocontract Portolan catalog.
+#
+# This file configures where the catalog is published and how it's accessed.
+# The publish script (tools/publish.py) reads this configuration to sync the
+# catalog/ directory to the destination.
+
+# Destination URL where the catalog will be published.
+# Supported schemes:
+#   - file:///path/to/dir  (local directory, for testing)
+#   - s3://bucket-name/prefix  (S3-compatible bucket, needs AWS credentials)
+#
+# TODO: Update this to your actual publish destination before first publish.
+destination: file:///tmp/geocontract-catalog
+
+# Public base URL where the catalog will be accessible.
+# This is used to construct absolute URLs in the catalog.
+# Must match the destination (e.g., if publishing to S3, this should be the
+# CloudFront or S3 website URL).
+#
+# TODO: Update this to your actual public URL before first publish.
+public_base: https://geocontract.example.com/catalog
+
+# AWS region for S3 destinations (ignored for file:// destinations).
+# region: us-east-1
+
+# Optional: AWS credentials profile (uses default profile if not specified).
+# profile: default
+
+# Optional: Extra headers or metadata to set on uploaded objects.
+# metadata:
+#   Cache-Control: "public, max-age=3600"

@@ -164,3 +164,49 @@ Follow the synced block: `## What changed`, `## Why`, `## Verification`,
 conventional commit titles, Simplified Technical English. Paste real command
 output under `## Verification`. An agent prepares the branch and the body.
 A human pushes and opens the pull request.
+
+## Publishing the catalog
+
+The catalog is published to the destination configured in `catalog.publish.yaml`.
+The publish script validates the catalog with `rashid` before publishing and
+never deletes files from the destination.
+
+### Publish workflow
+
+```bash
+# Dry run: see what would be published
+mise run publish
+
+# Actually publish (needs credentials for S3)
+mise run publish-confirm
+```
+
+### Publishing rules
+
+- **Validate first.** The publish script runs `rashid check` before uploading.
+  Fix errors before publishing.
+- **Never delete manually.** Removing a file from `catalog/` does not remove it
+  from the destination. Delete objects separately when intended.
+- **Change detection.** Files are uploaded only if size or checksum differs.
+  Use `--force` after changing content type (the bucket listing omits
+  Content-Type).
+- **Relative links in git, absolute in published.** Keep structural links
+  relative in the tracked tree. The published root gets an absolute `self` link.
+- **Data files don't belong in git.** Build them, upload with a data upload
+  script, and reference them by public URL in the STAC.
+
+### Configuration
+
+Edit `catalog.publish.yaml` to set:
+- `destination`: Where to publish (file:// for testing, s3:// for production)
+- `public_base`: Public URL where the catalog is accessible
+- `region`: AWS region (for S3 destinations)
+- `profile`: AWS credentials profile (optional)
+
+Before first publish, update the TODO placeholders in `catalog.publish.yaml`.
+
+### CI integration
+
+The CI workflow runs `mise run publish` as a dry-run on every PR and push.
+This validates the catalog and checks that the publish script works, without
+actually uploading. Use `mise run publish-confirm` to publish to production.

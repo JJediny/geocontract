@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install mise
+      run: |
+        curl https://mise.run | sh
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+    
+    - name: Trust mise config
+      run: mise trust
+    
+    - name: Install dependencies
+      run: |
+        mise install
+        uv sync
+    
+    - name: Run validators
+      run: mise run validate-odcs
+    
+    - name: Build catalog
+      run: mise run catalog-build
+    
+    - name: Check catalog is up to date
+      run: |
+        if [[ -n "$(git status --porcelain catalog/)" ]]; then
+          echo "Error: catalog/ is not up to date. Run 'mise run catalog-build' and commit the changes."
+          git status --porcelain catalog/
+          exit 1
+        fi
+    
+    - name: Validate catalog with rashid
+      run: mise run catalog-check
+    
+    - name: Run publish dry-run
+      run: mise run publish
+    
+    - name: Run tests
+      run: mise run test
