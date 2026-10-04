@@ -37,6 +37,10 @@ from jsonschema import Draft202012Validator
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
+from geocontract_tools._schema_validation import make_format_checker  # noqa: E402
+
+FORMAT_CHECKER = make_format_checker()
+
 from geocontract_tools.canonicalize import canonicalize_for_signing  # noqa: E402
 from geocontract_tools.odcs_flatten import flatten, unflatten  # noqa: E402
 from geocontract_tools.public_projection import public_projection  # noqa: E402
@@ -64,7 +68,7 @@ def proposal() -> dict:
 
 def test_step1_json_schema_validates(proposal: dict) -> None:
     schema = json.loads(TEMPLATE.read_text())
-    Draft202012Validator(schema).validate({"proposal": proposal})
+    Draft202012Validator(schema, format_checker=FORMAT_CHECKER).validate({"proposal": proposal})
 
 
 # ── 2. Proof envelope verification (walletless / null path) ───────────────

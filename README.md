@@ -51,7 +51,7 @@ the PIC NEPA Data Standard.**
 | `scripts/generate_graphql.sh`                              | Generates `models/*.canonical.graphql` from templates via `jxql`.      |
 | `scripts/vendor.sh`                                        | Vendors `jxql`, `datacontract`, and `dprint` into `.tools/`.            |
 | `scripts/tests/`                                          | `pytest` test suite.                                                    |
-| `mise.toml`                                                | Toolchain (uv, Python 3.13, Rust 1.85, datacontract-cli, dprint).       |
+| `mise.toml`                                                | Toolchain (uv, Python 3.13, Rust 1.85, dprint) + tasks; runs `datacontract` via `uvx`. |
 | `pyproject.toml`                                           | uv-managed Python project (deps, console scripts, ruff, pytest).       |
 | `dprint.json`                                              | Formatter config (JSON).                                               |
 | `prek.toml`                                                | Pre-commit / pre-push hook config.                                      |
@@ -131,6 +131,14 @@ mise run harvest-citizen-dir -- examples/groton-rhine-001.example.data.json \
 mise run pipeline-test
 ```
 
+> **Note on the `groton-rhine-002` example.** The example uses a
+> single documented test keypair for *both* the proposal signature
+> (`proof.signingKey`) and the placeholder residency-VC issuer
+> (`applicant.residencyProof.issuerDid`). In a real submission these
+> are **two distinct parties**: the citizen signing the proposal, and
+> the municipal clerk who issued the residency VC. The example
+> collapses them for fixture simplicity only; downstream consumers
+> must resolve the issuer DID independently of the proposal signer.
 ### Key v2 design decisions (per plan v2 §0)
 
 - **Federal catalogue is vocabulary-only.** No NEPA / federal
@@ -226,7 +234,7 @@ header so it is never mistaken for hand-curated source.
 
 ```bash
 mise trust             # accept mise.toml
-mise install           # install python, rust, node, datacontract-cli, dprint
+mise install           # install python, rust, node, dprint (datacontract runs via uvx)
 uv sync                # install Python deps
 prek install           # install pre-commit + pre-push hooks
 mise run vendor-jxql   # build jxql from ../json-schema-x-graphql into .tools/
@@ -273,7 +281,7 @@ uv run geocontract-validate --shim contracts/shim/pic-standards.datacontract-shi
 | Rust 1.85              | `mise.toml`       | building `jxql` from source              |
 | Node 22                | `mise.toml`       | pnpm                                     |
 | pnpm                   | (system PATH)     | installing dprint                        |
-| `pipx:datacontract-cli` 0.10.21 | `mise.toml`  | cross-validating YAML contracts          |
+| `datacontract-cli` 0.10.21 | `mise.toml` (run via `uvx`) | cross-validating YAML contracts          |
 | `npm:dprint` 0.47.5    | `mise.toml`       | formatting JSON/YAML/Markdown/TOML       |
 | `prek`                 | (system PATH)     | pre-commit hooks                         |
 | `pyyaml`, `jsonschema` | `pyproject.toml`  | the validator                            |
