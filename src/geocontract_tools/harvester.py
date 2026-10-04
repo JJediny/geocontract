@@ -263,54 +263,105 @@ def harvest_to_portolan(
     results: Iterable[HarvestResult],
     catalog_dir: Path,
 ) -> None:
-    """Write harvest results as Portolan mirror collections."""
+    """Write harvest results as Portolan collections.
+    
+    Routes citizen proposals to catalog/citizen/ as official collections,
+    and other contracts to catalog/mirror/ as mirror collections.
+    """
     from geocontract_tools.portolan_sink import (
         ensure_mirror_catalog,
         update_mirror_catalog,
         update_root_catalog,
         write_mirror_collection,
+        write_citizen_collection,
+        ensure_citizen_catalog,
+        update_citizen_catalog,
     )
 
-    # Ensure mirror sub-catalog exists
-    ensure_mirror_catalog(catalog_dir)
+    citizen_results = []
+    mirror_results = []
 
-    # Write each result as a mirror collection
+    # Separate citizen proposals from mirrors
     for result in results:
-        slug = slugify(result.contract.get("id", "unknown"))
+        if _is_citizen_proposal(result.contract):
+            citizen_results.append(result)
+        else:
+            mirror_results.append(result)
 
-        # Extract via URL from contract source comments if available
-        via_url = _extract_source_url(result.contract_data)
+    # Process citizen proposals
+    if citizen_results:
+        ensure_citizen_catalog(catalog_dir)
+        for result in citizen_results:
+            slug = slugify(result.contract.get("id", "unknown"))
+            source_info = {
+                "source_url": result.source.location,
+                "jurisdiction": _extract_custom_property(result.contract, "jurisdiction"),
+                "access_class": _extract_custom_property(result.contract, "accessClass"),
+            }
 
-        # Build source info for the sink
-        source_info = {
-            "source_url": result.source.location,
-            "upstream_name": result.contract.get("tenant", "Unknown"),
-            "upstream_url": via_url or "",
-            "via_url": via_url or result.source.location if result.source.kind == "url" else via_url or "",
-        }
+            class SinkResult:
+                def __init__(self, result: HarvestResult, source_info: dict):
+                    self.contract = result.contract
+                    self.source_data = result.contract_data
+                    self.source_info = source_info
 
-        # Create a simplified HarvestResult-like object for the sink
-        # The sink expects source_data and source_info
-        class SinkResult:
-            def __init__(self, result: HarvestResult, source_info: dict):
-                self.contract = result.contract
-                self.source_data = result.contract_data
-                self.source_info = source_info
+            sink_result = SinkResult(result, source_info)
+            collection_path = write_citizen_collection(
+                sink_result,
+                catalog_dir,
+                result.fetched_at,
+            )
+            print(f"✓ Wrote citizen collection: {collection_path.relative_to(catalog_dir.parent)}", file=sys.stderr)
 
-        sink_result = SinkResult(result, source_info)
+        update_citizen_catalog(catalog_dir)
 
-        collection_path = write_mirror_collection(
-            sink_result,
-            catalog_dir,
-            result.fetched_at,
-        )
-        print(f"✓ Wrote mirror collection: {collection_path.relative_to(catalog_dir.parent)}", file=sys.stderr)
+    # Process mirror collections
+    if mirror_results:
+        ensure_mirror_catalog(catalog_dir)
+        for result in mirror_results:
+            slug = slugify(result.contract.get("id", "unknown"))
+            via_url = _extract_source_url(result.contract_data)
+            source_info = {
+                "source_url": result.source.location,
+                "upstream_name": result.contract.get("tenant", "Unknown"),
+                "upstream_url": via_url or "",
+                "via_url": via_url or result.source.location if result.source.kind == "url" else via_url or "",
+            }
 
-    # Update mirror catalog with child links to all collections
-    update_mirror_catalog(catalog_dir)
+            class SinkResult:
+                def __init__(self, result: HarvestResult, source_info: dict):
+                    self.contract = result.contract
+                    self.source_data = result.contract_data
+                    self.source_info = source_info
 
-    # Update root catalog to include mirror sub-catalog
-    update_root_catalog(catalog_dir)
+            sink_result = SinkResult(result, source_info)
+            collection_path = write_mirror_collection(
+                sink_result,
+                catalog_dir,
+                result.fetched_at,
+            )
+            print(f"✓ Wrote mirror collection: {collection_path.relative_to(catalog_dir.parent)}", file=sys.stderr)
+
+        update_mirror_catalog(catalog_dir)
+        update_root_catalog(catalog_dir)
+
+
+def _is_citizen_proposal(contract: dict) -> bool:
+    """Check if a contract is a citizen-initiated proposal."""
+    custom_props = contract.get("customProperties") or []
+    for prop in custom_props:
+        if prop.get("property") == "isCitizenInitiated" and prop.get("value") is True:
+            return True
+    return False
+
+
+def _extract_custom_property(contract: dict, property_name: str) -> str | None:
+    """Extract a value from customProperties by property name."""
+    custom_props = contract.get("customProperties") or []
+    for prop in custom_props:
+        if prop.get("property") == property_name:
+            return str(prop.get("value", ""))
+    return None
 
 
 def slugify(s: str) -> str:

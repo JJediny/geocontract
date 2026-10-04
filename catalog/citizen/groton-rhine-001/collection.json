@@ -7,16 +7,17 @@
     "https://stac-extensions.github.io/table/v1.2.0/schema.json"
   ],
   "id": "citizen/groton-rhine-001",
-  "title": "Groton Rhine St. Façade Repair — Worked Example (v2)",
-  "description": "v2 canonical worked example for the citizen-permitting flow. A resident of Groton, CT (fictional) proposes repairing the masonry façade of a property at 42 Rhine Street. The action covers repointing of failed mortar joints, replacement of three cracked lintels, and reattachment of a decorative cornice.",
+  "title": "Groton Rhine St. Fa\u00e7ade Repair \u2014 Worked Example (v2)",
+  "description": "v2 canonical worked example for the citizen-permitting flow. A\nresident of Groton, CT (fictional) proposes repairing the\nmasonry fa\u00e7ade of a property at 42 Rhine Street. The action\ncovers repointing of failed mortar joints, replacement of\nthree cracked lintels, and reattachment of a decorative cornice.",
   "license": "CC0-1.0",
   "keywords": [
+    "geocontract",
     "citizen-initiated",
-    "proposed-action",
+    "groton",
     "housing-rehabilitation",
     "facade-repair",
-    "groton",
-    "connecticut"
+    "proposed-action",
+    "v2-prototype"
   ],
   "providers": [
     {
@@ -34,17 +35,17 @@
     "spatial": {
       "bbox": [
         [
-          -72.09,
-          41.34,
-          -72.08,
-          41.35
+          -180.0,
+          -90.0,
+          180.0,
+          90.0
         ]
       ]
     },
     "temporal": {
       "interval": [
         [
-          "2026-09-12T14:30:00Z",
+          "2026-10-04T02:14:50Z",
           null
         ]
       ]
@@ -54,7 +55,7 @@
     {
       "name": "id",
       "type": "varchar",
-      "description": "Globally unique proposal id (kebab-case, 3–63 chars)."
+      "description": "Globally unique proposal id (kebab-case, 3\u201363 chars)."
     },
     {
       "name": "schemaVersion",
@@ -109,7 +110,7 @@
     {
       "name": "parcelOwnershipStatus",
       "type": "varchar",
-      "description": "PUBLIC field — sourced from the parcel authority. Separate from applicant.authorityProof.kind (which is RESTRICTED)."
+      "description": "PUBLIC field \u2014 sourced from the parcel authority. Separate\nfrom applicant.authorityProof.kind (which is RESTRICTED).\n"
     },
     {
       "name": "address",
@@ -119,7 +120,7 @@
     {
       "name": "activityCode",
       "type": "varchar",
-      "description": "Activity code, validated against ontology/activity-concept-catalog.v1.0.json. Seeded by the federal CATEX catalogue (used as a vocabulary source only) and broadened by a small set of municipal-intake activities."
+      "description": "Activity code, validated against\nontology/activity-concept-catalog.v1.0.json. Seeded by the\nfederal CATEX catalogue (used as a vocabulary source only)\nand broadened by a small set of municipal-intake activities.\n"
     },
     {
       "name": "activityPreferredLabel",
@@ -129,7 +130,7 @@
     {
       "name": "purpose",
       "type": "varchar",
-      "description": "Free-text description of the proposed action (≤ 500 chars)."
+      "description": "Free-text description of the proposed action (\u2264 500 chars)."
     },
     {
       "name": "estimatedCostUsd",
@@ -139,12 +140,12 @@
     {
       "name": "lifecycleState",
       "type": "varchar",
-      "description": "Current state in the FSM (draft|submitted|anchored|under_review|approved|rejected| amended|superseded|revoked|expired)."
+      "description": "Current state in the FSM\n(draft|submitted|anchored|under_review|approved|rejected|\n amended|superseded|revoked|expired).\n"
     },
     {
       "name": "decisionIssuer",
       "type": "varchar",
-      "description": "Authority that issued the most recent municipal decision. Required iff lifecycleState ∈ {approved, rejected, revoked}."
+      "description": "Authority that issued the most recent municipal decision.\nRequired iff lifecycleState \u2208 {approved, rejected, revoked}.\n"
     },
     {
       "name": "decisionAt",
@@ -225,16 +226,14 @@
       "hreflang": "en"
     }
   ],
-  "updated": "2026-10-03T00:00:00Z",
+  "updated": "2026-10-04T02:14:50Z",
   "geocontract:contract_id": "groton-rhine-001",
   "geocontract:contract_version": "0.2.0",
   "geocontract:status": "draft",
   "geocontract:tenant": "us-ct-groton",
   "geocontract:domain": "housing-rehabilitation",
-  "geocontract:primary_entity": "Proposal",
   "geocontract:mirror": false,
-  "language": {
-    "code": "en",
-    "name": "English"
-  }
+  "geocontract:jurisdiction": "us-ct-groton",
+  "geocontract:access_class": "public",
+  "geocontract:is_citizen_proposal": true
 }
