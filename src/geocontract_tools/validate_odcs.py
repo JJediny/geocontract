@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections.abc import Iterable
 from pathlib import Path
@@ -20,7 +21,7 @@ except ImportError:
     raise
 
 try:
-    from jsonschema import Draft201909Validator, Draft202012Validator
+    from jsonschema import Draft7Validator, Draft201909Validator, Draft202012Validator, FormatChecker
 except ImportError:
     print("ERROR: jsonschema required. Install with: pip install jsonschema", file=sys.stderr)
     raise
@@ -40,6 +41,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 ODCS_SCHEMA = REPO_ROOT / "external" / "odcs-json-schema-v3.1.0.json"
 MASTER_SCHEMA = REPO_ROOT / "external" / "geocontract-master.schema.json"
 DCAT_US_SCHEMA = REPO_ROOT / "external" / "dcat-us-catalog.json"
+DATACITE_43_SCHEMA = REPO_ROOT / "external" / "datacite" / "datacite_4.3_schema.json"
 SHIM_REFERENCE = REPO_ROOT / "external" / "datacontract-shim.rs"
 
 
@@ -77,6 +79,71 @@ def load_master_schema() -> dict:
 def load_dcat_us_schema() -> dict:
     """Load and return the pinned DCAT-US 3.0.0 Catalog JSON Schema."""
     return json.loads(DCAT_US_SCHEMA.read_text())
+
+
+def load_datacite_43_schema() -> dict:
+    """Load the pinned DataCite v4.3 JSON Schema.
+
+    The snapshot is self-contained draft-07 (see
+    docs/datacite-validation-notes.md for the pin and licensing notes).
+    """
+    return json.loads(DATACITE_43_SCHEMA.read_text())
+
+
+def _datacite_43_format_checker() -> FormatChecker:
+    """A draft-07 FormatChecker that understands DataCite's custom formats.
+
+    Formats without a registered checker are silently skipped, which
+    would let malformed dates through. Register the custom formats the
+    schema uses plus the standard ones we care about.
+    """
+    checker = FormatChecker()
+
+    @checker.checks("year", raises=AssertionError)
+    def _year(value: str) -> bool:
+        return bool(re.fullmatch(r"\d{4}", value))
+
+    @checker.checks("yearmonth", raises=AssertionError)
+    def _yearmonth(value: str) -> bool:
+        return bool(re.fullmatch(r"\d{4}-\d{2}", value))
+
+    @checker.checks("year-range", raises=AssertionError)
+    def _year_range(value: str) -> bool:
+        return bool(re.fullmatch(r"\d{4}/\d{4}", value))
+
+    @checker.checks("yearmonth-range", raises=AssertionError)
+    def _yearmonth_range(value: str) -> bool:
+        return bool(re.fullmatch(r"\d{4}-\d{2}/\d{4}-\d{2}", value))
+
+    @checker.checks("date-range", raises=AssertionError)
+    def _date_range(value: str) -> bool:
+        return bool(re.fullmatch(r"\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}", value))
+
+    @checker.checks("datetime-range", raises=AssertionError)
+    def _datetime_range(value: str) -> bool:
+        return bool(re.fullmatch(r"\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}", value))
+
+    return checker
+
+
+def validate_datacite_43_json(path: Path, schema: dict) -> list[str]:
+    """Validate a JSON instance against the DataCite v4.3 JSON Schema.
+
+    Returns a list of human-readable error messages; empty on success.
+    """
+    try:
+        doc = json.loads(path.read_text())
+    except json.JSONDecodeError as e:
+        return [f"JSON parse error: {e}"]
+    if not isinstance(doc, dict):
+        return [f"Top-level JSON must be an object, got {type(doc).__name__}"]
+
+    v = Draft7Validator(schema, format_checker=_datacite_43_format_checker())
+    errors: list[str] = []
+    for err in sorted(v.iter_errors(doc), key=lambda e: list(e.absolute_path)):
+        path_str = ".".join(str(p) for p in err.absolute_path) or "<root>"
+        errors.append(f"  {path_str}: {err.message[:200]}")
+    return errors
 
 
 def _dcat_us_registry():
@@ -230,6 +297,7 @@ def validate_paths(
     *,
     shim: bool = False,
     dcat: bool = False,
+    datacite: bool = False,
     master: bool = False,
     quiet: bool = False,
 ) -> int:
@@ -253,6 +321,20 @@ def validate_paths(
         any_fail = False
         for f in paths:
             errors = validate_dcat_us_json(Path(f), schema, registry=registry)
+            if errors:
+                any_fail = True
+                print(f"FAIL {f}")
+                for e in errors:
+                    print(e)
+            elif not quiet:
+                print(f"OK   {f}")
+        return 1 if any_fail else 0
+
+    if datacite:
+        schema = load_datacite_43_schema()
+        any_fail = False
+        for f in paths:
+            errors = validate_datacite_43_json(Path(f), schema)
             if errors:
                 any_fail = True
                 print(f"FAIL {f}")
@@ -299,6 +381,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Treat inputs as DCAT-US Catalog JSON instances (validated against the pinned DCAT-US 3.0.0 schema)",
     )
     p.add_argument(
+        "--datacite",
+        action="store_true",
+        help="Treat inputs as DataCite v4.3 JSON records (validated against the pinned datacite 4.3 schema, issue #21)",
+    )
+    p.add_argument(
         "--master",
         action="store_true",
         help="Validate against the geocontract master schema (ODCS v3.1.0 + embeddedSchemas extension). Generates human-readable errors for malformed embedded schemas.",
@@ -306,7 +393,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--quiet", action="store_true")
     args = p.parse_args(argv)
 
-    return validate_paths(args.files, shim=args.shim, dcat=args.dcat, master=args.master, quiet=args.quiet)
+    return validate_paths(args.files, shim=args.shim, dcat=args.dcat, datacite=args.datacite, master=args.master, quiet=args.quiet)
 
 
 if __name__ == "__main__":

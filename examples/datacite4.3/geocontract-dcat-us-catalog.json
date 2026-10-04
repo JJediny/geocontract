@@ -1,0 +1,86 @@
+{
+  "identifiers": [
+    {
+      "identifier": "https://raw.githubusercontent.com/JJediny/geocontract/main/contracts/geocontract-dcat-us-catalog.datacontract.yaml",
+      "identifierType": "URL"
+    }
+  ],
+  "creators": [
+    {
+      "name": "us-federal-geocontract",
+      "nameType": "Organizational"
+    }
+  ],
+  "titles": [
+    {
+      "title": "Mirror: geocontract Federated Catalog (DCAT-US 3.0.0)"
+    }
+  ],
+  "publisher": "geocontract",
+  "publicationYear": "2025",
+  "types": {
+    "resourceType": "ODCS v3.1.0 data contract",
+    "resourceTypeGeneral": "Dataset"
+  },
+  "subjects": [
+    {
+      "subject": "catalog"
+    },
+    {
+      "subject": "dcat-us"
+    },
+    {
+      "subject": "federal"
+    },
+    {
+      "subject": "interoperability"
+    },
+    {
+      "subject": "open-data"
+    }
+  ],
+  "dates": [
+    {
+      "date": "2025-08-25",
+      "dateType": "Created"
+    },
+    {
+      "date": "2026-10-04",
+      "dateType": "Updated"
+    }
+  ],
+  "language": "en",
+  "formats": [
+    "YAML"
+  ],
+  "version": "3.0.0",
+  "rightsList": [
+    {
+      "rights": "CC0 1.0 Universal",
+      "rightsUri": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "rightsIdentifier": "CC0-1.0",
+      "rightsIdentifierScheme": "SPDX",
+      "schemeUri": "https://spdx.org/licenses/"
+    }
+  ],
+  "descriptions": [
+    {
+      "description": "The geocontract federated catalog, expressed in the GSA DCAT-US 3.0.0 vocabulary. This contract governs the catalog envelope that bundles every published *.geocontract.yaml instance record — currently the NEPA Categorical Exclusions catalogue and the PIC NEPA Data Standard v1.2, with room for additional agency-published contracts to be registered over time. Consumers (mesh gateways, search indexes, dashboards, the federated harvester) resolve this catalog to discover the available datasets, their distributions (ODCS YAML + source payloads), and the data services that expose them. Each `dataset[]` entry is a DCAT-US `dcat:Dataset` whose `conformsTo` points at ODCS v3.1.0 and whose `distribution[]` enumerates the contract YAML and the source payload. DCAT-US 3.0.0 is the published federal vocabulary; the GSA repo also ships draft v3.x sub-definitions that may change. We pin the snapshot used for validation under external/dcat-us-definitions/. The catalog itself is currently an example document; production deployment will publish the catalog at https://geocontract.dev/ and the federated harvester will refresh it on a schedule.",
+      "descriptionType": "Abstract"
+    }
+  ],
+  "geoLocations": [],
+  "relatedIdentifiers": [
+    {
+      "relatedIdentifier": "https://resources.data.gov/dcat-us/3.0.0/definitions/catalog",
+      "relatedIdentifierType": "URL",
+      "relationType": "IsDerivedFrom"
+    },
+    {
+      "relatedIdentifier": "https://raw.githubusercontent.com/JJediny/geocontract/main/examples/dcat-us-catalog.example.data.json",
+      "relatedIdentifierType": "URL",
+      "relationType": "IsDescribedBy"
+    }
+  ],
+  "schemaVersion": "http://datacite.org/schema/kernel-4"
+}

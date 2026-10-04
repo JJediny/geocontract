@@ -34,8 +34,14 @@ PORTOLAN_SCHEMA_URI = "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.j
 python = "3.13"
 # Node: for the json-schema-x-graphql Node converter
 node = "22"
-# Rust: for vendoring and re-building the json-schema-x-graphql Rust CLI
-rust = "1.85"
+# Rust: for vendoring and re-building the json-schema-x-graphql Rust CLI.
+# Bumped from 1.85 after jxql's transitive deps (icu_collections 2.2+,
+# simd-json 0.18+) started requiring rustc >= 1.86 / 1.88. Vendor-jxql
+# would fail on fresh runners with "rustc 1.85.1 is not supported by
+# the following packages", which then broke the
+# test_generated_graphql_is_reproducible pytest. 1.88 is the minimum
+# that satisfies every transitive dep in jxql's lock file.
+rust = "1.88"
 # System tools required by hooks / validation.
 # NOTE: the datacontract CLI is deliberately NOT installed via the mise
 # `pipx:` backend. The pinned 0.10.21 release imports `pytz` in
@@ -65,7 +71,22 @@ validate-dcat = "uv run python scripts/validate_odcs.py --dcat examples/dcat-us-
 # unchanged tree is byte-for-byte a no-op.
 build-dcat = "uv run python scripts/build_dcat.py"
 
-dcat-check = { depends = ["build-dcat", "validate-dcat"] }
+# dcat-check reads catalog/, so it must run AFTER catalog-check has
+# finished writing the tree. Without the depends, the parallel
+# scheduler lets both read/write catalog/ concurrently and
+# build-dcat occasionally catches a half-written collection.json
+# with no matching contract yaml (race observed on CI).
+dcat-check = { depends = ["build-dcat", "validate-dcat", "catalog-check"] }
+
+# Rebuild the DataCite v4.3 records from the generated Portolan tree
+# (issue #21). Deterministic, one record per unique contract id.
+build-datacite = "uv run python scripts/build_datacite.py"
+
+validate-datacite = "uv run python scripts/validate_odcs.py --datacite examples/datacite4.3/*.json"
+
+# datacite-check also reads catalog/, so it depends on both
+# catalog-check and dcat-check to avoid the same race condition.
+datacite-check = { depends = ["build-datacite", "validate-datacite", "dcat-check"] }
 
 # Cross-validate the bare-ODCS contracts with the upstream datacontract CLI
 # (a second-line check; equivalent to `datacontract lint` on each YAML).
@@ -90,7 +111,7 @@ test = "uv run pytest scripts/tests/ -v"
 # (e.g. `ci = ["validate-odcs", ...]`) is treated by mise as shell
 # commands to execute, not task references, and fails with
 # "validate-odcs: not found".
-ci = { depends = ["drift-check", "validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "catalog-check", "dcat-check"] }
+ci = { depends = ["drift-check", "validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "catalog-check", "dcat-check", "datacite-check"] }
 
 # Run the full v2 core pipeline against the committed worked
 # example (scripts/tests/test_pipeline_end_to_end.py). Catches
@@ -101,7 +122,12 @@ pipeline-test = "uv run pytest scripts/tests/test_pipeline_end_to_end.py -v"
 # Generate GraphQL SDL from the x-graphql-annotated templates using the
 # vendored jxql converter. The models/*.canonical.graphql files are build
 # artifacts — do not edit them by hand; re-run this task after changing a
-# template. Requires `mise run vendor-jxql` to have built jxql once.
+# template. The CI workflow runs `mise run vendor-jxql` as a dedicated
+# step before this task is invoked (test_generated_graphql_is_reproducible
+# calls it via subprocess.run with capture_output=True and would surface
+# a Rust build failure as a confusing exit-status-101 panic). Local dev
+# gets the same guarantee by running `mise run vendor-jxql` once after
+# cloning; vendor.sh is idempotent.
 generate-graphql = "bash scripts/generate_graphql.sh"
 
 # (Re)build the geocontract master schema from the pinned ODCS v3.1.0
@@ -176,8 +202,10 @@ portolan-calibrate = 'uvx --from "$RASHID_SPEC" rashid check portolan-spec/examp
 # Publish the catalog to the configured destination (dry run by default).
 # Reads catalog.publish.yaml for destination and public_base.
 # Use --confirm to actually publish (needs credentials for S3).
-publish = "python3 tools/publish.py"
-publish-confirm = "python3 tools/publish.py --confirm"
+# Run through `uv run` so tools/publish.py sees the dev extras
+# (pyyaml, httpx, boto3) that `uv sync --extra dev` installs.
+publish = "uv run python tools/publish.py"
+publish-confirm = "uv run python tools/publish.py --confirm"
 
 # NOTE: `catalog-build` and `catalog-check` arrive with the Phase 1 generator
 # (scripts/build_catalog.py). See docs/plan-portolan-catalog-integration.md §7.

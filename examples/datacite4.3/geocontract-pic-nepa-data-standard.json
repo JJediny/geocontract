@@ -1,0 +1,92 @@
+{
+  "identifiers": [
+    {
+      "identifier": "https://raw.githubusercontent.com/JJediny/geocontract/main/contracts/pic-nepa-data-standard.datacontract.yaml",
+      "identifierType": "URL"
+    }
+  ],
+  "creators": [
+    {
+      "name": "Permitting Innovation Center",
+      "nameType": "Organizational"
+    }
+  ],
+  "titles": [
+    {
+      "title": "PIC NEPA Data Standard v1.2"
+    }
+  ],
+  "publisher": "geocontract",
+  "publicationYear": "2026",
+  "types": {
+    "resourceType": "ODCS v3.1.0 data contract",
+    "resourceTypeGeneral": "Dataset"
+  },
+  "subjects": [
+    {
+      "subject": "data-standard"
+    },
+    {
+      "subject": "nepa"
+    },
+    {
+      "subject": "permitting-innovation-center"
+    },
+    {
+      "subject": "v1.2"
+    }
+  ],
+  "dates": [
+    {
+      "date": "2026-08-24",
+      "dateType": "Created"
+    },
+    {
+      "date": "2026-10-03",
+      "dateType": "Updated"
+    }
+  ],
+  "language": "en",
+  "formats": [
+    "YAML"
+  ],
+  "version": "1.2.0",
+  "rightsList": [
+    {
+      "rights": "CC0 1.0 Universal",
+      "rightsUri": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "rightsIdentifier": "CC0-1.0",
+      "rightsIdentifierScheme": "SPDX",
+      "schemeUri": "https://spdx.org/licenses/"
+    }
+  ],
+  "descriptions": [
+    {
+      "description": "The Permitting Innovation Center (PIC) NEPA Data & Technology Standard v1.2 — a structured schema for environmental-review data collected during reviews conducted under the National Environmental Policy Act (NEPA), 42 U.S.C. §§ 4321 et seq. Defines 13 entity types (project, process_instance, document, comment, engagement, case_event, gis_data, gis_data_element, user_role, decision_element, process_model, process_decision_payload, legal_structure) and a uniform set of six provenance properties added in v1.2. Producers (federal / state / tribal agencies) and consumers (the public, oversight bodies, downstream applications) agree on the entity shape so that NEPA review records can be exchanged in a machine-readable, lossless form. v1.2 deliberately does not prescribe a wire format — sample payloads are published as JSON, YAML, OpenAPI, and SQL DDL. Top-level container keys use the misspelled pluralisation `processe_instances` to match the upstream source — preserved for lossless round-tripping.",
+      "descriptionType": "Abstract"
+    }
+  ],
+  "geoLocations": [
+    {
+      "geoLocationBox": {
+        "westBoundLongitude": -125.0,
+        "eastBoundLongitude": -66.0,
+        "southBoundLatitude": 24.0,
+        "northBoundLatitude": 50.0
+      }
+    }
+  ],
+  "relatedIdentifiers": [
+    {
+      "relatedIdentifier": "https://permitting.innovation.gov/resources/data-standard/",
+      "relatedIdentifierType": "URL",
+      "relationType": "IsDerivedFrom"
+    },
+    {
+      "relatedIdentifier": "https://raw.githubusercontent.com/JJediny/geocontract/main/examples/dcat-us-catalog.example.data.json",
+      "relatedIdentifierType": "URL",
+      "relationType": "IsDescribedBy"
+    }
+  ],
+  "schemaVersion": "http://datacite.org/schema/kernel-4"
+}
