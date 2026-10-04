@@ -14,6 +14,20 @@
 # Disable mise's experimental Tier-2 features we don't use
 MISE_DISABLE_TOOL_VERSIONS_FILE = "1"
 
+# ── Portolan toolchain pins ──────────────────────────────────────────────────
+# One canonical home per fact. Tasks and CI read these; never inline a version.
+# These mirror portolan-skills/pins.toml (portolan-cli 0.8.0, rashid 0.1.8,
+# portolan-spec v0.2.0). Move a pin here and in pins.toml in the same change,
+# then run `mise run portolan-pins` to prove the new pin resolves.
+#
+# The Portolan specification is ground truth; rashid implements it. A rashid
+# MINOR bump can change findings, because the spec is pre-1.0 and breaks on
+# MINOR. Treat a pin move as a migration: see portolan-skills/skills/
+# portolan-migrate/ and docs/portolan-conformance-notes.md.
+RASHID_SPEC = "rashid>=0.1.8,<0.2.0"
+PORTOLAN_CLI_SPEC = "portolan-cli==0.8.0"
+PORTOLAN_SCHEMA_URI = "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json"
+
 # ── Tool versions (install via `mise install`) ───────────────────────────────
 [tools]
 # Python: managed by uv, but mise pins the runtime for scripts
@@ -94,3 +108,28 @@ harvest-citizen-dir = "uv run geocontract-harvest-citizen-dir"
 
 # Initialize pre-commit hooks. Idempotent.
 prek-install = "prek install"
+
+# ── Portolan catalog tasks ──────────────────────────────────────────────────
+
+# Prove the pinned Portolan tools resolve and report their versions. Run this
+# after moving a pin in [env] above. Downloads on first use, then caches.
+portolan-pins = """
+uvx --from "$RASHID_SPEC" rashid --version
+uvx --from "$PORTOLAN_CLI_SPEC" portolan --version
+echo "spec schema: $PORTOLAN_SCHEMA_URI"
+"""
+
+# Calibrate rashid against the specification's own reference catalog. A clean
+# run here proves the toolchain works before you trust a finding in our tree.
+# Expected: 0 errors, 0 warnings, and PTL-PRO-002 info only.
+#
+# --no-data is deliberate. The data pass reads every asset's bytes and fetches
+# remote hrefs, which makes the run slow and network-dependent for no gain: the
+# calibration question is whether the metadata and structural passes work. The
+# reference catalog reports the same 16 info findings either way. Verified on
+# 3 October 2026 with rashid 0.1.8.
+portolan-calibrate = 'uvx --from "$RASHID_SPEC" rashid check portolan-spec/examples/catalog/portolan-reference --no-data --summary'
+
+# NOTE: `catalog-build` and `catalog-check` arrive with the Phase 1 generator
+# (scripts/build_catalog.py). See docs/plan-portolan-catalog-integration.md §7.
+# They are deliberately absent here so every task in this file runs today.
