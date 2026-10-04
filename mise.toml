@@ -34,8 +34,14 @@ PORTOLAN_SCHEMA_URI = "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.j
 python = "3.13"
 # Node: for the json-schema-x-graphql Node converter
 node = "22"
-# Rust: for vendoring and re-building the json-schema-x-graphql Rust CLI
-rust = "1.85"
+# Rust: for vendoring and re-building the json-schema-x-graphql Rust CLI.
+# Bumped from 1.85 after jxql's transitive deps (icu_collections 2.2+,
+# simd-json 0.18+) started requiring rustc >= 1.86 / 1.88. Vendor-jxql
+# would fail on fresh runners with "rustc 1.85.1 is not supported by
+# the following packages", which then broke the
+# test_generated_graphql_is_reproducible pytest. 1.88 is the minimum
+# that satisfies every transitive dep in jxql's lock file.
+rust = "1.88"
 # System tools required by hooks / validation.
 # NOTE: the datacontract CLI is deliberately NOT installed via the mise
 # `pipx:` backend. The pinned 0.10.21 release imports `pytz` in
