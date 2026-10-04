@@ -7,6 +7,7 @@
     "external/**/*.json",
     "catalog/**/collection.json",
     "catalog/**/catalog.json",
+    "examples/dcat-us-catalog.example.data.json",
     "portolan-spec",
     "portolan-skills",
     "**/dprint.json",

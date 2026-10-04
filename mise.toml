@@ -57,8 +57,15 @@ rust = "1.85"
 validate-odcs = "uv run python scripts/validate_odcs.py --master contracts/*.yaml contracts/examples/*.json && uv run python scripts/validate_odcs.py --shim contracts/shim/*.json"
 
 # Validate every DCAT-US Catalog JSON instance against the pinned GSA
-# DCAT-US 3.0.0 schema. Examples live in examples/dcat-us-catalog.example.data.json.
+# DCAT-US 3.0.0 schema. The instance is generated: run build-dcat first.
 validate-dcat = "uv run python scripts/validate_odcs.py --dcat examples/dcat-us-catalog.example.data.json"
+
+# Rebuild examples/dcat-us-catalog.example.data.json from the generated
+# Portolan tree (plan §11 item 2). Deterministic: re-running on an
+# unchanged tree is byte-for-byte a no-op.
+build-dcat = "uv run python scripts/build_dcat.py"
+
+dcat-check = { depends = ["build-dcat", "validate-dcat"] }
 
 # Cross-validate the bare-ODCS contracts with the upstream datacontract CLI
 # (a second-line check; equivalent to `datacontract lint` on each YAML).
@@ -83,7 +90,7 @@ test = "uv run pytest scripts/tests/ -v"
 # (e.g. `ci = ["validate-odcs", ...]`) is treated by mise as shell
 # commands to execute, not task references, and fails with
 # "validate-odcs: not found".
-ci = { depends = ["validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "catalog-check"] }
+ci = { depends = ["drift-check", "validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "catalog-check", "dcat-check"] }
 
 # Run the full v2 core pipeline against the committed worked
 # example (scripts/tests/test_pipeline_end_to_end.py). Catches
@@ -146,6 +153,11 @@ uvx --from "$RASHID_SPEC" rashid --version
 uvx --from "$PORTOLAN_CLI_SPEC" portolan --version
 echo "spec schema: $PORTOLAN_SCHEMA_URI"
 """
+
+# Prove the bundle pins and the mise pins agree (plan §11 item 3).
+# Runs first in `ci`: a version mismatch invalidates every documented
+# command and finding after it.
+drift-check = "uv run python scripts/check_drift.py"
 
 # Calibrate rashid against the specification's own reference catalog. A clean
 # run here proves the toolchain works before you trust a finding in our tree.
