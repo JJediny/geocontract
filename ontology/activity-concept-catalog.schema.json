@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geocontract.dev/schemas/activity-concept-catalog.schema.json",
+  "title": "ActivityConcept Catalog",
+  "description": "Schema for the versioned activity ontology catalog (per docs/plan-citizen-permitting-standard.md §4.3).",
+  "type": "object",
+  "required": ["version", "publishedAt", "publisher", "description", "concepts"],
+  "properties": {
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "publishedAt": { "type": "string", "format": "date" },
+    "publisher": { "type": "string", "minLength": 1 },
+    "description": { "type": "string", "minLength": 1 },
+    "regulatoryStatusEnum": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["descriptive_only", "jurisdictional_advisory", "deprecated"] }
+    },
+    "lifecycleStatusEnum": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["active", "candidate", "retired", "superseded"] }
+    },
+    "concepts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "preferredLabel", "definition", "regulatoryStatus", "lifecycleStatus"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)*$",
+            "description": "Dotted-lowercase code, e.g. `housing.rehabilitation.facade`."
+          },
+          "preferredLabel": { "type": "string", "minLength": 1 },
+          "definition": { "type": "string", "minLength": 1 },
+          "broader": { "type": "array", "default": [], "items": { "type": "string" } },
+          "narrower": { "type": "array", "default": [], "items": { "type": "string" } },
+          "aliases": { "type": "array", "default": [], "items": { "type": "string" } },
+          "jurisdiction": { "type": ["string", "null"], "default": null },
+          "sourceCitation": { "type": ["string", "null"], "default": null },
+          "lifecycleStatus": {
+            "type": "string",
+            "enum": ["active", "candidate", "retired", "superseded"],
+            "default": "active"
+          },
+          "deprecatedAfter": { "type": ["string", "null"], "format": "date", "default": null },
+          "regulatoryStatus": {
+            "type": "string",
+            "enum": ["descriptive_only", "jurisdictional_advisory", "deprecated"],
+            "default": "descriptive_only"
+          }
+        }
+      }
+    }
+  }
+}

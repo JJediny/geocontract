@@ -1,0 +1,46 @@
+{
+  "$schema": "https://geocontract.dev/schemas/proposed-action.template.schema.json",
+  "proposal": {
+    "id": "groton-rhine-001",
+    "schemaVersion": "2.0.0",
+    "createdAt": "2026-09-12T14:30:00-04:00",
+    "applicant": {
+      "displayName": "Jane Groton-Resident",
+      "contactEmail": "jane@example.invalid",
+      "residencyProof": {
+        "kind": "walletless_self_attestation",
+        "credentialRef": null,
+        "issuerDid": null,
+        "validUntil": null
+      },
+      "authorityProof": { "kind": "lessee", "credentialRef": "lease-2024-08-15" }
+    },
+    "parcel": {
+      "jurisdiction": "us-ct-groton",
+      "parcelAuthority": "https://permits.groton-ct.gov/parcels/",
+      "authoritativeParcelId": "M:123 B:45 L:678",
+      "authorityRecordVersion": "2026-09-01",
+      "authorityRetrievedAt": "2026-09-12T14:25:00-04:00",
+      "geometryFormat": "wkt",
+      "crs": "EPSG:4326",
+      "geometry": "POLYGON((-72.0821 41.3472, -72.0819 41.3472, -72.0819 41.3474, -72.0821 41.3474, -72.0821 41.3472))",
+      "snapshotHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "ownershipStatus": "lessee_verified",
+      "address": "42 Rhine Street, Groton, CT 06340"
+    },
+    "activity": { "code": "housing.rehabilitation.facade", "preferredLabel": "Building façade rehabilitation" },
+    "purpose": "Repoint failed mortar joints on the south elevation, replace three cracked steel lintels above the second-story windows, and reattach the decorative cornice that detached during the November 2024 nor'easter.",
+    "estimatedCostUsd": 38500.00,
+    "anchorReceipt": null,
+    "lifecycle": {
+      "state": "draft",
+      "decisionIssuer": null,
+      "decisionAt": null,
+      "decisionEvidence": null,
+      "supersedes": null,
+      "revokedAt": null
+    },
+    "revisions": [],
+    "proof": null
+  }
+}

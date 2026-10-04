@@ -1,0 +1,493 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geocontract.dev/schemas/proposed-action.template.schema.json",
+  "title": "Citizen-Initiated Proposal — v2 Canonical Model",
+  "description": "v2 canonical nested-JSON model for a single citizen-initiated Proposal. The single source of truth from which all projections (ODCS-flatten, GraphQL, public, restricted) are derived. See docs/plan-citizen-permitting-standard.md §3.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["proposal"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional JSON-Schema dialect identifier (informational; ignored by validators)."
+    },
+    "proposal": {
+      "$ref": "#/$defs/Proposal",
+      "description": "The single Proposal document — a citizen's request that a specific activity be permitted on a specific parcel."
+    }
+  },
+  "$defs": {
+    "Proposal": {
+      "type": "object",
+      "description": "The canonical Proposal document. ENTITY in GraphQL projection (implements Node @key(fields:\"id\")).",
+      "additionalProperties": false,
+      "required": ["id", "schemaVersion", "createdAt", "parcel", "activity", "lifecycle"],
+      "x-graphql-type-name": "Proposal",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-federation-keys": [{ "fields": "id" }],
+      "x-graphql-federation-shareable": true,
+      "x-graphql-implements": ["Node"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{2,62}$",
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true,
+          "description": "Globally unique proposal id (kebab-case, 3–63 chars). Format: `<tenant-slug>-<seq>`."
+        },
+        "schemaVersion": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true,
+          "description": "Version of this schema the proposal was authored against."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true,
+          "description": "ISO 8601 timestamp with timezone at which the proposal was authored."
+        },
+        "applicant": {
+          "$ref": "#/$defs/Applicant",
+          "description": "The person (or authorised representative) who filed the proposal. RESTRICTED access class — never emitted in the public projection."
+        },
+        "parcel": {
+          "$ref": "#/$defs/Parcel",
+          "description": "The municipal parcel on which the proposed action will be carried out."
+        },
+        "activity": {
+          "$ref": "#/$defs/Activity",
+          "description": "The proposed activity, drawn from ontology/activity-concept-catalog.v1.0.json."
+        },
+        "purpose": {
+          "type": "string",
+          "maxLength": 500,
+          "x-graphql-field-type": "String",
+          "description": "Free-text description of the proposed action (≤ 500 chars)."
+        },
+        "estimatedCostUsd": {
+          "type": ["null", "number"],
+          "minimum": 0,
+          "maximum": 100000000,
+          "x-graphql-field-type": "Float",
+          "description": "Estimated total cost in USD. Optional."
+        },
+        "anchorReceipt": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/AnchorReceipt" }],
+          "x-graphql-field-type": "AnchorReceipt",
+          "description": "Optional external anchor service receipt. Anchoring is NOT approval; these fields are independent of the FSM lifecycle state."
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/Lifecycle",
+          "description": "Current state of the proposal in the FSM (draft → submitted → anchored → under_review → approved|rejected → amended|superseded|revoked|expired)."
+        },
+        "revisions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Revision" },
+          "description": "Append-only list of prior revisions. The current revision is the proposal body itself; prior revisions are listed here."
+        },
+        "proof": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/Proof" }],
+          "description": "Detached proof envelope. The signature covers RFC 8785-style canonical bytes of the proposal plus protected proof context; signedDigest and signature are excluded to avoid circularity. Optional — absence indicates draft / walletless path."
+        }
+      }
+    },
+    "Applicant": {
+      "type": "object",
+      "description": "RESTRICTED. The person (or authorised representative) who filed the proposal.",
+      "additionalProperties": false,
+      "required": ["displayName"],
+      "x-graphql-type-name": "Applicant",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-access-class": "restricted",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "maxLength": 200,
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "contactEmail": {
+          "type": ["null", "string"],
+          "format": "email",
+          "maxLength": 320,
+          "x-graphql-field-type": "String"
+        },
+        "residencyProof": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/ResidencyProof" }] },
+        "authorityProof": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/AuthorityProof" }] }
+      }
+    },
+    "ResidencyProof": {
+      "type": "object",
+      "description": "RESTRICTED. Proof that the applicant resides in the municipality.",
+      "additionalProperties": false,
+      "x-graphql-type-name": "ResidencyProof",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-access-class": "restricted",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["municipal_vc", "utility_bill", "manual_kyc", "walletless_self_attestation"],
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "credentialRef": { "type": ["null", "string"], "maxLength": 256, "x-graphql-field-type": "String" },
+        "issuerDid": {
+          "type": ["null", "string"],
+          "pattern": "^did:[a-z0-9]+:[A-Za-z0-9._:%-]+$",
+          "x-graphql-field-type": "String"
+        },
+        "validUntil": { "type": ["null", "string"], "format": "date", "x-graphql-field-type": "String" }
+      }
+    },
+    "AuthorityProof": {
+      "type": "object",
+      "description": "RESTRICTED. Proof that the applicant has authority to propose work on the parcel (owner, lessee, authorised agent).",
+      "additionalProperties": false,
+      "x-graphql-type-name": "AuthorityProof",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-access-class": "restricted",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["owner", "lessee", "authorised_agent", "unknown"],
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "credentialRef": { "type": ["null", "string"], "maxLength": 256, "x-graphql-field-type": "String" }
+      }
+    },
+    "Parcel": {
+      "type": "object",
+      "description": "Typed parcel reference (per plan §5.9). `authoritativeParcelId`, `address`, and `geometry` must agree on the same location.",
+      "additionalProperties": false,
+      "required": ["jurisdiction", "parcelAuthority", "authoritativeParcelId", "geometryFormat", "crs"],
+      "x-graphql-type-name": "Parcel",
+      "x-graphql-type-kind": "OBJECT",
+      "properties": {
+        "jurisdiction": {
+          "type": "string",
+          "pattern": "^[a-z]{2}-[a-z]{2}-[a-z0-9-]+$",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true,
+          "description": "Municipality slug (`<country>-<state>-<name>`)."
+        },
+        "parcelAuthority": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 256,
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true,
+          "description": "URI to the authoritative parcel registry."
+        },
+        "authoritativeParcelId": {
+          "type": "string",
+          "maxLength": 64,
+          "x-graphql-field-type": "ID",
+          "x-graphql-field-non-null": true,
+          "description": "Parcel identifier as issued by `parcelAuthority`."
+        },
+        "authorityRecordVersion": {
+          "type": ["null", "string"],
+          "maxLength": 32,
+          "x-graphql-field-type": "String",
+          "description": "Version of the parcel-authority snapshot this reference was drawn from."
+        },
+        "authorityRetrievedAt": {
+          "type": ["null", "string"],
+          "format": "date-time",
+          "x-graphql-field-type": "String",
+          "description": "When the parcel-authority record was retrieved."
+        },
+        "geometryFormat": {
+          "type": "string",
+          "enum": ["geojson", "wkt", "h3"],
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true,
+          "description": "Format of the `geometry` field."
+        },
+        "crs": {
+          "type": "string",
+          "pattern": "^EPSG:\\d+$",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true,
+          "description": "Coordinate reference system (e.g. `EPSG:4326`)."
+        },
+        "geometry": {
+          "type": ["null", "string"],
+          "maxLength": 16384,
+          "x-graphql-field-type": "String",
+          "x-graphql-access-class": "restricted",
+          "description": "RESTRICTED raw geometry. The public projection emits only `geometryFormat`, `crs`, and `snapshotHash`."
+        },
+        "snapshotHash": {
+          "type": ["null", "string"],
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "x-graphql-field-type": "String",
+          "description": "sha256 of (authorityRecordVersion + retrievedAt + geometryFormat + crs + geometry)."
+        },
+        "ownershipStatus": {
+          "type": ["null", "string"],
+          "enum": ["owner_verified", "lessee_verified", "authorised_agent", "unknown"],
+          "x-graphql-field-type": "String",
+          "description": "PUBLIC field — separate from applicant.authorityProof.kind. Sourced from the parcel authority."
+        },
+        "address": {
+          "type": ["null", "string"],
+          "maxLength": 256,
+          "x-graphql-field-type": "String",
+          "description": "Public street address."
+        }
+      }
+    },
+    "Activity": {
+      "type": "object",
+      "description": "Activity proposal — validated against ontology/activity-concept-catalog.v1.0.json.",
+      "additionalProperties": false,
+      "required": ["code"],
+      "x-graphql-type-name": "Activity",
+      "x-graphql-type-kind": "OBJECT",
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+$",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true,
+          "description": "Activity code drawn from the ontology catalog."
+        },
+        "preferredLabel": {
+          "type": ["null", "string"],
+          "maxLength": 200,
+          "x-graphql-field-type": "String",
+          "description": "Cached human-readable label from the catalog (denormalised for offline readers)."
+        }
+      }
+    },
+    "AnchorReceipt": {
+      "type": "object",
+      "description": "Receipt from an optional external anchor service. Anchoring is independent of municipal approval (plan §3.4).",
+      "additionalProperties": false,
+      "required": ["contentHash"],
+      "x-graphql-type-name": "AnchorReceipt",
+      "x-graphql-type-kind": "OBJECT",
+      "properties": {
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true,
+          "description": "SHA-256 of canonicalised bytes of this revision."
+        },
+        "submissionId": {
+          "type": ["null", "string"],
+          "maxLength": 128,
+          "x-graphql-field-type": "String",
+          "description": "Opaque id returned by the anchor service."
+        },
+        "anchoredAt": {
+          "type": ["null", "string"],
+          "format": "date-time",
+          "x-graphql-field-type": "String",
+          "description": "Timestamp from the anchor service."
+        },
+        "serviceRef": {
+          "type": ["null", "string"],
+          "format": "uri",
+          "maxLength": 256,
+          "x-graphql-field-type": "String",
+          "description": "URI of the anchor service (for re-checking)."
+        }
+      }
+    },
+    "Lifecycle": {
+      "type": "object",
+      "description": "FSM state of the proposal (plan §3.4).",
+      "additionalProperties": false,
+      "required": ["state"],
+      "x-graphql-type-name": "Lifecycle",
+      "x-graphql-type-kind": "OBJECT",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "submitted",
+            "anchored",
+            "under_review",
+            "approved",
+            "rejected",
+            "amended",
+            "superseded",
+            "revoked",
+            "expired"
+          ],
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "decisionIssuer": {
+          "type": ["null", "string"],
+          "maxLength": 200,
+          "x-graphql-field-type": "String",
+          "description": "Authority that issued the most recent municipal decision. Required iff state ∈ {approved, rejected, revoked}."
+        },
+        "decisionAt": { "type": ["null", "string"], "format": "date-time", "x-graphql-field-type": "String" },
+        "decisionEvidence": {
+          "type": ["null", "string"],
+          "maxLength": 2048,
+          "x-graphql-field-type": "String",
+          "description": "Free-text justification, conditions, or reference to a municipal record number."
+        },
+        "supersedes": {
+          "type": ["null", "string"],
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "x-graphql-field-type": "String",
+          "description": "Content hash of the predecessor revision this one replaces."
+        },
+        "revokedAt": { "type": ["null", "string"], "format": "date-time", "x-graphql-field-type": "String" }
+      }
+    },
+    "Revision": {
+      "type": "object",
+      "description": "A prior revision of this proposal. The current revision is the proposal body itself.",
+      "additionalProperties": false,
+      "required": ["contentHash", "createdAt"],
+      "x-graphql-type-name": "Revision",
+      "x-graphql-type-kind": "OBJECT",
+      "properties": {
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "lifecycleState": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "submitted",
+            "anchored",
+            "under_review",
+            "approved",
+            "rejected",
+            "amended",
+            "superseded",
+            "revoked",
+            "expired"
+          ],
+          "x-graphql-field-type": "String"
+        },
+        "supersededBy": {
+          "type": ["null", "string"],
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "x-graphql-field-type": "String"
+        }
+      }
+    },
+    "Proof": {
+      "type": "object",
+      "description": "Detached proof envelope (plan §5.7). The content digest excludes `proof`; the signature covers the proposal plus protected proof context, excluding only `signedDigest` and `signature`.",
+      "additionalProperties": false,
+      "required": [
+        "signedDigest",
+        "hashAlgorithm",
+        "signatureAlgorithm",
+        "signingKey",
+        "signature",
+        "signedAt",
+        "domain",
+        "nonce",
+        "keyId"
+      ],
+      "x-graphql-type-name": "Proof",
+      "x-graphql-type-kind": "OBJECT",
+      "x-graphql-access-class": "restricted",
+      "properties": {
+        "signedDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "hashAlgorithm": {
+          "type": "string",
+          "enum": ["sha-256"],
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "signatureAlgorithm": {
+          "type": "string",
+          "enum": ["ed25519"],
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "signingKey": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[A-Za-z0-9._:%-]+$",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^base64:[A-Za-z0-9+/=]+$",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "signedAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 253,
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^base64:[A-Za-z0-9+/=]+$",
+          "minLength": 12,
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        },
+        "keyId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$",
+          "x-graphql-field-type": "String",
+          "x-graphql-field-non-null": true
+        }
+      }
+    }
+  },
+  "x-graphql-scalars": { "DateTime": { "description": "ISO 8601 timestamp with timezone.", "serialize": "String" } },
+  "x-graphql-operations": {
+    "queries": {
+      "proposedAction": {
+        "type": "Proposal",
+        "description": "Look up a single Proposal by id.",
+        "args": { "id": { "type": "ID!", "description": "Proposal id." } }
+      },
+      "proposedActionsByMunicipality": {
+        "type": "[Proposal!]!",
+        "description": "List Proposals filed under a given municipality slug (public projection).",
+        "args": { "jurisdiction": { "type": "String!", "description": "Municipality slug." } }
+      },
+      "proposedActionsByActivity": {
+        "type": "[Proposal!]!",
+        "description": "List Proposals filed under a given ontology code (public projection).",
+        "args": { "activityCode": { "type": "String!", "description": "Ontology code." } }
+      }
+    }
+  },
+  "x-graphql-federation-shareable": true
+}

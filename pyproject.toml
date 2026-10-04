@@ -20,6 +20,8 @@ dependencies = [
   "jsonschema>=4.23",
   "pyyaml>=6.0.2",
   "datacontract-cli>=0.10.21",
+  "canonicaljson>=1.6",
+  "cryptography>=43.0",
 ]
 
 [project.optional-dependencies]

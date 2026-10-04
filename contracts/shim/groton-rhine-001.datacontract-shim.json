@@ -1,0 +1,150 @@
+{
+  "version": "1.0",
+  "schema": { "source": "../../templates/proposed-action.template.schema.json" },
+  "contract": {
+    "name": "Groton Rhine St. Façade Repair — Worked Example (v2)",
+    "description": "Citizen-initiated Proposal on a Groton, CT parcel. Fictional worked example for the v2 citizen-permitting flow.",
+    "version": "0.2.0",
+    "status": "draft",
+    "domain": "housing-rehabilitation"
+  },
+  "ownership": {
+    "team": "Geocontract (v2 prototype)",
+    "contact": "permits@groton-ct.gov",
+    "slack": "#groton-permitting",
+    "oncall": "groton-oncall",
+    "docs_url": "https://github.com/JJediny/geocontract/blob/main/docs/plan-citizen-permitting-standard.md"
+  },
+  "quality": [
+    {
+      "metric": "uniqueness",
+      "field": "#/$defs/Proposal/properties/id",
+      "threshold": 1.0,
+      "description": "Proposal ids must be globally unique within the harvest."
+    },
+    {
+      "metric": "conformity",
+      "field": "#/$defs/Activity/properties/code",
+      "threshold": "ontology-membership",
+      "description": "activity.code must be an active row of ontology/activity-concept-catalog.v1.0.json."
+    },
+    {
+      "metric": "conformity",
+      "field": "#/$defs/Parcel/properties/crs",
+      "threshold": "^EPSG:\\d+$",
+      "description": "crs must follow the EPSG reference pattern."
+    },
+    {
+      "metric": "conformity",
+      "field": "#/$defs/Parcel/properties/geometryFormat",
+      "threshold": "^(geojson|wkt|h3)$",
+      "description": "geometryFormat must be one of the supported formats."
+    },
+    {
+      "metric": "conformity",
+      "field": "#/$defs/Proof/properties/signatureAlgorithm",
+      "threshold": "^ed25519$",
+      "description": "Only Ed25519 signatures are accepted in the v2 core path."
+    },
+    {
+      "metric": "conformity",
+      "field": "#/$defs/Lifecycle/properties/state",
+      "threshold": "^(draft|submitted|anchored|under_review|approved|rejected|amended|superseded|revoked|expired)$",
+      "description": "lifecycle.state must be a valid FSM state."
+    }
+  ],
+  "sla": [
+    { "name": "harvest-public-only-default", "target": "100%", "window": "rolling-7d" },
+    { "name": "review-turnaround", "target": "p50 < 14 days", "window": "monthly" }
+  ],
+  "lineage": {
+    "upstream": [
+      {
+        "source": "geocontract://templates/proposed-action.template.schema.json",
+        "type": "schema",
+        "format": "json-schema"
+      },
+      { "source": "geocontract://ontology/activity-concept-catalog.v1.0.json", "type": "ontology" },
+      {
+        "source": "https://ce.permitting.innovation.gov/data/exclusions.json",
+        "type": "corpus",
+        "description": "Federal CATEX catalogue consumed strictly as a vocabulary source. Non-endorsement: pre-reviewed ≠ approved or exempt."
+      }
+    ],
+    "downstream": [
+      {
+        "consumer": "geocontract-harvest (public projection)",
+        "type": "harvester",
+        "endpoint": "graphql://harvester/v1"
+      }
+    ]
+  },
+  "retention": {
+    "policy": "municipal-record-default",
+    "description": "Public projection: permanent retention of audit-relevant subset only (id, lifecycle.state, anchorReceipt.contentHash, anchorReceipt.anchoredAt). Restricted projection: follows the partner's retention rules; default = municipal record retention (e.g. 7 years per Conn. Gen. Stat. § 1-218 for permitting records).",
+    "delete_after": "partner-policy",
+    "archive_after": "partner-policy",
+    "partition_strategy": "jurisdiction"
+  },
+  "access": {
+    "classification": "public-default-restricted-fields (per plan §5.8; restricted projection requires X-Geocontract-Authority header)",
+    "pii_fields": [
+      "#/proposal/applicant/displayName",
+      "#/proposal/applicant/contactEmail",
+      "#/proposal/applicant/residencyProof",
+      "#/proposal/applicant/authorityProof",
+      "#/proposal/parcel/geometry",
+      "#/proposal/proof"
+    ],
+    "compliance": [
+      { "regulation": "FOIA", "justification": "Public municipal record (public projection only)." },
+      { "regulation": "5 U.S.C. § 552", "justification": "Public-access statute (public projection only)." },
+      {
+        "regulation": "Conn. Gen. Stat. § 1-200 et seq.",
+        "justification": "Connecticut Freedom of Information Act (public projection only)."
+      }
+    ]
+  },
+  "lifecycle": {
+    "created": "2026-09-12",
+    "last_modified": "2026-09-12",
+    "sunset_date": null,
+    "changelog": [
+      {
+        "version": "0.1.0",
+        "date": "2026-09-12",
+        "summary": "Initial citizen-initiated submission (Phase B v1, superseded)."
+      },
+      {
+        "version": "0.2.0",
+        "date": "2026-09-12",
+        "summary": "Phase B v2: nested-JSON canonical model + detached proof envelope + no-token core + ontology membership + restricted-projection split."
+      }
+    ]
+  },
+  "partitioning": {
+    "strategy": "value",
+    "column": "jurisdiction",
+    "granularity": "municipality-slug",
+    "retention_days": null
+  },
+  "cost": { "center": "groton-permitting", "budget_code": "GROTON-PHA-CORE", "estimated_annual_cost_usd": 0 },
+  "tags": ["geocontract", "citizen-initiated", "groton", "housing-rehabilitation", "proposed-action", "v2-prototype"],
+  "entities": {
+    "$defs/Proposal": { "classification": "public", "pii": false },
+    "$defs/Applicant": { "classification": "restricted", "pii": true },
+    "$defs/ResidencyProof": { "classification": "restricted", "pii": true },
+    "$defs/AuthorityProof": { "classification": "restricted", "pii": true },
+    "$defs/Parcel": {
+      "classification": "mixed",
+      "pii": "partial",
+      "notes": "Public fields are jurisdiction, parcelAuthority, authoritativeParcelId, geometryFormat, crs, snapshotHash, ownershipStatus, address. The raw geometry is RESTRICTED."
+    },
+    "$defs/Activity": { "classification": "public", "pii": false },
+    "$defs/AnchorReceipt": { "classification": "public", "pii": false },
+    "$defs/Lifecycle": { "classification": "public", "pii": false },
+    "$defs/Revision": { "classification": "public", "pii": false },
+    "$defs/Proof": { "classification": "restricted", "pii": true },
+    "$defs/Proposal/properties/id": { "quality": [{ "metric": "uniqueness", "threshold": 1.0 }] }
+  }
+}

@@ -63,3 +63,7 @@ generate \
 generate \
   "templates/pic-standards.template.schema.json" \
   "models/pic-standards.canonical.graphql"
+
+generate \
+  "templates/proposed-action.template.schema.json" \
+  "models/proposed-action.canonical.graphql"
