@@ -1,0 +1,60 @@
+# geocontract CI — mirrors the local `mise run ci` entrypoint.
+#
+# Toolchain provisioning:
+#   - mise    installs the tools pinned in mise.toml (python 3.13, node 22,
+#             rust 1.85, npm:dprint) and provides the task runner.
+#   - uv      is NOT mise-managed (it is a system-PATH tool locally), so it
+#             is provisioned explicitly here. `uv sync` creates the project
+#             venv and `uvx` is what the `datacontract-lint` task uses.
+#
+# The `datacontract-lint` task fetches `datacontract-cli==0.10.21` plus the
+# undeclared `pytz` runtime dependency via `uvx` on first run, so the job
+# needs network access (GitHub-hosted runners have it).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: validate (mise run ci)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install mise
+        uses: jdx/mise-action@v2
+        with:
+          # Provision the mise binary only; tools are installed explicitly
+          # below so the trust step is unambiguous.
+          install: false
+          cache: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Trust and install pinned tools
+        run: |
+          mise trust
+          mise install
+
+      - name: Sync Python dependencies
+        run: uv sync
+
+      - name: Run the full validation suite
+        run: mise run ci
