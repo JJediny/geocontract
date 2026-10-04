@@ -268,6 +268,21 @@ def build_provenance_links(entry: dict, is_mirror: bool, ctx: str) -> list[dict]
         )
         links.append({"rel": "related", "href": upstream, "type": "application/json", "title": "Upstream raw payload"})
 
+    # PORTO-CORE-054: a mirror MUST include a `rel: canonical` link pointing
+    # at the source's STAC catalog when one exists, so consumers and agents
+    # can follow the chain to the authoritative metadata rather than only
+    # to a human landing page. PORTO-CORE-055 makes this informational
+    # (never an error) when the upstream does not publish a STAC catalog.
+    # Author the URL under `upstream_stac` in the manifest when the source
+    # exposes a STAC root; leave it unset when it does not.
+    canonical = entry.get("upstream_stac")
+    if canonical:
+        require(
+            isinstance(canonical, str) and canonical.startswith("https://"),
+            f"{ctx}: upstream_stac must be an https URL, got {canonical!r}",
+        )
+        links.append({"rel": "canonical", "href": canonical, "type": "application/json", "title": "Authoritative STAC catalog"})
+
     return links
 
 
