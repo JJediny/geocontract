@@ -1,0 +1,95 @@
+{
+  "identifiers": [
+    {
+      "identifier": "https://raw.githubusercontent.com/JJediny/geocontract/main/contracts/nepa-exclusions.datacontract.yaml",
+      "identifierType": "URL"
+    }
+  ],
+  "creators": [
+    {
+      "name": "Permitting Innovation Center",
+      "nameType": "Organizational"
+    }
+  ],
+  "titles": [
+    {
+      "title": "NEPA Categorical Exclusions (CATEX) Catalogue"
+    }
+  ],
+  "publisher": "geocontract",
+  "publicationYear": "2026",
+  "types": {
+    "resourceType": "ODCS v3.1.0 data contract",
+    "resourceTypeGeneral": "Dataset"
+  },
+  "subjects": [
+    {
+      "subject": "catex"
+    },
+    {
+      "subject": "exclusions"
+    },
+    {
+      "subject": "federal-register"
+    },
+    {
+      "subject": "nepa"
+    },
+    {
+      "subject": "permitting-innovation-center"
+    }
+  ],
+  "dates": [
+    {
+      "date": "2026-08-24",
+      "dateType": "Created"
+    },
+    {
+      "date": "2026-10-03",
+      "dateType": "Updated"
+    }
+  ],
+  "language": "en",
+  "formats": [
+    "YAML"
+  ],
+  "version": "2.0.0",
+  "rightsList": [
+    {
+      "rights": "CC0 1.0 Universal",
+      "rightsUri": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "rightsIdentifier": "CC0-1.0",
+      "rightsIdentifierScheme": "SPDX",
+      "schemeUri": "https://spdx.org/licenses/"
+    }
+  ],
+  "descriptions": [
+    {
+      "description": "The federal Categorical Exclusion (CATEX) catalogue published by the Permitting Innovation Center. CATEXs are classes of actions that normally do not require further environmental review under NEPA (42 U.S.C. §§ 4321 et seq.) because they have been found not to have a significant effect on the environment, individually or cumulatively. This contract governs the 2,105 records spanning 78 federal agency units (AFRH, CPSC, DC, DHS, …). Consumers query this catalogue to determine whether a proposed action falls within an existing CATEX, the originating agency, the CFR / eCFR citation, the documented context, and any extraordinary-circumstances clause that may apply. The catalogue is published as a single 4 MB JSON file and is refreshed on an ad-hoc basis by each contributing agency. There is no per-record URL — consumers must filter client-side or via the registered mesh-gateway endpoint.",
+      "descriptionType": "Abstract"
+    }
+  ],
+  "geoLocations": [
+    {
+      "geoLocationBox": {
+        "westBoundLongitude": -125.0,
+        "eastBoundLongitude": -66.0,
+        "southBoundLatitude": 24.0,
+        "northBoundLatitude": 50.0
+      }
+    }
+  ],
+  "relatedIdentifiers": [
+    {
+      "relatedIdentifier": "https://www.ecfr.gov/",
+      "relatedIdentifierType": "URL",
+      "relationType": "IsDerivedFrom"
+    },
+    {
+      "relatedIdentifier": "https://raw.githubusercontent.com/JJediny/geocontract/main/examples/dcat-us-catalog.example.data.json",
+      "relatedIdentifierType": "URL",
+      "relationType": "IsDescribedBy"
+    }
+  ],
+  "schemaVersion": "http://datacite.org/schema/kernel-4"
+}

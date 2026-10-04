@@ -67,6 +67,14 @@ build-dcat = "uv run python scripts/build_dcat.py"
 
 dcat-check = { depends = ["build-dcat", "validate-dcat"] }
 
+# Rebuild the DataCite v4.3 records from the generated Portolan tree
+# (issue #21). Deterministic, one record per unique contract id.
+build-datacite = "uv run python scripts/build_datacite.py"
+
+validate-datacite = "uv run python scripts/validate_odcs.py --datacite examples/datacite4.3/*.json"
+
+datacite-check = { depends = ["build-datacite", "validate-datacite"] }
+
 # Cross-validate the bare-ODCS contracts with the upstream datacontract CLI
 # (a second-line check; equivalent to `datacontract lint` on each YAML).
 # The dcat-us-catalog contract is EXCLUDED because it uses the
@@ -90,7 +98,7 @@ test = "uv run pytest scripts/tests/ -v"
 # (e.g. `ci = ["validate-odcs", ...]`) is treated by mise as shell
 # commands to execute, not task references, and fails with
 # "validate-odcs: not found".
-ci = { depends = ["drift-check", "validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "catalog-check", "dcat-check"] }
+ci = { depends = ["drift-check", "validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "catalog-check", "dcat-check", "datacite-check"] }
 
 # Run the full v2 core pipeline against the committed worked
 # example (scripts/tests/test_pipeline_end_to_end.py). Catches

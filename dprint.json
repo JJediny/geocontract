@@ -8,6 +8,7 @@
     "catalog/**/collection.json",
     "catalog/**/catalog.json",
     "examples/dcat-us-catalog.example.data.json",
+    "examples/datacite4.3/**",
     "portolan-spec",
     "portolan-skills",
     "**/dprint.json",

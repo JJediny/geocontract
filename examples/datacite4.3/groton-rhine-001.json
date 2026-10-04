@@ -1,0 +1,98 @@
+{
+  "identifiers": [
+    {
+      "identifier": "https://raw.githubusercontent.com/JJediny/geocontract/main/contracts/groton-rhine-001.datacontract.yaml",
+      "identifierType": "URL"
+    }
+  ],
+  "creators": [
+    {
+      "name": "geocontract",
+      "nameType": "Organizational"
+    }
+  ],
+  "titles": [
+    {
+      "title": "Groton Rhine St. Façade Repair — Worked Example (v2)"
+    }
+  ],
+  "publisher": "geocontract",
+  "publicationYear": "2026",
+  "types": {
+    "resourceType": "ODCS v3.1.0 data contract",
+    "resourceTypeGeneral": "Dataset"
+  },
+  "subjects": [
+    {
+      "subject": "citizen-initiated"
+    },
+    {
+      "subject": "facade-repair"
+    },
+    {
+      "subject": "groton"
+    },
+    {
+      "subject": "housing-rehabilitation"
+    },
+    {
+      "subject": "proposed-action"
+    },
+    {
+      "subject": "v2-prototype"
+    }
+  ],
+  "dates": [
+    {
+      "date": "2026-09-12",
+      "dateType": "Created"
+    },
+    {
+      "date": "2026-10-03",
+      "dateType": "Updated"
+    }
+  ],
+  "language": "en",
+  "formats": [
+    "YAML"
+  ],
+  "version": "0.2.0",
+  "rightsList": [
+    {
+      "rights": "CC0 1.0 Universal",
+      "rightsUri": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "rightsIdentifier": "CC0-1.0",
+      "rightsIdentifierScheme": "SPDX",
+      "schemeUri": "https://spdx.org/licenses/"
+    }
+  ],
+  "descriptions": [
+    {
+      "description": "v2 canonical worked example for the citizen-permitting flow. A resident of Groton, CT (fictional) proposes repairing the masonry façade of a property at 42 Rhine Street. The action covers repointing of failed mortar joints, replacement of three cracked lintels, and reattachment of a decorative cornice. Validates against the bare ODCS v3.1.0 schema. The companion shim file (contracts/shim/groton-rhine-001.datacontract-shim.json) records the governance / quality / SLA / lineage metadata that is not represented in the ODCS body. Fictional. Illustrative only. The applicant, parcel, signature, and signatures are placeholders. The activity-code comes from the hand-curated ActivityConcept catalog v1.0 (ontology/activity-concept-catalog.v1.0.json). Anchoring is not approval; this contract's lifecycle.state is `draft` and the anchorReceipt is null.",
+      "descriptionType": "Abstract"
+    }
+  ],
+  "geoLocations": [
+    {
+      "geoLocationBox": {
+        "westBoundLongitude": -72.09,
+        "eastBoundLongitude": -72.08,
+        "southBoundLatitude": 41.34,
+        "northBoundLatitude": 41.35
+      }
+    }
+  ],
+  "relatedIdentifiers": [
+    {
+      "relatedIdentifier": "https://github.com/JJediny/geocontract/blob/main/templates/proposed-action.template.schema.json",
+      "relatedIdentifierType": "URL",
+      "relationType": "IsDerivedFrom"
+    },
+    {
+      "relatedIdentifier": "https://raw.githubusercontent.com/JJediny/geocontract/main/examples/dcat-us-catalog.example.data.json",
+      "relatedIdentifierType": "URL",
+      "relationType": "IsDescribedBy"
+    }
+  ],
+  "schemaVersion": "http://datacite.org/schema/kernel-4"
+}
