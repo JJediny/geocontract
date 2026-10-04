@@ -1,6 +1,6 @@
 # Implementation Plan — Portolan as the Catalog Basis for geocontract
 
-> Status: Phase 0 complete; probes resolved the open questions in §6
+> Status: Phases 0–4 complete (§10 via PR #22). Phase 5 (§11) is pending.
 > Spec baseline: `portolan-spec` @ v0.2.0 (submodule, pinned)
 > Skills baseline: `portolan-skills` @ `pins.toml` (portolan-cli 0.8.0, rashid 0.1.8)
 > Upstream: https://github.com/portolan-sdi/portolan
@@ -345,6 +345,24 @@ uv run pytest scripts/tests/test_harvester_portolan.py -v
 ---
 
 ## §10 Phase 4 — Citizen proposals in the catalog
+
+**Status: complete.** PR #22 on branch
+`feature/portolan-phase4-citizen-proposals`. Detection keys off the
+`isCitizenInitiated` custom property. Routing writes the collection to
+`catalog/citizen/<id>/`. The parcel bbox is extracted from the example
+data WKT and coarsened to two decimals before it reaches the
+`collection.json` ([72.09, 41.34, 72.08, 41.35] for groton-rhine-001).
+Mirror harvesting completes with all three sources; `mise run
+catalog-check` reports 0 errors, 0 warnings, and the 5 advisory
+PTL-PRO-002 infos (the upstreams do not publish STAC, so no `canonical`
+link applies). Lifecycle transitions stay as specified: regenerate the
+collection, never keep two live collections for one proposal id.
+
+Active follow-up: the dir-based citizen pipeline
+(`geocontract-harvest-citizen-dir`) does not yet consume a `--sink
+portolan` flag; the ID-based entry point (`geocontract-harvest --sink
+portolan`) writes citizen collections, and that is the path PR #22
+exercises.
 
 - `geocontract-harvest-citizen-dir` output (`manifest.json`,
   `records.jsonl`) gains the same `--sink portolan`: each public
