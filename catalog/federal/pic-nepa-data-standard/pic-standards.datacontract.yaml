@@ -1,6 +1,8 @@
 # ODCS v3.1.0 Data Contract — PIC NEPA Data Standard (v1.2)
 #
-# Source: ../pic-standards/src/jsonschema/nepa.schema.json (v1.2)
+# Source: https://permitting.innovation.gov/resources/data-standard/
+#         (upstream resource page; the pinned schema snapshot lives at
+#         ../pic-standards/src/jsonschema/nepa.schema.json, v1.2)
 # Mirrors: geocontract/templates/pic-standards.template.schema.json
 #          (json-schema-x-graphql annotated JSON Schema)
 # Companion: contracts/shim/pic-standards.datacontract-shim.json

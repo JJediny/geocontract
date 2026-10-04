@@ -1,23 +1,29 @@
 # Groton Rhine St. Façade Repair — Worked Example (v2)
 
-v2 canonical worked example for the citizen-permitting flow. A
-resident of Groton, CT (fictional) proposes repairing the
-masonry façade of a property at 42 Rhine Street. The action
-covers repointing of failed mortar joints, replacement of
-three cracked lintels, and reattachment of a decorative cornice.
+A worked example of the citizen-initiated permitting flow. A resident of
+Groton, Connecticut proposes repairing the masonry facade of a property
+on Rhine Street. The example is fictional and illustrative: the
+applicant, the parcel, and the signatures are placeholders.
 
-## Jurisdiction
+The collection publishes the ODCS-flatten projection of the v2 canonical
+Proposal model. That projection is the public one. Applicant identity,
+proof material, and raw parcel geometry are excluded from it by design
+and stay in the restricted projection.
 
-us-ct-groton
+## Provenance
 
-## Access
-
-This is a citizen-initiated proposal with public access.
-
-## Contract
-
-See `contract` asset for the full ODCS v3.1.0 data contract.
+geocontract originates this proposal, so the collection is official
+rather than a mirror. The activity code comes from the hand-curated
+ActivityConcept catalog at `ontology/activity-concept-catalog.v1.0.json`.
 
 ## License
 
-CC0-1.0. See the contract for full terms.
+CC0-1.0. See <https://spdx.org/licenses/CC0-1.0.html>.
+
+## Location precision
+
+The spatial extent is deliberately coarse. The proposal concerns one
+parcel, and the public projection removes raw geometry, so the extent
+here is a cell of roughly 1.1 km that contains the parcel without
+locating it. The precise geometry is available only through the
+restricted projection, which requires an authority token.

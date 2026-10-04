@@ -620,6 +620,14 @@ This is a citizen-initiated proposal with {access_class} access.
 
 See `contract` asset for the full ODCS v3.1.0 data contract.
 
+## Provenance
+
+Data originates from a citizen-initiated permit proposal submitted to
+the local permitting intake. The harvest timestamp and source URL are
+recorded in the collection's `provenance` block. Bounding-box
+coordinates are coarsened to two decimal places (~1.1 km) before
+publishing.
+
 ## License
 
 CC0-1.0. See the contract for full terms.
@@ -778,6 +786,7 @@ def _extract_bbox(contract: dict) -> list[float]:
     Returns [west, south, east, north] or default global bbox.
     """
     import json
+    import re
     from pathlib import Path
 
     contract_id = contract.get("id", "")
@@ -817,8 +826,13 @@ def _extract_bbox(contract: dict) -> list[float]:
                                 ys = [c[1] for c in coords]
                                 return [min(xs), min(ys), max(xs), max(ys)]
                 except Exception as e:
-                    # If extraction fails, fall through to default
-                    pass
+                    # Extraction failure must not vanish silently: log it so
+                    # a bad example file or WKT is visible to the operator.
+                    import sys
+                    print(
+                        f"warning: failed to extract bbox from {example_file}: {e}",
+                        file=sys.stderr,
+                    )
 
     # Default global bbox (will be coarsened)
     return [-180.0, -90.0, 180.0, 90.0]

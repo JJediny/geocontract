@@ -19,6 +19,12 @@
       "type": "application/json"
     },
     {
+      "rel": "child",
+      "href": "./groton-rhine-001/collection.json",
+      "type": "application/json",
+      "title": "Groton Rhine St. Façade Repair — Worked Example (v2)"
+    },
+    {
       "rel": "agents",
       "href": "./AGENTS.md",
       "type": "text/markdown",
@@ -31,12 +37,6 @@
       "type": "text/markdown",
       "title": "Human-readable documentation",
       "hreflang": "en"
-    },
-    {
-      "rel": "child",
-      "href": "./groton-rhine-001/collection.json",
-      "type": "application/json",
-      "title": "Groton Rhine St. Fa\u00e7ade Repair \u2014 Worked Example (v2)"
     }
   ],
   "updated": "2026-10-03T00:00:00Z",

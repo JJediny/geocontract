@@ -6,26 +6,24 @@
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
     "https://stac-extensions.github.io/table/v1.2.0/schema.json"
   ],
-  "id": "federal/pic-nepa-data-standard",
-  "title": "PIC NEPA Data Standard v1.2",
-  "description": "The Permitting Innovation Center (PIC) NEPA Data & Technology Standard v1.2 — a structured schema for environmental-review data collected during reviews conducted under the National Environmental Policy Act (NEPA), 42 U.S.C. §§ 4321 et seq. Defines 13 entity types (project, process_instance, document, comment, engagement, case_event, gis_data, gis_data_element, user_role, decision_element, process_model, process_decision_payload, legal_structure) and a uniform set of six provenance properties added in v1.2.",
+  "id": "mirror/geocontract-pic-nepa-data-standard",
+  "title": "Mirror: PIC NEPA Data Standard v1.2",
+  "description": "The Permitting Innovation Center (PIC) NEPA Data & Technology\nStandard v1.2 \u2014 a structured schema for environmental-review\ndata collected during reviews conducted under the National\nEnvironmental Policy Act (NEPA), 42 U.S.C. \u00a7\u00a7 4321 et seq.\nDefines 13 entity types (project, process_instance, document,\ncomment, engagement, case_event, gis_data, gis_data_element,\nuser_role, decision_element, process_model,\nprocess_decision_payload, legal_structure) and a uniform set of\nsix provenance properties added in v1.2.",
   "license": "CC0-1.0",
   "keywords": [
+    "geocontract",
     "nepa",
     "data-standard",
-    "environmental-review",
-    "permitting",
-    "schema",
-    "federal"
+    "permitting-innovation-center",
+    "v1.2"
   ],
   "providers": [
     {
-      "name": "Permitting Innovation Center",
-      "url": "https://permitting.innovation.gov/",
+      "name": "us-federal-permitting-innovation-center",
       "roles": [
-        "producer",
-        "licensor"
-      ]
+        "producer"
+      ],
+      "url": "https://permitting.innovation.gov/resources/data-standard/"
     },
     {
       "name": "geocontract",
@@ -40,17 +38,17 @@
     "spatial": {
       "bbox": [
         [
-          -125.0,
-          24.0,
-          -66.0,
-          50.0
+          -180.0,
+          -90.0,
+          180.0,
+          90.0
         ]
       ]
     },
     "temporal": {
       "interval": [
         [
-          "2026-08-24T00:00:00Z",
+          "2026-10-04T03:34:01Z",
           null
         ]
       ]
@@ -90,12 +88,12 @@
     {
       "name": "currentStatus",
       "type": "varchar",
-      "description": "Current phase of the NEPA / permitting / other authorization process (aggregated from process status). Enum-like: pre-application, underway, paused, completed."
+      "description": "Current phase of the NEPA / permitting / other authorization\nprocess (aggregated from process status). Enum-like:\npre-application, underway, paused, completed.\n"
     },
     {
       "name": "locationLat",
       "type": "double",
-      "description": "Center/centroid of project (shortcut for plotting on a map; should attach a GIS data object as well)."
+      "description": "Center/centroid of project (shortcut for plotting on a map;\nshould attach a GIS data object as well).\n"
     },
     {
       "name": "locationLon",
@@ -125,7 +123,7 @@
     {
       "name": "recordOwnerAgency",
       "type": "varchar",
-      "description": "Owner of the original data — the authoritative data source."
+      "description": "Owner of the original data \u2014 the authoritative data source."
     },
     {
       "name": "retrievedTimestamp",
@@ -134,12 +132,12 @@
     }
   ],
   "assets": {
-    "contract": {
-      "href": "./pic-standards.datacontract.yaml",
+    "source": {
+      "href": "./geocontract-pic-nepa-data-standard.datacontract.yaml",
       "type": "application/yaml",
-      "title": "ODCS v3.1.0 data contract (geocontract-pic-nepa-data-standard)",
+      "title": "Source contract: PIC NEPA Data Standard v1.2",
       "roles": [
-        "metadata"
+        "source"
       ],
       "file:size": 54304,
       "file:checksum": "122064a0831a6715e666aba7cd64be7e986b2ee4412295562c4c5b7439efbec98e38"
@@ -177,16 +175,13 @@
       "hreflang": "en"
     }
   ],
-  "updated": "2026-10-03T00:00:00Z",
+  "updated": "2026-10-04T03:34:01Z",
   "geocontract:contract_id": "geocontract-pic-nepa-data-standard",
   "geocontract:contract_version": "1.2.0",
   "geocontract:status": "active",
   "geocontract:tenant": "us-federal-permitting-innovation-center",
   "geocontract:domain": "environmental-review",
-  "geocontract:primary_entity": "Project",
   "geocontract:mirror": true,
-  "language": {
-    "code": "en",
-    "name": "English"
-  }
+  "geocontract:harvested_from": "contracts/pic-standards.datacontract.yaml",
+  "geocontract:harvested_at": "2026-10-04T03:34:01Z"
 }

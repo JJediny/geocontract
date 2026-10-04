@@ -34,9 +34,21 @@
     },
     {
       "rel": "child",
+      "href": "./geocontract-dcat-us-catalog/collection.json",
+      "type": "application/json",
+      "title": "Mirror: geocontract Federated Catalog (DCAT-US 3.0.0)"
+    },
+    {
+      "rel": "child",
       "href": "./geocontract-nepa-exclusions/collection.json",
       "type": "application/json",
       "title": "Mirror: NEPA Categorical Exclusions (CATEX) Catalogue"
+    },
+    {
+      "rel": "child",
+      "href": "./geocontract-pic-nepa-data-standard/collection.json",
+      "type": "application/json",
+      "title": "Mirror: PIC NEPA Data Standard v1.2"
     }
   ],
   "updated": "2026-10-03T21:59:48.749588Z"
