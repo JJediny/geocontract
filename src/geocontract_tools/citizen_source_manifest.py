@@ -47,6 +47,7 @@ import datetime as dt
 import hashlib
 import json
 import shutil
+import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -194,6 +195,131 @@ def harvest_directory(
 # ── CLI surface ──────────────────────────────────────────────────────────────
 
 
+def _portolan_sink(
+    sources: list[Path],
+    *,
+    out_dir: Path,
+    projection: Projection,
+    authority_token: str | None,
+    catalog_dir: Path,
+    fetched_at: str | None,
+) -> None:
+    """After harvesting to a directory, also write citizen collections into
+    the Portolan catalog tree under ``catalog/citizen/<slug>/``.
+
+    Both sinks run on the same projection: a restricted token passed to
+    ``--projection=restricted`` is honoured by the directory sink and the
+    Portolan sink reads the same projection field.
+    """
+    from geocontract_tools.portolan_sink import (
+        ensure_citizen_catalog,
+        update_citizen_catalog,
+        write_citizen_collection,
+    )
+
+    timestamp = fetched_at or dt.datetime.now(dt.timezone.utc).isoformat()
+
+    ensure_citizen_catalog(catalog_dir)
+    for src in sources:
+        try:
+            proposal = load_canonical(src)
+        except Exception:  # noqa: BLE001
+            # The directory sink already recorded the failure in manifest.json.
+            # Skip the portolan sink for that source; the records.jsonl row
+            # in out_dir/ is the canonical error trail.
+            continue
+
+        # The contract YAML carries customProperties: isCitizenInitiated,
+        # jurisdiction, accessClass. load_canonical flattens these into
+        # the proposal-level dict for v2 canonical mode, but the
+        # underlying ODCS YAML still has them under the top-level
+        # customProperties block. Read the source file directly when we
+        # have it, falling back to the proposal if not (a JSON Proposal
+        # file carries the same facts under its own keys).
+        contract = _read_odcs_contract(src) if src.suffix.lower() in {".yaml", ".yml"} else proposal
+        if not _is_citizen_proposal(contract):
+            print(
+                f"⚠ skipping non-citizen source for portolan sink: {src}",
+                file=sys.stderr,
+            )
+            continue
+
+        source_info = {
+            "source_url": str(src.resolve()),
+            "jurisdiction": _extract_custom_property(contract, "jurisdiction"),
+            "access_class": _extract_custom_property(contract, "accessClass"),
+        }
+
+        # write_citizen_collection reads .contract (dict), .source_data
+        # (the raw bytes — for the file:checksum multihash), and
+        # .source_info off the result. Pass the file's bytes so the
+        # checksum mirrors what the directory sink already captured
+        # in source_hash.
+        sink_result = _CitizenSinkResult(
+            contract,
+            src.read_bytes(),
+            source_info,
+        )
+        collection_path = write_citizen_collection(
+            sink_result,
+            catalog_dir,
+            timestamp,
+        )
+        print(
+            f"✓ wrote citizen collection: {collection_path.relative_to(catalog_dir.parent)}",
+            file=sys.stderr,
+        )
+
+    update_citizen_catalog(catalog_dir)
+
+
+def _read_odcs_contract(path: Path) -> dict:
+    """Read an ODCS YAML contract, returning the top-level dict.
+
+    Returns an empty dict on any parse failure so the caller can fall
+    back to the flattened proposal. Only used to access customProperties
+    when portolan-sink writes citizen collections.
+    """
+    try:
+        document = yaml.safe_load(path.read_text())
+    except Exception:  # noqa: BLE001
+        return {}
+    return document if isinstance(document, dict) else {}
+
+
+class _CitizenSinkResult:
+    """Minimal duck-type for write_citizen_collection's first argument.
+
+    The Portolan sink reads .contract, .source_data, and .source_info.
+    Anything else on the object is ignored. A dataclass would do, but
+    it would have to live in this file or be imported from
+    harvester.py, neither of which feels worth it for a private shim.
+    """
+
+    __slots__ = ("contract", "source_data", "source_info")
+
+    def __init__(self, contract: dict, source_data: bytes, source_info: dict) -> None:
+        self.contract = contract
+        self.source_data = source_data
+        self.source_info = source_info
+
+
+def _is_citizen_proposal(contract: dict) -> bool:
+    """Citizen proposals carry customProperties: { property: isCitizenInitiated, value: true }."""
+    for prop in contract.get("customProperties") or []:
+        if prop.get("property") == "isCitizenInitiated" and prop.get("value") is True:
+            return True
+    return False
+
+
+def _extract_custom_property(contract: dict, property_name: str) -> str | None:
+    for prop in contract.get("customProperties") or []:
+        if prop.get("property") == property_name:
+            value = prop.get("value")
+            return str(value) if value is not None else None
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
 
@@ -202,7 +328,9 @@ def main(argv: list[str] | None = None) -> int:
         description=(
             "Harvest citizen-initiated Proposal sources into a directory "
             "(plan §6 / docs/design-harvester.md). Writes manifest.json, "
-            "records.jsonl, and a contracts/ copy of every source."
+            "records.jsonl, and a contracts/ copy of every source. With "
+            "--sink portolan, also writes citizen collections to the "
+            "Portolan catalog tree under catalog/citizen/<slug>/."
         ),
     )
     p.add_argument("sources", nargs="+", help="Paths to Proposal files.")
@@ -217,17 +345,46 @@ def main(argv: list[str] | None = None) -> int:
         default="public",
     )
     p.add_argument("--authority-token", default=None)
+    p.add_argument(
+        "--sink",
+        choices=("directory", "portolan"),
+        default="directory",
+        help=(
+            "Output sink: 'directory' (default) writes manifest.json + "
+            "records.jsonl + contracts/ to --out; 'portolan' also writes "
+            "citizen collections to catalog/citizen/<slug>/."
+        ),
+    )
+    p.add_argument(
+        "--catalog-dir",
+        default="catalog",
+        help="Catalog directory for --sink=portolan (default: catalog)",
+    )
     args = p.parse_args(argv)
 
     if args.projection == "restricted" and not args.authority_token:
         p.error("--authority-token is required for --projection=restricted")
 
-    harvest_directory(
-        [Path(s) for s in args.sources],
+    sources = [Path(s) for s in args.sources]
+    manifest = harvest_directory(
+        sources,
         out_dir=Path(args.out),
         projection=args.projection,  # type: ignore[arg-type]
         authority_token=args.authority_token,
     )
+
+    if args.sink == "portolan":
+        # Honour the directory sink's fetched_at so both outputs agree
+        # on the same timestamp.
+        _portolan_sink(
+            sources,
+            out_dir=Path(args.out),
+            projection=args.projection,  # type: ignore[arg-type]
+            authority_token=args.authority_token,
+            catalog_dir=Path(args.catalog_dir),
+            fetched_at=manifest["fetched_at"],
+        )
+
     return 0
 
 
