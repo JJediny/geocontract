@@ -1,0 +1,801 @@
+# ODCS v3.1.0 Data Contract — DCAT-US 3.0.0 Catalog (geocontract federated catalog)
+#
+# Source: https://raw.githubusercontent.com/GSA/dcat-us/refs/heads/main/jsonschema/definitions/Catalog.json
+# Mirrors: geocontract/templates/dcat-us-catalog.template.schema.json
+#          (json-schema-x-graphql annotated JSON Schema)
+# Example: geocontract/examples/dcat-us-catalog.example.data.json
+# Companion: contracts/shim/dcat-us-catalog.datacontract-shim.json
+#
+# This contract is the *catalog* layer of the geocontract interoperability
+# stack. While `contracts/nepa-exclusions.datacontract.yaml` and
+# `contracts/pic-standards.datacontract.yaml` describe individual datasets,
+# this contract describes the DCAT-US Catalog that bundles them — i.e. the
+# single federated entry point that downstream consumers (mesh gateways,
+# search indexes, dashboards) use to discover the available geocontract
+# instance records and download their data.
+#
+# The DCAT-US Catalog schema is published by the U.S. General Services
+# Administration (GSA) and is the federal-government vocabulary for
+# describing data catalogs. We pin a snapshot under
+# `external/dcat-us-catalog.json` and the referenced sub-definitions under
+# `external/dcat-us-definitions/` so validation never reaches the network.
+#
+# Validated against the canonical ODCS v3.1.0 JSON Schema via
+# scripts/validate_odcs.py. The instance example is cross-validated
+# against the pinned DCAT-US schema via `geocontract-validate --dcat`.
+
+apiVersion: v3.1.0
+kind: DataContract
+id: geocontract-dcat-us-catalog
+name: "geocontract Federated Catalog (DCAT-US 3.0.0)"
+version: 3.0.0
+status: active
+tenant: us-federal-geocontract
+domain: data-catalog
+
+description:
+  purpose: |
+    The geocontract federated catalog, expressed in the GSA DCAT-US 3.0.0
+    vocabulary. This contract governs the catalog envelope that bundles
+    every published *.geocontract.yaml instance record — currently the
+    NEPA Categorical Exclusions catalogue and the PIC NEPA Data Standard
+    v1.2, with room for additional agency-published contracts to be
+    registered over time.
+  usage: |
+    Consumers (mesh gateways, search indexes, dashboards, the federated
+    harvester) resolve this catalog to discover the available datasets,
+    their distributions (ODCS YAML + source payloads), and the data
+    services that expose them. Each `dataset[]` entry is a DCAT-US
+    `dcat:Dataset` whose `conformsTo` points at ODCS v3.1.0 and whose
+    `distribution[]` enumerates the contract YAML and the source
+    payload.
+  limitations: |
+    DCAT-US 3.0.0 is the published federal vocabulary; the GSA repo
+    also ships draft v3.x sub-definitions that may change. We pin the
+    snapshot used for validation under external/dcat-us-definitions/.
+    The catalog itself is currently an example document; production
+    deployment will publish the catalog at https://geocontract.dev/
+    and the federated harvester will refresh it on a schedule.
+
+tags:
+  - geocontract
+  - dcat-us
+  - catalog
+  - interoperability
+  - federal
+  - open-data
+
+servers:
+  - server: geocontract-dev-catalog
+    type: api
+    location: "https://geocontract.dev/catalogs/us-federal-geocontract"
+    environment: production
+    description: |
+      Public REST endpoint that serves the geocontract federated catalog
+      as a DCAT-US 3.0.0 Catalog JSON document. The endpoint is the
+      canonical IRI assigned to `@id` in the example instance.
+  - server: geocontract-github-catalog
+    type: local
+    environment: production
+    description: |
+      Pinned snapshot of the catalog instance checked in to the
+      geocontract repository at
+      `examples/dcat-us-catalog.example.data.json`. Useful for offline
+      validation and for reproducible harvester runs.
+    path: "examples/dcat-us-catalog.example.data.json"
+    format: json
+  - server: gsa-dcat-us-schema
+    type: api
+    location: "https://raw.githubusercontent.com/GSA/dcat-us/refs/heads/main/jsonschema/definitions/Catalog.json"
+    environment: production
+    description: |
+      Upstream DCAT-US 3.0.0 Catalog JSON Schema published by GSA. A
+      pinned snapshot lives at external/dcat-us-catalog.json and the
+      referenced sub-definitions are vendored under
+      external/dcat-us-definitions/ for offline validation.
+
+schema:
+  # ── Catalog envelope ─────────────────────────────────────────────
+  - name: DcatCatalog
+    physicalName: catalog
+    logicalType: object
+    description: |
+      The DCAT-US 3.0.0 Catalog envelope. Top-level container that
+      bundles every catalogued dataset, service, and series. The
+      geocontract federated catalog publishes exactly one Catalog
+      instance; downstream sub-catalogs (per agency, per theme) can
+      be linked via `hasPart`.
+    dataGranularityDescription: "One catalog per geocontract deployment."
+    properties:
+      - name: id
+        logicalType: string
+        logicalTypeOptions:
+          format: iri
+        physicalType: VARCHAR(2048)
+        physicalName: catalog.@id
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          Resolvable IRI for this catalog instance. The geocontract
+          convention is `https://geocontract.dev/catalogs/<slug>`.
+        examples:
+          - "https://geocontract.dev/catalogs/us-federal-geocontract"
+        quality:
+          - type: library
+            dimension: uniqueness
+            metric: duplicateValues
+            description: "No two catalogs may share an @id."
+            mustBe: 0
+            severity: error
+            businessImpact: operational
+      - name: type
+        logicalType: string
+        physicalType: VARCHAR(64)
+        physicalName: catalog.@type
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "DCAT-US class. Fixed to `Catalog`."
+        examples:
+          - "Catalog"
+      - name: title
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 256
+        physicalType: VARCHAR(256)
+        physicalName: catalog.title
+        required: true
+        classification: public
+        description: "Human-readable title of the catalog."
+        examples:
+          - "geocontract — Federal NEPA Data Contracts"
+      - name: description
+        logicalType: string
+        physicalType: TEXT
+        physicalName: catalog.description
+        required: false
+        classification: public
+        description: "Plain-language summary of the catalog."
+      - name: publisher
+        logicalType: object
+        physicalType: JSON
+        physicalName: catalog.publisher
+        required: false
+        classification: public
+        description: |
+          Agent responsible for publishing and making the catalog
+          available. Inline `dcat:Agent` (name + optional url,
+          identifier, @id, @type).
+      - name: creator
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.creator
+        required: false
+        classification: public
+        description: "Array of `dcat:Agent` responsible for creating the catalog metadata."
+      - name: contactPoint
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.contactPoint
+        required: false
+        classification: public
+        description: "Array of vCard `Kind` contact points."
+      - name: keyword
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.keyword
+        required: false
+        classification: public
+        description: "Array of free-text keyword/tag strings."
+      - name: theme
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.theme
+        required: false
+        classification: public
+        description: "Array of `skos:Concept` themes/categories."
+      - name: themeTaxonomy
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.themeTaxonomy
+        required: false
+        classification: public
+        description: "Array of `skos:ConceptScheme` controlled vocabularies."
+      - name: subject
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.subject
+        required: false
+        classification: public
+        description: "Array of `skos:Concept` subjects."
+      - name: spatial
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.spatial
+        required: false
+        classification: public
+        description: "Array of `dcterms:Location` geographic coverage records."
+      - name: temporal
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.temporal
+        required: false
+        classification: public
+        description: "Array of `dcterms:PeriodOfTime` temporal coverage intervals."
+      - name: language
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.language
+        required: false
+        classification: public
+        description: "ISO 639-1 language code(s) used for catalog metadata text."
+      - name: license
+        logicalType: string
+        logicalTypeOptions:
+          format: uri
+        physicalType: VARCHAR(2048)
+        physicalName: catalog.license
+        required: false
+        classification: public
+        description: "License governing how the catalog can be used or reused."
+        examples:
+          - "https://creativecommons.org/publicdomain/zero/1.0/"
+      - name: rights
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.rights
+        required: false
+        classification: public
+        description: "Array of rights-statement strings not covered by `license`."
+      - name: accessRights
+        logicalType: string
+        physicalType: VARCHAR(256)
+        physicalName: catalog.accessRights
+        required: false
+        classification: public
+        description: "Whether the catalog is public, restricted, or not public."
+      - name: issued
+        logicalType: date
+        logicalTypeOptions:
+          format: "yyyy-MM-dd"
+        physicalType: DATE
+        physicalName: catalog.issued
+        required: false
+        classification: public
+        description: "Date the catalog was formally issued."
+        examples:
+          - "2024-01-15"
+      - name: modified
+        logicalType: date
+        logicalTypeOptions:
+          format: "yyyy-MM-dd"
+        physicalType: DATE
+        physicalName: catalog.modified
+        required: false
+        classification: public
+        description: "Most recent date the catalog content changed."
+        examples:
+          - "2025-08-25"
+      - name: identifier
+        logicalType: string
+        physicalType: VARCHAR(2048)
+        physicalName: catalog.identifier
+        required: false
+        classification: public
+        description: "Main unique identifier for the catalog (URI or persistent ID)."
+      - name: homepage
+        logicalType: object
+        physicalType: JSON
+        physicalName: catalog.homepage
+        required: false
+        classification: public
+        description: "Main public web page for the catalog (`foaf:Document`)."
+      - name: hasPart
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.hasPart
+        required: false
+        classification: public
+        description: "List of sub-catalogs contained within this catalog."
+      - name: conformsTo
+        logicalType: object
+        physicalType: JSON
+        physicalName: catalog.conformsTo
+        required: false
+        classification: public
+        description: |
+          Standard, schema, profile, or model that this catalog follows.
+          For geocontract this is always `DCAT-US 3.0`.
+      - name: qualifiedAttribution
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.qualifiedAttribution
+        required: false
+        classification: public
+        description: "PROV-style attributions of agents to the catalog."
+      - name: record
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.record
+        required: false
+        classification: public
+        description: |
+          Array of `dcat:CatalogRecord` entries — one per catalogued
+          resource. Each record carries its own `issued`/`modified`
+          timestamps and a `primaryTopic` IRI pointing at the
+          catalogued Dataset.
+      - name: dataset
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.dataset
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          Array of `dcat:Dataset` entries catalogued under this
+          catalog. For geocontract, each entry corresponds to one
+          published *.geocontract.yaml instance record (currently
+          the NEPA CATEX catalogue and the PIC NEPA Data Standard
+          v1.2).
+        quality:
+          - type: library
+            dimension: completeness
+            metric: nullValues
+            description: "dataset[] must contain at least one entry."
+            mustBe: 0
+            severity: error
+            businessImpact: operational
+      - name: service
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.service
+        required: false
+        classification: public
+        description: "Array of `dcat:DataService` endpoints exposed by the catalog."
+      - name: datasetSeries
+        logicalType: array
+        physicalType: JSON
+        physicalName: catalog.datasetSeries
+        required: false
+        classification: public
+        description: "Array of `dcat:DatasetSeries` groupings."
+
+  # ── Dataset (one per catalogued geocontract instance record) ─────
+  - name: DcatDataset
+    physicalName: dataset
+    logicalType: object
+    description: |
+      A single dataset catalogued under the geocontract federated
+      catalog. Each entry is a DCAT-US `dcat:Dataset` that points at
+      one published *.geocontract.yaml instance record. Required
+      fields per DCAT-US 3.0.0 are `title`, `description`,
+      `contactPoint`, and `identifier`.
+    dataGranularityDescription: "One dataset per published geocontract instance record."
+    properties:
+      - name: id
+        logicalType: string
+        logicalTypeOptions:
+          format: iri
+        physicalType: VARCHAR(2048)
+        physicalName: dataset.@id
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          Resolvable IRI for the dataset. The geocontract convention
+          is `https://geocontract.dev/datasets/<slug>`.
+      - name: type
+        logicalType: string
+        physicalType: VARCHAR(64)
+        physicalName: dataset.@type
+        required: true
+        classification: public
+        description: "DCAT-US class. Fixed to `Dataset`."
+        examples:
+          - "Dataset"
+      - name: title
+        logicalType: string
+        physicalType: VARCHAR(256)
+        physicalName: dataset.title
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "Human-readable title of the dataset."
+      - name: description
+        logicalType: string
+        physicalType: TEXT
+        physicalName: dataset.description
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "Plain-language summary of the dataset."
+      - name: identifier
+        logicalType: string
+        physicalType: VARCHAR(2048)
+        physicalName: dataset.identifier
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          Unique identifier for the dataset. For geocontract, this is
+          the ODCS contract `id` (e.g. `geocontract-nepa-exclusions`).
+      - name: contactPoint
+        logicalType: object
+        physicalType: JSON
+        physicalName: dataset.contactPoint
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "vCard `Kind` contact information for the dataset."
+      - name: publisher
+        logicalType: object
+        physicalType: JSON
+        physicalName: dataset.publisher
+        required: false
+        classification: public
+        description: "`dcat:Agent` responsible for publishing the dataset."
+      - name: keyword
+        logicalType: array
+        physicalType: JSON
+        physicalName: dataset.keyword
+        required: false
+        classification: public
+        description: "Array of free-text keyword/tag strings."
+      - name: theme
+        logicalType: array
+        physicalType: JSON
+        physicalName: dataset.theme
+        required: false
+        classification: public
+        description: "Array of `skos:Concept` themes/categories."
+      - name: spatial
+        logicalType: array
+        physicalType: JSON
+        physicalName: dataset.spatial
+        required: false
+        classification: public
+        description: "Array of `dcterms:Location` geographic coverage records."
+      - name: temporal
+        logicalType: array
+        physicalType: JSON
+        physicalName: dataset.temporal
+        required: false
+        classification: public
+        description: "Array of `dcterms:PeriodOfTime` temporal coverage intervals."
+      - name: language
+        logicalType: array
+        physicalType: JSON
+        physicalName: dataset.language
+        required: false
+        classification: public
+        description: "ISO 639-1 language code(s) used for dataset metadata text."
+      - name: license
+        logicalType: string
+        logicalTypeOptions:
+          format: uri
+        physicalType: VARCHAR(2048)
+        physicalName: dataset.license
+        required: false
+        classification: public
+        description: "License governing how the dataset can be used or reused."
+      - name: rights
+        logicalType: array
+        physicalType: JSON
+        physicalName: dataset.rights
+        required: false
+        classification: public
+        description: "Array of rights-statement strings not covered by `license`."
+      - name: accessRights
+        logicalType: string
+        physicalType: VARCHAR(256)
+        physicalName: dataset.accessRights
+        required: false
+        classification: public
+        description: "Whether the dataset is public, restricted, or not public."
+      - name: conformsTo
+        logicalType: array
+        physicalType: JSON
+        physicalName: dataset.conformsTo
+        required: false
+        classification: public
+        description: |
+          Array of `dcterms:Standard` entries — for geocontract, each
+          dataset conforms to ODCS v3.1.0.
+      - name: isPartOf
+        logicalType: object
+        physicalType: JSON
+        physicalName: dataset.isPartOf
+        required: false
+        classification: public
+        description: |
+          Back-reference to the parent Catalog. Always the geocontract
+          federated catalog IRI.
+      - name: distribution
+        logicalType: array
+        physicalType: JSON
+        physicalName: dataset.distribution
+        required: false
+        classification: public
+        criticalDataElement: true
+        description: |
+          Array of `dcat:Distribution` entries — for geocontract, one
+          distribution per published artefact: the ODCS YAML contract,
+          the source JSON payload, the JSON Schema, etc.
+        quality:
+          - type: library
+            dimension: completeness
+            metric: nullValues
+            description: "Each dataset should expose at least its ODCS YAML as a Distribution."
+            mustBe: 0
+            severity: warn
+            businessImpact: discovery
+      - name: issued
+        logicalType: date
+        logicalTypeOptions:
+          format: "yyyy-MM-dd"
+        physicalType: DATE
+        physicalName: dataset.issued
+        required: false
+        classification: public
+        description: "Date the dataset was formally issued in the catalog."
+      - name: modified
+        logicalType: date
+        logicalTypeOptions:
+          format: "yyyy-MM-dd"
+        physicalType: DATE
+        physicalName: dataset.modified
+        required: false
+        classification: public
+        description: "Most recent date the dataset content changed."
+
+  # ── CatalogRecord ────────────────────────────────────────────────
+  - name: DcatCatalogRecord
+    physicalName: record
+    logicalType: object
+    description: |
+      A catalog record describing how a single resource is registered
+      in the catalog. Required fields per DCAT-US 3.0.0 are
+      `modified` and `primaryTopic`.
+    dataGranularityDescription: "One record per catalogued resource registration."
+    properties:
+      - name: id
+        logicalType: string
+        logicalTypeOptions:
+          format: iri
+        physicalType: VARCHAR(2048)
+        physicalName: record.@id
+        required: false
+        classification: public
+        description: "Resolvable IRI for the catalog record."
+      - name: type
+        logicalType: string
+        physicalType: VARCHAR(64)
+        physicalName: record.@type
+        required: false
+        classification: public
+        description: "DCAT-US class. Fixed to `CatalogRecord`."
+      - name: title
+        logicalType: string
+        physicalType: VARCHAR(256)
+        physicalName: record.title
+        required: false
+        classification: public
+        description: "Title of the catalog record."
+      - name: description
+        logicalType: array
+        physicalType: JSON
+        physicalName: record.description
+        required: false
+        classification: public
+        description: "Array of free-text accounts of the catalog record."
+      - name: issued
+        logicalType: array
+        physicalType: JSON
+        physicalName: record.issued
+        required: false
+        classification: public
+        description: "Array of dates on which the record was included in the catalog."
+      - name: modified
+        logicalType: date
+        logicalTypeOptions:
+          format: "yyyy-MM-dd"
+        physicalType: DATE
+        physicalName: record.modified
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "Most recent date on which the catalog record was changed."
+      - name: primaryTopic
+        logicalType: string
+        logicalTypeOptions:
+          format: iri
+        physicalType: VARCHAR(2048)
+        physicalName: record.primaryTopic
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          IRI of the Dataset, DataService, or Catalog described by
+          this record.
+
+  # ── DataService ──────────────────────────────────────────────────
+  - name: DcatDataService
+    physicalName: service
+    logicalType: object
+    description: |
+      A data service endpoint exposed by the catalog. Required fields
+      per DCAT-US 3.0.0 are `title`, `endpointURL`, `contactPoint`,
+      and `publisher`.
+    dataGranularityDescription: "One service per exposed data-service endpoint."
+    properties:
+      - name: id
+        logicalType: string
+        logicalTypeOptions:
+          format: iri
+        physicalType: VARCHAR(2048)
+        physicalName: service.@id
+        required: false
+        classification: public
+        description: "Resolvable IRI for the data service."
+      - name: type
+        logicalType: string
+        physicalType: VARCHAR(64)
+        physicalName: service.@type
+        required: false
+        classification: public
+        description: "DCAT-US class. Fixed to `DataService`."
+      - name: title
+        logicalType: string
+        physicalType: VARCHAR(256)
+        physicalName: service.title
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "Title of the data service."
+      - name: description
+        logicalType: string
+        physicalType: TEXT
+        physicalName: service.description
+        required: false
+        classification: public
+        description: "Plain-language summary of the data service."
+      - name: endpointURL
+        logicalType: array
+        physicalType: JSON
+        physicalName: service.endpointURL
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "Array of root locations / primary endpoints of the service."
+      - name: publisher
+        logicalType: object
+        physicalType: JSON
+        physicalName: service.publisher
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "`dcat:Agent` responsible for publishing the service."
+      - name: contactPoint
+        logicalType: array
+        physicalType: JSON
+        physicalName: service.contactPoint
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: "Array of vCard `Kind` contact points for the service."
+      - name: servesDataset
+        logicalType: array
+        physicalType: JSON
+        physicalName: service.servesDataset
+        required: false
+        classification: public
+        description: "Array of `dcat:Dataset` entries the service provides access to."
+
+# ── Support / contact ─────────────────────────────────────────
+support:
+  - channel: email
+    tool: email
+    url: "mailto:geocontract-maintainers@example.gov"
+    description: "geocontract maintainers — monitored mailbox."
+    scope: interactive
+  - channel: url
+    tool: other
+    url: "https://geocontract.dev/"
+    description: "geocontract project homepage."
+    scope: announcements
+
+# ── SLA ───────────────────────────────────────────────────────────
+slaDefaultElement: "catalog.dataset[]"
+
+slaProperties:
+  - property: availability
+    value: "99%"
+    unit: percent
+    driver: operational
+    description: "Catalog endpoint should be reachable ≥99% of any 30-day window."
+    scheduler: cron
+    schedule: "*/15 * * * *"
+  - property: freshness
+    value: "7d"
+    unit: days
+    driver: operational
+    description: "Catalog should be refreshed within 7 days of any published contract change."
+    scheduler: cron
+    schedule: "0 3 * * 1"
+
+# ── Authoritative definitions (DCAT-US, ODCS, project) ───────────
+authoritativeDefinitions:
+  - url: "https://resources.data.gov/dcat-us/3.0.0/definitions/catalog"
+    type: industry-standard
+    description: "DCAT-US 3.0.0 Catalog definition (GSA)."
+  - url: "https://github.com/bitol-io/open-data-contract-standard/blob/main/schema/odcs-json-schema-v3.1.0.json"
+    type: industry-standard
+    description: "ODCS v3.1.0 canonical JSON Schema."
+  - url: "https://geocontract.dev/"
+    type: root
+    description: "geocontract project homepage."
+
+# ── Custom properties — the DCAT-US ↔ ODCS bridge ────────────────
+# These capture DCAT-US-specific enrichment that does not map cleanly
+# onto an ODCS top-level field. They are the contract-side mirror of
+# the catalog instance's @id, @type, themeTaxonomy, etc.
+customProperties:
+  - property: dcatUsConformsTo
+    value: "https://resources.data.gov/dcat-us/3.0.0"
+    description: "IRI of the DCAT-US 3.0.0 standard the catalog conforms to."
+  - property: dcatUsCatalogId
+    value: "https://geocontract.dev/catalogs/us-federal-geocontract"
+    description: "Canonical IRI of the catalog instance."
+  - property: dcatUsLicense
+    value: "https://creativecommons.org/publicdomain/zero/1.0/"
+    description: "Catalog-level license (CC0 1.0)."
+  - property: odcsContractIds
+    value: "geocontract-nepa-exclusions,geocontract-pic-nepa-data-standard"
+    description: "Comma-separated list of ODCS contract ids catalogued here."
+  - property: harvesterRefreshIntervalDays
+    value: "7"
+    description: "Days between harvester runs that refresh this catalog."
+  - property: cataloguedDatasetCount
+    value: "2"
+    description: "Number of datasets currently catalogued (informational)."
+
+# ── Embedded schemas ─────────────────────────────────────────────
+# The master schema's `embeddedSchemas` block lets this contract carry
+# the arbitrary nested JSON Schemas that the federated harvester uses
+# to validate harvested records. Here we embed the DCAT-US 3.0.0
+# Catalog schema (by $ref to the pinned snapshot) so that any catalog
+# instance validated against this contract is also validated against
+# the GSA DCAT-US vocabulary.
+embeddedSchemas:
+  dcatUsCatalog:
+    $ref: "external/dcat-us-catalog.json"
+    title: "DCAT-US 3.0.0 Catalog (pinned snapshot)"
+    description: |
+      The GSA DCAT-US 3.0.0 Catalog schema, pinned under
+      external/dcat-us-catalog.json. The federated harvester resolves
+      this $ref relative to the contract file and validates catalog
+      instances against it. Sub-definition $refs are resolved via the
+      registry built from external/dcat-us-definitions/.
+  # An inline example showing that embeddedSchemas accepts *any* JSON
+  # Schema — not just $refs. This one validates the minimal catalog
+  # envelope a harvester requires before accepting a record.
+  geocontractCatalogMinimal:
+    type: object
+    required: ["@id", "@type", "dataset"]
+    properties:
+      "@id":
+        type: string
+        format: iri
+      "@type":
+        type: string
+        const: Catalog
+      dataset:
+        type: array
+        minItems: 1
+        items:
+          type: object
+          required: ["title", "identifier"]
+
+contractCreatedTs: "2025-08-25T00:00:00Z"

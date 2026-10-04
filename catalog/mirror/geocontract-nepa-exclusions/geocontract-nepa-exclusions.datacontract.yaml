@@ -1,0 +1,416 @@
+# ODCS v3.1.0 Data Contract — NEPA Categorical Exclusions Catalogue
+#
+# Source: https://ce.permitting.innovation.gov/data/exclusions.json
+# Mirrors: geocontract/templates/nepa-exclusions.template.schema.json
+#          (json-schema-x-graphql annotated JSON Schema)
+# Companion: contracts/shim/nepa-exclusions.datacontract-shim.json
+#
+# This contract extends the primitive template at
+# contracts/odcs-v3.1.0-template.yaml with concrete values for the
+# federal CATEX catalogue. Every SchemaProperty below corresponds to
+# a field in the source JSON Schema's `$defs/Exclusion` block.
+#
+# Validated against the canonical ODCS v3.1.0 JSON Schema via
+# scripts/validate_odcs.py.
+
+apiVersion: v3.1.0
+kind: DataContract
+id: geocontract-nepa-exclusions
+name: "NEPA Categorical Exclusions (CATEX) Catalogue"
+version: 2.0.0
+status: active
+tenant: us-federal-permitting-innovation-center
+domain: environmental-review
+
+description:
+  purpose: |
+    The federal Categorical Exclusion (CATEX) catalogue published by the
+    Permitting Innovation Center. CATEXs are classes of actions that
+    normally do not require further environmental review under NEPA
+    (42 U.S.C. §§ 4321 et seq.) because they have been found not to
+    have a significant effect on the environment, individually or
+    cumulatively. This contract governs the 2,105 records spanning
+    78 federal agency units (AFRH, CPSC, DC, DHS, …).
+  usage: |
+    Consumers query this catalogue to determine whether a proposed
+    action falls within an existing CATEX, the originating agency,
+    the CFR / eCFR citation, the documented context, and any
+    extraordinary-circumstances clause that may apply.
+  limitations: |
+    The catalogue is published as a single 4 MB JSON file and is
+    refreshed on an ad-hoc basis by each contributing agency. There
+    is no per-record URL — consumers must filter client-side or via
+    the registered mesh-gateway endpoint.
+
+tags:
+  - geocontract
+  - nepa
+  - catex
+  - exclusions
+  - permitting-innovation-center
+  - federal-register
+
+servers:
+  - server: ce-permitting-innovation-gov
+    type: api
+    location: "https://ce.permitting.innovation.gov/data/exclusions.json"
+    environment: production
+    description: |
+      Public REST endpoint serving the full federal CATEX catalogue
+      as a single JSON payload.
+
+schema:
+  # The top-level envelope holding the catalogue release metadata.
+  - name: ExclusionsVersion
+    physicalName: exclusions.version
+    logicalType: object
+    description: |
+      Provenance envelope for the entire exclusions catalogue release.
+      Identifies the publication date and semantic version of the
+      payload as a whole.
+    dataGranularityDescription: "One envelope per catalogue release."
+    properties:
+      - name: date
+        logicalType: date
+        logicalTypeOptions:
+          format: "yyyy-MM-dd"
+        physicalType: DATE
+        physicalName: version.date
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: "Catalogue release date (YYYY-MM-DD)."
+        examples:
+          - "2025-08-07"
+        quality:
+          - type: library
+            dimension: completeness
+            metric: nullValues
+            description: "Release date must always be set."
+            mustBe: 0
+            severity: error
+            businessImpact: operational
+      - name: version
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 32
+          pattern: "^\\d+\\.\\d+\\.\\d+(-[A-Za-z0-9.]+)?$"
+        physicalType: VARCHAR(32)
+        physicalName: version.version
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: |
+          Semantic version of the catalogue payload
+          (e.g. `2.0.0`).
+        examples:
+          - "2.0.0"
+        quality:
+          - type: library
+            dimension: conformity
+            metric: missingValues
+            description: "Version string must be present and follow semver."
+            mustBe: 0
+            severity: error
+
+  # The actual exclusion record — one row per CATEX.
+  - name: Exclusion
+    physicalName: exclusions.items[]
+    logicalType: object
+    description: |
+      A single categorical exclusion (CATEX) record published by a
+      federal agency. One row corresponds to one numbered clause
+      (e.g. `(a) Granting a lease...`) under a specific CFR section.
+    dataGranularityDescription: "One record per CATEX clause."
+    properties:
+      - name: id
+        primaryKey: true
+        primaryKeyPosition: 1
+        logicalType: integer
+        logicalTypeOptions:
+          format: i64
+          minimum: 1
+        physicalType: BIGINT
+        physicalName: exclusions[].id
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          Database id (catalog-internal integer). Stable across
+          releases; do not reuse.
+        examples:
+          - 3
+          - 264
+        quality:
+          - type: library
+            dimension: uniqueness
+            metric: duplicateValues
+            description: "ids must be globally unique within the catalogue."
+            mustBe: 0
+            unit: rows
+            severity: error
+            businessImpact: operational
+
+      - name: structuredId
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 64
+          pattern: "^[A-Z0-9-]+(--[A-Z0-9-]+)*$"
+        physicalType: VARCHAR(64)
+        physicalName: exclusions[].structuredID
+        required: true
+        unique: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          Hierarchical structured identifier, e.g. `AFRH--1-1-1`.
+          Encodes the agency unit, section, and clause number.
+        examples:
+          - "AFRH--1-1-1"
+          - "CPSC---1-1"
+        quality:
+          - type: library
+            dimension: uniqueness
+            metric: duplicateValues
+            description: "structuredId must be globally unique."
+            mustBe: 0
+            severity: error
+
+      - name: unit
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 32
+          pattern: "^[A-Z0-9 -]+$"
+        physicalType: VARCHAR(32)
+        physicalName: exclusions[].unit
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: |
+          Agency unit code (e.g. `AFRH`, `CPSC`, `DHS`, `DHS - CBP`,
+          `DOD - DA`). One catalogue release typically contains
+          records for 78 distinct units.
+        examples:
+          - "AFRH"
+          - "DHS - FEMA"
+          - "DOD - DON"
+
+      - name: longUnit
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 256
+        physicalType: VARCHAR(256)
+        physicalName: exclusions[].longUnit
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: |
+          Long-form agency unit name (e.g. `Armed Forces Retirement
+          Home`, `Federal Emergency Management Agency`).
+        examples:
+          - "Armed Forces Retirement Home"
+          - "Consumer Product Safety Commission"
+
+      - name: unitOrder
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 16
+          pattern: "^[0-9]+$"
+        physicalType: VARCHAR(16)
+        physicalName: exclusions[].unitOrder
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: |
+          Display/sort order for the unit within the catalogue UI.
+        examples:
+          - "67"
+          - "68"
+
+      - name: origin
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 512
+        physicalType: VARCHAR(512)
+        physicalName: exclusions[].origin
+        required: true
+        classification: public
+        criticalDataElement: false
+        description: |
+          Human-readable origin list
+          (e.g. `Bureau of Indian Affairs's Categorical Exclusions`).
+        examples:
+          - "Armed Forces Retirement Home's Categorical Exclusions"
+
+      - name: originUrl
+        logicalType: string
+        logicalTypeOptions:
+          format: uri
+          minLength: 8
+          maxLength: 2048
+        physicalType: VARCHAR(2048)
+        physicalName: exclusions[].originUrl
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: |
+          Canonical URL to the published CFR / eCFR source list
+          (e.g. `https://www.ecfr.gov/current/title-38/chapter-II/part-200#Appendix-A-to-Part-200`).
+          Natural join key with `Project.leadAgency` in the
+          pic-standards subgraph.
+        examples:
+          - "https://www.ecfr.gov/current/title-38/chapter-II/part-200#Appendix-A-to-Part-200"
+
+      - name: context
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 512
+        physicalType: VARCHAR(512)
+        physicalName: exclusions[].context
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: |
+          Section heading under which the exclusion is catalogued
+          (e.g. `A.3   CATEXs—Requires No Documentation`).
+        examples:
+          - "A.3   CATEXs\u2014Requires No Documentation"
+
+      - name: additionalContext
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 0
+          maxLength: 4096
+        physicalType: TEXT
+        physicalName: exclusions[].additionalContext
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: |
+          Free-text body of the section heading describing the class
+          of exclusions.
+        examples:
+          - "The following CATEXs require no documentation."
+
+      - name: circumstances
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 0
+          maxLength: 8192
+        physicalType: TEXT
+        physicalName: exclusions[].circumstances
+        required: false
+        classification: public
+        criticalDataElement: false
+        description: |
+          Extraordinary-circumstances clause that must be considered
+          before applying the exclusion. Often `Not Catalogued`.
+        examples:
+          - "Not Catalogued"
+
+      - name: exclusion
+        logicalType: string
+        logicalTypeOptions:
+          minLength: 1
+          maxLength: 16384
+        physicalType: TEXT
+        physicalName: exclusions[].exclusion
+        required: true
+        classification: public
+        criticalDataElement: true
+        description: |
+          Verbatim exclusion text, including the leading letter/number
+          clause (e.g. `(a) Granting a lease (i.e., outlease), an
+          easement, license, permit (i.e., licenses to Federal entities),
+          or other arrangements...`).
+        examples:
+          - "(a) Granting a lease (i.e., outlease), an easement, license, permit (i.e., licenses to Federal entities), or other arrangements for Federal or non-Federal use of AFRH controlled real property, where such use will remain substantially the same in scope and intensity."
+
+# Support channels
+support:
+  - channel: email
+    url: "mailto:permits@innovation.gov"
+  - channel: url
+    url: "https://permitting.innovation.gov/resources/data-standard/"
+
+# Pricing — public-domain federal data, no charge.
+price:
+  priceCurrency: USD
+  priceAmount: 0.00
+  priceUnit: dataset
+
+# Team ownership — Permitting Innovation Center.
+team:
+  name: Permitting Innovation Center
+  description: |
+    Cross-agency federal team responsible for the NEPA Data Standard
+    and the federal CATEX catalogue.
+  members:
+    - username: permits@innovation.gov
+      name: Permitting Innovation Center
+      role: owner
+      description: Publishing team
+      dateIn: "2024-01-01"
+
+# Role-based access.
+roles:
+  - role: Public
+    description: Anonymous read access to the public catalogue.
+    access: read
+
+# Per-property SLA overrides.
+slaProperties:
+  - property: availability
+    value: "99.9%"
+    unit: percent
+    driver: regulatory
+    description: |
+      The exclusions JSON endpoint must be available 99.9% of the
+      time per calendar month (≈ 43 minutes/month downtime budget).
+    scheduler: cron
+    schedule: "*/5 * * * *"
+  - property: freshness
+    value: "30d"
+    unit: days
+    element: version.date
+    driver: operational
+    description: |
+      Catalogue must be refreshed at least every 30 days; releases
+      more frequent than monthly are encouraged.
+
+# Authoritative definitions.
+authoritativeDefinitions:
+  - url: "https://www.ecfr.gov/"
+    type: schema
+    description: "Electronic Code of Federal Regulations — canonical source for `originUrl`."
+  - url: "https://permitting.innovation.gov/"
+    type: glossary
+    description: "Permitting Innovation Center — programme glossary."
+
+# Custom properties (geocontract-specific extensions).
+customProperties:
+  - property: geocontract.source
+    value: "https://ce.permitting.innovation.gov/data/exclusions.json"
+  - property: geocontract.recordCount
+    value: 2105
+  - property: geocontract.unitCount
+    value: 78
+  - property: geocontract.graphqlSubgraph
+    value: "models/nepa-exclusions.canonical.graphql"
+  - property: geocontract.fieldMapping
+    value: "maps/nepa-exclusions.field-mapping.json"
+  - property: geocontract.jsonSchema
+    value: "templates/nepa-exclusions.template.schema.json"
+  - property: x-graphql-federation-keys
+    value: "id"
+
+# Creation timestamp.
+contractCreatedTs: "2026-08-24T00:00:00Z"

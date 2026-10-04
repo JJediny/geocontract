@@ -58,3 +58,22 @@ jobs:
 
       - name: Run the full validation suite
         run: mise run ci
+
+      # Catalog gates: the generated STAC tree must match its inputs
+      # (contracts + manifest) and pass the Portolan validator.
+      - name: Build catalog
+        run: mise run catalog-build
+
+      - name: Check catalog is up to date
+        run: |
+          if [[ -n "$(git status --porcelain catalog/)" ]]; then
+            echo "Error: catalog/ is not up to date. Run 'mise run catalog-build' and commit the changes."
+            git status --porcelain catalog/
+            exit 1
+          fi
+
+      - name: Validate catalog with rashid
+        run: mise run catalog-check
+
+      - name: Run publish dry-run
+        run: mise run publish

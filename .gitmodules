@@ -1,0 +1,6 @@
+[submodule "portolan-spec"]
+	path = portolan-spec
+	url = https://github.com/portolan-sdi/portolan-spec
+[submodule "portolan-skills"]
+	path = portolan-skills
+	url = https://github.com/portolan-sdi/portolan-skills

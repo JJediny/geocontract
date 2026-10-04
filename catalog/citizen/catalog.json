@@ -1,0 +1,47 @@
+{
+  "type": "Catalog",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json"
+  ],
+  "id": "citizen",
+  "title": "Citizen-Initiated Proposals",
+  "description": "Data contracts authored by residents under the citizen-permitting flow. geocontract originates these proposals, so the collections are official rather than mirrored. Only the public projection is published. Applicant identity, proof material, and raw parcel geometry stay in the restricted projection and never enter this tree.",
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "child",
+      "href": "./groton-rhine-001/collection.json",
+      "type": "application/json",
+      "title": "Groton Rhine St. Façade Repair — Worked Example (v2)"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    }
+  ],
+  "updated": "2026-10-03T00:00:00Z",
+  "language": {
+    "code": "en",
+    "name": "English"
+  }
+}

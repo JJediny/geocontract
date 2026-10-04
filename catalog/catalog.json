@@ -1,0 +1,54 @@
+{
+  "type": "Catalog",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json"
+  ],
+  "id": "geocontract",
+  "title": "geocontract Data Contract Catalog",
+  "description": "ODCS v3.1.0 data contracts for environmental review and citizen-initiated permitting, published as a Portolan catalog. Each collection carries the contract that governs one dataset, so a consumer can read the schema, the quality rules, and the provenance before it queries any data. Federal sources are mirrored from their producing agency. Citizen proposals are originated here and published in their public projection only.",
+  "links": [
+    {
+      "rel": "root",
+      "href": "./catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "child",
+      "href": "./citizen/catalog.json",
+      "type": "application/json",
+      "title": "Citizen-Initiated Proposals"
+    },
+    {
+      "rel": "child",
+      "href": "./federal/catalog.json",
+      "type": "application/json",
+      "title": "Federal Data Sources"
+    },
+    {
+      "rel": "child",
+      "href": "./mirror/catalog.json",
+      "type": "application/json",
+      "title": "Harvested Mirrors"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    }
+  ],
+  "updated": "2026-10-03T00:00:00Z",
+  "language": {
+    "code": "en",
+    "name": "English"
+  }
+}

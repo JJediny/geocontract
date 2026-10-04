@@ -139,7 +139,6 @@ mise run pipeline-test
 > the municipal clerk who issued the residency VC. The example
 > collapses them for fixture simplicity only; downstream consumers
 > must resolve the issuer DID independently of the proposal signer.
-
 ### Key v2 design decisions (per plan v2 §0)
 
 - **Federal catalogue is vocabulary-only.** No NEPA / federal

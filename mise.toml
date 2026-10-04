@@ -14,6 +14,20 @@
 # Disable mise's experimental Tier-2 features we don't use
 MISE_DISABLE_TOOL_VERSIONS_FILE = "1"
 
+# ── Portolan toolchain pins ──────────────────────────────────────────────────
+# One canonical home per fact. Tasks and CI read these; never inline a version.
+# These mirror portolan-skills/pins.toml (portolan-cli 0.8.0, rashid 0.1.8,
+# portolan-spec v0.2.0). Move a pin here and in pins.toml in the same change,
+# then run `mise run portolan-pins` to prove the new pin resolves.
+#
+# The Portolan specification is ground truth; rashid implements it. A rashid
+# MINOR bump can change findings, because the spec is pre-1.0 and breaks on
+# MINOR. Treat a pin move as a migration: see portolan-skills/skills/
+# portolan-migrate/ and docs/portolan-conformance-notes.md.
+RASHID_SPEC = "rashid>=0.1.8,<0.2.0"
+PORTOLAN_CLI_SPEC = "portolan-cli==0.8.0"
+PORTOLAN_SCHEMA_URI = "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json"
+
 # ── Tool versions (install via `mise install`) ───────────────────────────────
 [tools]
 # Python: managed by uv, but mise pins the runtime for scripts
@@ -69,7 +83,7 @@ test = "uv run pytest scripts/tests/ -v"
 # (e.g. `ci = ["validate-odcs", ...]`) is treated by mise as shell
 # commands to execute, not task references, and fails with
 # "validate-odcs: not found".
-ci = { depends = ["validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test"] }
+ci = { depends = ["validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "catalog-check"] }
 
 # Run the full v2 core pipeline against the committed worked
 # example (scripts/tests/test_pipeline_end_to_end.py). Catches
@@ -109,6 +123,58 @@ build-signed-example = [
   "uv run python scripts/build_signed_example.py",
   "dprint fmt examples/groton-rhine-002.example.data.json",
 ]
-
 # Initialize pre-commit hooks. Idempotent.
 prek-install = "prek install"
+
+# ── Portolan catalog tasks ──────────────────────────────────────────────────
+
+# Build the Portolan catalog from the manifest and contracts.
+# The generator is deterministic and writes no timestamps, so rebuilding
+# an unchanged manifest produces no diff.
+catalog-build = "uv run python scripts/build_catalog.py"
+
+# Build the catalog and validate it with rashid.
+# This is the full validation gate: build + Portolan conformance check.
+catalog-check = "uv run python scripts/build_catalog.py && uvx --from 'rashid>=0.1.8,<0.2.0' rashid check catalog/ --no-data --summary"
+
+# ── Portolan catalog tasks ──────────────────────────────────────────────────
+
+# Prove the pinned Portolan tools resolve and report their versions. Run this
+# after moving a pin in [env] above. Downloads on first use, then caches.
+portolan-pins = """
+uvx --from "$RASHID_SPEC" rashid --version
+uvx --from "$PORTOLAN_CLI_SPEC" portolan --version
+echo "spec schema: $PORTOLAN_SCHEMA_URI"
+"""
+
+# Calibrate rashid against the specification's own reference catalog. A clean
+# run here proves the toolchain works before you trust a finding in our tree.
+# Expected: 0 errors, 0 warnings, and PTL-PRO-002 info only.
+#
+# --no-data is deliberate. The data pass reads every asset's bytes and fetches
+# remote hrefs, which makes the run slow and network-dependent for no gain: the
+# calibration question is whether the metadata and structural passes work. The
+# reference catalog reports the same 16 info findings either way. Verified on
+# 3 October 2026 with rashid 0.1.8.
+portolan-calibrate = 'uvx --from "$RASHID_SPEC" rashid check portolan-spec/examples/catalog/portolan-reference --no-data --summary'
+
+#
+# ── Publishing ────────────────────────────────────────────────────────────
+
+# Publish the catalog to the configured destination (dry run by default).
+# Reads catalog.publish.yaml for destination and public_base.
+# Use --confirm to actually publish (needs credentials for S3).
+publish = "python3 tools/publish.py"
+publish-confirm = "python3 tools/publish.py --confirm"
+
+# NOTE: `catalog-build` and `catalog-check` arrive with the Phase 1 generator
+# (scripts/build_catalog.py). See docs/plan-portolan-catalog-integration.md §7.
+# They are deliberately absent here so every task in this file runs today.
+
+# Harvest contracts from various sources (URLs, files, git repos, S3)
+# Usage: mise run harvest <source1> <source2> ... [--out .harvest] [--sink jsonl|portolan]
+harvest = "uv run python scripts/harvest.py"
+
+# Harvest contracts to Portolan mirror collections
+# Usage: mise run harvest-portolan <source1> <source2> ...
+harvest-portolan = "uv run python scripts/harvest.py --sink portolan"

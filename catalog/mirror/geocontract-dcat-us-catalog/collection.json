@@ -1,0 +1,253 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json"
+  ],
+  "id": "mirror/geocontract-dcat-us-catalog",
+  "title": "Mirror: geocontract Federated Catalog (DCAT-US 3.0.0)",
+  "description": "The geocontract federated catalog, expressed in the GSA DCAT-US 3.0.0\nvocabulary. This contract governs the catalog envelope that bundles\nevery published *.geocontract.yaml instance record \u2014 currently the\nNEPA Categorical Exclusions catalogue and the PIC NEPA Data Standard\nv1.2, with room for additional agency-published contracts to be\nregistered over time.",
+  "license": "CC0-1.0",
+  "keywords": [
+    "geocontract",
+    "dcat-us",
+    "catalog",
+    "interoperability",
+    "federal",
+    "open-data"
+  ],
+  "providers": [
+    {
+      "name": "us-federal-geocontract",
+      "roles": [
+        "producer"
+      ],
+      "url": "https://raw.githubusercontent.com/GSA/dcat-us/refs/heads/main/jsonschema/definitions/Catalog.json"
+    },
+    {
+      "name": "geocontract",
+      "url": "https://github.com/JJediny/geocontract",
+      "email": "permits@innovation.gov",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -180.0,
+          -90.0,
+          180.0,
+          90.0
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2026-10-04T03:34:01Z",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "id",
+      "type": "varchar",
+      "description": "Resolvable IRI for this catalog instance. The geocontract\nconvention is `https://geocontract.dev/catalogs/<slug>`.\n"
+    },
+    {
+      "name": "type",
+      "type": "varchar",
+      "description": "DCAT-US class. Fixed to `Catalog`."
+    },
+    {
+      "name": "title",
+      "type": "varchar",
+      "description": "Human-readable title of the catalog."
+    },
+    {
+      "name": "description",
+      "type": "varchar",
+      "description": "Plain-language summary of the catalog."
+    },
+    {
+      "name": "publisher",
+      "type": "struct",
+      "description": "Agent responsible for publishing and making the catalog\navailable. Inline `dcat:Agent` (name + optional url,\nidentifier, @id, @type).\n"
+    },
+    {
+      "name": "creator",
+      "type": "list",
+      "description": "Array of `dcat:Agent` responsible for creating the catalog metadata."
+    },
+    {
+      "name": "contactPoint",
+      "type": "list",
+      "description": "Array of vCard `Kind` contact points."
+    },
+    {
+      "name": "keyword",
+      "type": "list",
+      "description": "Array of free-text keyword/tag strings."
+    },
+    {
+      "name": "theme",
+      "type": "list",
+      "description": "Array of `skos:Concept` themes/categories."
+    },
+    {
+      "name": "themeTaxonomy",
+      "type": "list",
+      "description": "Array of `skos:ConceptScheme` controlled vocabularies."
+    },
+    {
+      "name": "subject",
+      "type": "list",
+      "description": "Array of `skos:Concept` subjects."
+    },
+    {
+      "name": "spatial",
+      "type": "list",
+      "description": "Array of `dcterms:Location` geographic coverage records."
+    },
+    {
+      "name": "temporal",
+      "type": "list",
+      "description": "Array of `dcterms:PeriodOfTime` temporal coverage intervals."
+    },
+    {
+      "name": "language",
+      "type": "list",
+      "description": "ISO 639-1 language code(s) used for catalog metadata text."
+    },
+    {
+      "name": "license",
+      "type": "varchar",
+      "description": "License governing how the catalog can be used or reused."
+    },
+    {
+      "name": "rights",
+      "type": "list",
+      "description": "Array of rights-statement strings not covered by `license`."
+    },
+    {
+      "name": "accessRights",
+      "type": "varchar",
+      "description": "Whether the catalog is public, restricted, or not public."
+    },
+    {
+      "name": "issued",
+      "type": "date",
+      "description": "Date the catalog was formally issued."
+    },
+    {
+      "name": "modified",
+      "type": "date",
+      "description": "Most recent date the catalog content changed."
+    },
+    {
+      "name": "identifier",
+      "type": "varchar",
+      "description": "Main unique identifier for the catalog (URI or persistent ID)."
+    },
+    {
+      "name": "homepage",
+      "type": "struct",
+      "description": "Main public web page for the catalog (`foaf:Document`)."
+    },
+    {
+      "name": "hasPart",
+      "type": "list",
+      "description": "List of sub-catalogs contained within this catalog."
+    },
+    {
+      "name": "conformsTo",
+      "type": "struct",
+      "description": "Standard, schema, profile, or model that this catalog follows.\nFor geocontract this is always `DCAT-US 3.0`.\n"
+    },
+    {
+      "name": "qualifiedAttribution",
+      "type": "list",
+      "description": "PROV-style attributions of agents to the catalog."
+    },
+    {
+      "name": "record",
+      "type": "list",
+      "description": "Array of `dcat:CatalogRecord` entries \u2014 one per catalogued\nresource. Each record carries its own `issued`/`modified`\ntimestamps and a `primaryTopic` IRI pointing at the\ncatalogued Dataset.\n"
+    },
+    {
+      "name": "dataset",
+      "type": "list",
+      "description": "Array of `dcat:Dataset` entries catalogued under this\ncatalog. For geocontract, each entry corresponds to one\npublished *.geocontract.yaml instance record (currently\nthe NEPA CATEX catalogue and the PIC NEPA Data Standard\nv1.2).\n"
+    },
+    {
+      "name": "service",
+      "type": "list",
+      "description": "Array of `dcat:DataService` endpoints exposed by the catalog."
+    },
+    {
+      "name": "datasetSeries",
+      "type": "list",
+      "description": "Array of `dcat:DatasetSeries` groupings."
+    }
+  ],
+  "assets": {
+    "source": {
+      "href": "./geocontract-dcat-us-catalog.datacontract.yaml",
+      "type": "application/yaml",
+      "title": "Source contract: geocontract Federated Catalog (DCAT-US 3.0.0)",
+      "roles": [
+        "source"
+      ],
+      "file:size": 30299,
+      "file:checksum": "1220d14c2ec9897541e9a9b2fad7f6e382dde701959065b42e61746a9e50d52e7ecc"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "via",
+      "href": "https://raw.githubusercontent.com/GSA/dcat-us/refs/heads/main/jsonschema/definitions/Catalog.json",
+      "type": "text/html",
+      "title": "Original source"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    }
+  ],
+  "updated": "2026-10-04T03:34:01Z",
+  "geocontract:contract_id": "geocontract-dcat-us-catalog",
+  "geocontract:contract_version": "3.0.0",
+  "geocontract:status": "active",
+  "geocontract:tenant": "us-federal-geocontract",
+  "geocontract:domain": "data-catalog",
+  "geocontract:mirror": true,
+  "geocontract:harvested_from": "contracts/dcat-us-catalog.datacontract.yaml",
+  "geocontract:harvested_at": "2026-10-04T03:34:01Z"
+}
