@@ -83,7 +83,7 @@ test = "uv run pytest scripts/tests/ -v"
 # (e.g. `ci = ["validate-odcs", ...]`) is treated by mise as shell
 # commands to execute, not task references, and fails with
 # "validate-odcs: not found".
-ci = { depends = ["validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "catalog-check"] }
+ci = { depends = ["drift-check", "validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "catalog-check"] }
 
 # Run the full v2 core pipeline against the committed worked
 # example (scripts/tests/test_pipeline_end_to_end.py). Catches
@@ -146,6 +146,11 @@ uvx --from "$RASHID_SPEC" rashid --version
 uvx --from "$PORTOLAN_CLI_SPEC" portolan --version
 echo "spec schema: $PORTOLAN_SCHEMA_URI"
 """
+
+# Prove the bundle pins and the mise pins agree (plan §11 item 3).
+# Runs first in `ci`: a version mismatch invalidates every documented
+# command and finding after it.
+drift-check = "uv run python scripts/check_drift.py"
 
 # Calibrate rashid against the specification's own reference catalog. A clean
 # run here proves the toolchain works before you trust a finding in our tree.
