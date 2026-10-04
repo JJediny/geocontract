@@ -202,8 +202,10 @@ portolan-calibrate = 'uvx --from "$RASHID_SPEC" rashid check portolan-spec/examp
 # Publish the catalog to the configured destination (dry run by default).
 # Reads catalog.publish.yaml for destination and public_base.
 # Use --confirm to actually publish (needs credentials for S3).
-publish = "python3 tools/publish.py"
-publish-confirm = "python3 tools/publish.py --confirm"
+# Run through `uv run` so tools/publish.py sees the dev extras
+# (pyyaml, httpx, boto3) that `uv sync --extra dev` installs.
+publish = "uv run python tools/publish.py"
+publish-confirm = "uv run python tools/publish.py --confirm"
 
 # NOTE: `catalog-build` and `catalog-check` arrive with the Phase 1 generator
 # (scripts/build_catalog.py). See docs/plan-portolan-catalog-integration.md §7.
