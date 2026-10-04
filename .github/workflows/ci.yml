@@ -53,8 +53,13 @@ jobs:
           mise trust
           mise install
 
-      - name: Sync Python dependencies
-        run: uv sync
+      # Install both the runtime deps (uv sync) and the dev extras
+      # (pytest, pytest-cov, ruff, base58). The `test`, `pipeline-test`,
+      # and `fmt-check` mise tasks all need pytest; without --extra dev,
+      # `uv run pytest` cannot find pytest in the venv and mise reports
+      # "Failed to spawn: pytest" with "No such file or directory".
+      - name: Sync Python dependencies (runtime + dev extras)
+        run: uv sync --extra dev
 
       - name: Run the full validation suite
         run: mise run ci
