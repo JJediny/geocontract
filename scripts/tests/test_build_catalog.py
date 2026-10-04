@@ -225,6 +225,84 @@ def test_via_link_must_be_html() -> None:
             build_collection(manifest["collections"][0], manifest, Path(tmp))
 
 
+def test_upstream_stac_emits_canonical_link() -> None:
+    """A manifest entry that declares `upstream_stac` produces a rel:canonical link."""
+    manifest = {
+        "id": "test",
+        "title": "Test",
+        "host": {"name": "geocontract", "url": "https://github.com/JJediny/geocontract"},
+        "catalogs": {"federal": {"title": "Federal", "description": "Federal sources"}},
+        "collections": [
+            {
+                "id": "federal/test",
+                "contract": "contracts/nepa-exclusions.datacontract.yaml",
+                "license": "CC0-1.0",
+                "bbox": [-125.0, 24.0, -66.0, 50.0],
+                "primary_entity": "Exclusion",
+                "producers": [{"name": "PIC", "url": "https://permitting.innovation.gov/", "roles": ["producer"]}],
+                "provenance": {"via": "https://permitting.innovation.gov/", "updated": "2026-10-03T00:00:00Z"},
+                "upstream_stac": "https://permitting.innovation.gov/stac/catalog.json",
+            }
+        ],
+    }
+    with tempfile.TemporaryDirectory() as tmp:
+        _, doc = build_collection(manifest["collections"][0], manifest, Path(tmp))
+        canonical = [link for link in doc["links"] if link["rel"] == "canonical"]
+        assert len(canonical) == 1
+        assert canonical[0]["href"] == "https://permitting.innovation.gov/stac/catalog.json"
+        assert canonical[0]["type"] == "application/json"
+
+
+def test_upstream_stac_optional() -> None:
+    """A manifest without `upstream_stac` does NOT emit a rel:canonical link."""
+    manifest = {
+        "id": "test",
+        "title": "Test",
+        "host": {"name": "geocontract", "url": "https://github.com/JJediny/geocontract"},
+        "catalogs": {"federal": {"title": "Federal", "description": "Federal sources"}},
+        "collections": [
+            {
+                "id": "federal/test",
+                "contract": "contracts/nepa-exclusions.datacontract.yaml",
+                "license": "CC0-1.0",
+                "bbox": [-125.0, 24.0, -66.0, 50.0],
+                "primary_entity": "Exclusion",
+                "producers": [{"name": "PIC", "url": "https://permitting.innovation.gov/", "roles": ["producer"]}],
+                "provenance": {"via": "https://permitting.innovation.gov/", "updated": "2026-10-03T00:00:00Z"},
+            }
+        ],
+    }
+    with tempfile.TemporaryDirectory() as tmp:
+        _, doc = build_collection(manifest["collections"][0], manifest, Path(tmp))
+        canonical = [link for link in doc["links"] if link["rel"] == "canonical"]
+        assert canonical == [], "no upstream_stac -> no canonical link"
+
+
+def test_upstream_stac_must_be_https() -> None:
+    """`upstream_stac` must be an https URL (F4 parity with `via`)."""
+    manifest = {
+        "id": "test",
+        "title": "Test",
+        "host": {"name": "geocontract", "url": "https://github.com/JJediny/geocontract"},
+        "catalogs": {"federal": {"title": "Federal", "description": "Federal sources"}},
+        "collections": [
+            {
+                "id": "federal/test",
+                "contract": "contracts/nepa-exclusions.datacontract.yaml",
+                "license": "CC0-1.0",
+                "bbox": [-125.0, 24.0, -66.0, 50.0],
+                "primary_entity": "Exclusion",
+                "producers": [{"name": "PIC", "url": "https://permitting.innovation.gov/", "roles": ["producer"]}],
+                "provenance": {"via": "https://permitting.innovation.gov/", "updated": "2026-10-03T00:00:00Z"},
+                "upstream_stac": "http://example.com/stac/catalog.json",
+            }
+        ],
+    }
+    with tempfile.TemporaryDirectory() as tmp:
+        with pytest.raises(BuildError, match="https"):
+            build_collection(manifest["collections"][0], manifest, Path(tmp))
+
+
 def test_proprietary_license_rejected() -> None:
     """Portolan bans license: proprietary."""
     manifest = {
