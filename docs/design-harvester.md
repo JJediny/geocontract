@@ -22,8 +22,11 @@ specific implementation.
   transient snapshot. Caching/incremental refresh is a separate
   concern.
 - **No write-back.** The harvester must not modify any source contract.
-- **No PII handling.** All current geocontract sources are public
-  federal records.
+- **No remote PII handling.** The federated harvester does not yet
+  fetch or manage restricted identity sources. Citizen-source harvesting
+  has an explicit public projection and an opt-in restricted projection;
+  real authority authentication and partner retention policy remain
+  deployment gates.
 
 ---
 

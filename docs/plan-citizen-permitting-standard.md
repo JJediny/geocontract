@@ -249,8 +249,8 @@ Every field in the canonical model is tagged with an `accessClass`:
 
 | Class        | Default access | Examples                                |
 |--------------|----------------|-----------------------------------------|
-| `public`     | everyone       | `id`, `schemaVersion`, `parcel.jurisdiction`, `parcel.authoritativeParcelId`, `activity.code`, `lifecycle.state` |
-| `restricted` | authority only | `applicant.*`, `parcel.geometry` (raw), `proof.signature`, `anchorReceipt.*` |
+| `public`      | everyone       | `id`, `schemaVersion`, `parcel.jurisdiction`, `parcel.authoritativeParcelId`, `activity.code`, `lifecycle.state`, anchor receipt metadata |
+| `restricted` | authority only | `applicant.*`, `parcel.geometry` (raw), `proof.*` |
 
 Default-deny means **a field is `restricted` unless explicitly
 tagged `public`**. The public projection (§5.8) emits only the
@@ -412,13 +412,19 @@ must not require any specific ledger.
 
 ### 5.7 Detached signature envelope
 
-The signature is **detached** — stored in `proof` *outside* the
-canonical payload that is hashed. The v2 envelope:
+The signature is **detached** — stored in `proof` outside the
+canonical content payload. The content digest excludes the complete
+`proof` object. The Ed25519 signature covers the canonical proposal body
+plus the protected proof context (`hashAlgorithm`, `signatureAlgorithm`,
+`signingKey`, `signedAt`, `domain`, `nonce`, and `keyId`), excluding only
+`signedDigest` and `signature` to avoid circularity.
+
+The v2 envelope:
 
 ```jsonc
 {
   "proof": {
-    "signedDigest": "sha256:…",          // over canonicalised bytes, excluding `proof` itself
+    "signedDigest": "sha256:…",          // content hash over canonical bytes, excluding `proof`
     "hashAlgorithm": "sha-256",
     "signatureAlgorithm": "ed25519",     // pinned, not free-form
     "signingKey": "did:example:…",       // DID, not raw wallet address
@@ -431,9 +437,9 @@ canonical payload that is hashed. The v2 envelope:
 }
 ```
 
-Mandatory fields; validator rejects if any are missing or
-malformed. Test vectors (RFC 8785 JCS-style canonical JSON with a
-specified subset, then Ed25519) committed to the repo.
+Mandatory fields; the validator rejects missing or malformed values.
+Test vectors cover both the content hash and the protected proof-context
+signature (RFC 8785 JCS-style canonical JSON, then Ed25519).
 
 **Walletless path**: the v2 core **does not require a crypto
 wallet**. If `proof` is absent the proposal is `draft` and may be
@@ -486,10 +492,11 @@ refer to the same location (lat/lon centroid equality, ±5 m).
 1. CITIZEN FILLS FORM (any client; walletless OK)
    fields: id, parcel, activity.code, purpose, estimatedCostUsd?
    ──▶ validates against canonical nested JSON Schema
-   ──▶ canonicalises to bytes (RFC 8785-style JCS, excluding `proof`)
+   ──▶ canonicalises content bytes (RFC 8785-style JCS, excluding `proof`)
 
 2. CITIZEN SIGNS (optional; absent = draft, manual review path)
-   proof = { signedDigest: sha256(canonical_bytes), … }
+   proof = { signedDigest: sha256(content_bytes), … }
+   ──▶ signature covers content bytes plus protected proof context
    ──▶ proposal.lifecycle.state = submitted (if signed) or draft (if not)
 
 3. (OPTIONAL) ANCHOR ON EXTERNAL SERVICE
@@ -721,30 +728,39 @@ this repo's data model.
 
 ## 12. Open follow-ups (v2)
 
-### 12.1 Concrete code follow-ups
+### 12.1 Concrete code follow-ups — delivered
 
-- **PR #7** (this branch): plan revision (§0 / §3 / §5 / §8 / §11).
-- **PR #8**: nested-JSON canonical schema; ODCS-flatten with
-  round-trip tests; detached proof envelope with canonicalisation
-  test vectors; typed parcel reference with CRS validation;
-  ontology membership validator; `ontology/activity-concept-
-  catalog.v1.0.json` v1.0 hand-curated; updated worked example;
-  restricted-projection tests; GraphQL parse + composition tests.
-- **PR #9**: harvester v2 citizen-source (additive JSONL fields,
-  `--public-only` default, no RPC).
+| PR  | Title                                                          | Sections delivered                                    |
+| --- | -------------------------------------------------------------- | ----------------------------------------------------- |
+| #7  | docs: revise citizen-permitting plan to v2 per agent review    | §0 / §3 / §5 / §8 / §11                               |
+| #8  | feat: Phase B v2 — canonical model, detached proof, ontology   | §3 / §3.4 / §3.5 / §3.6 / §4.3 / §5.7 / §5.8 / §5.9     |
+| #9  | feat: Phase 4 harvester — citizen-source JSONL                 | §6 additive JSONL fields, §5.8 enforcement             |
+| #10 | feat: full-coverage signed worked example                      | §3 / §5.7 end-to-end example                          |
+| #11 | feat: directory-mode citizen-source harvester with manifest     | §6 + `docs/design-harvester.md` §"Pipeline" output     |
+| #12 | test: end-to-end pipeline integration test                      | §7.2 cross-module regression net                       |
 
-### 12.2 Documentation follow-ups
+Tests: **143 passing on the consolidated stack** (90 from #8,
+19 additional from #9, 11 additional from #10, 11 additional from
+#11, and 12 from #12; no cross-branch skips remain after the dependency
+chain is rebased).
 
-- `docs/agent-review-response.md` (next to this plan) records the
-  full review and the v1 → v2 deltas.
-- Update `README.md` with the "experimental prototype" framing
-  (§2.3).
-- Move the v1 §3.1 flat-ODCS example into §13.1 only.
+Upstream jxql issues filed: **#231–#237** (v1) and **#245** (v2's
+`oneOf [{type:null}, {$ref:...}]` collapse, filed during #8 / #9).
 
-### 12.3 Cross-repo follow-ups
+### 12.2 Documentation follow-ups — delivered
 
-- **§13.2** anchor service (separate repo) — design only.
-- **§13.5** form UI (separate repo) — design only.
+- ✅ `docs/agent-review-response.md` (next to this plan) records
+  the full review and the v1 → v2 deltas.
+- ✅ `README.md` updated with the v2 citizen-initiated flow
+  section, components table, working-with-it commands, and key
+  design decisions.
+- ✅ The v1 §3.1 flat-ODCS example lives only in §13.1.
+
+### 12.3 Cross-repo follow-ups — NOT delivered (out of scope for this repo)
+
+- ❌ **§13.2 anchor service** — separate `geocontract-anchor` repo.
+- ❌ **§13.5 form UI** — separate repo.
+- ❌ **§13.4 ComposeDB / W3C DID wallet-binding** — separate, optional.
 
 ### 12.4 Out-of-scope-on-purpose (explicitly *not* a follow-up)
 
@@ -753,6 +769,15 @@ this repo's data model.
   Removed from core; if desired, §13.3.
 - A "blockchain-first" framing of the citizen flow. Replaced by
   the ledger-agnostic §5.1 conventional alternative.
+
+### 12.5 Future (out of this repo, separate PRs)
+
+- **Future separate-repo change** (§13.2) — `geocontract-anchor`,
+  the optional external anchor service (smart contract or signed
+  transparency log). Ledger-agnostic — the core treats anchoring
+  as an opaque service.
+- **Future partner/downstream change** (§13.5) — form UI. Out of scope
+  here; no PR number is assigned in this repository.
 
 ---
 
