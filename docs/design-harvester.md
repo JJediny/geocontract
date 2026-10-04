@@ -174,19 +174,43 @@ Flags:
 
 ## Implementation strategy
 
-Phase 1 — **local-only** (no network). Iterate on the validator,
-normaliser, and JSONL emitter using the bundled `contracts/`.
+The v2 plan (`docs/plan-citizen-permitting-standard.md` §8) replaces
+the original 4-phase roadmap with a **Phase 0..6** sequence. The
+geocontract-repo implementation strategy for the harvester is now:
 
-Phase 2 — **HTTPS + Git**. Add `httpx` and a shallow `git clone`
-subprocess. The CLI surface stays the same.
+**Phase 0–4 (in this repo):**
 
-Phase 3 — **S3 + index file**. Add `boto3` (or `aioboto3`) and a
-polled-index mode where the harvester reads a YAML manifest from a
-known URL.
+- **Phase 0–3** — the canonical model, detached proof, ontology,
+  ODCS-flatten projection, public projection (PR #8).
+- **Phase 4** — the citizen-source harvester
+  (`geocontract-harvest-citizen`) which emits JSONL records with
+  the additive fields per §6 (PR #9).
 
-Phase 4 — **streaming JSONL**. Emit records as they are produced
-(rather than buffering) so the pipeline can be wired into long-running
-consumers without re-runs.
+**Out-of-repo (per §13):**
+
+- **§13.2 anchor service** — separate `geocontract-anchor` repo.
+- **§13.4 ComposeDB** — separate, optional, ledger-agnostic.
+- **§13.5 form UI** — separate repo.
+- **§13.6 pilot** — partner-scoped, no-token, gated on §2.3.
+
+**Concrete Phase 4 deliverables in this repo (PR #9 + this doc):**
+
+- `src/geocontract_tools/citizen_source.py` — emits one JSONL record
+  per Proposal, public projection by default, restricted projection
+  behind `--authority-token`.
+- `docs/design-harvester.md` §"Pipeline" — declarative spec for the
+  manifest + records.jsonl output layout.
+- `docs/design-harvester.md` §"Citizen-initiated contract fields
+  (additive; v2)" — additive JSONL fields spec, matches the
+  implementation.
+
+**Deferred (none of these are in the v2 core):**
+
+- HTTPS / Git fetching (Phase 2 of the v1 plan).
+- S3 / index-file support (Phase 3 of the v1 plan).
+- Streaming JSONL (Phase 4 of the v1 plan, deferred; current
+  implementation is buffer-then-emit).
+- RPC, on-chain event reading, ComposeDB (all §13).
 
 ---
 
