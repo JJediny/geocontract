@@ -1,0 +1,56 @@
+{
+  "$schema": "https://geocontract.dev/schemas/proposed-action.template.schema.json",
+  "proposal": {
+    "id": "groton-rhine-002",
+    "schemaVersion": "2.0.0",
+    "createdAt": "2026-09-12T14:30:00-04:00",
+    "applicant": {
+      "displayName": "Jane Groton-Resident",
+      "contactEmail": "jane@example.invalid",
+      "residencyProof": {
+        "kind": "municipal_vc",
+        "credentialRef": "ipfs://bafy...groton-residency-vc",
+        "issuerDid": "did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA",
+        "validUntil": "2027-12-31"
+      },
+      "authorityProof": { "kind": "owner", "credentialRef": "town-clerk-deed-2026-08-15" }
+    },
+    "parcel": {
+      "jurisdiction": "us-ct-groton",
+      "parcelAuthority": "https://permits.groton-ct.gov/parcels/",
+      "authoritativeParcelId": "M:124 B:45 L:679",
+      "authorityRecordVersion": "2026-09-01",
+      "authorityRetrievedAt": "2026-09-12T14:30:00-04:00",
+      "geometryFormat": "wkt",
+      "crs": "EPSG:4326",
+      "geometry": "POLYGON((-72.0821 41.3473, -72.0819 41.3473, -72.0819 41.3475, -72.0821 41.3475, -72.0821 41.3473))",
+      "snapshotHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "ownershipStatus": "owner_verified",
+      "address": "44 Rhine Street, Groton, CT 06340"
+    },
+    "activity": { "code": "housing.rehabilitation.facade.repointing", "preferredLabel": "Mortar repointing" },
+    "purpose": "Repoint the east elevation's failed mortar joints. Approximately 220 linear feet of joints; lime-based mortar matching the original 1920s spec. No structural work; no colour change; no alteration of window openings.",
+    "estimatedCostUsd": 18500.0,
+    "lifecycle": {
+      "state": "submitted",
+      "decisionIssuer": null,
+      "decisionAt": null,
+      "decisionEvidence": null,
+      "supersedes": null,
+      "revokedAt": null
+    },
+    "revisions": [],
+    "anchorReceipt": null,
+    "proof": {
+      "signedDigest": "sha256:e7f5ad1afb90aae832d6839a87b30dfa387da03bb5efb579972191ab5b267ade",
+      "hashAlgorithm": "sha-256",
+      "signatureAlgorithm": "ed25519",
+      "signingKey": "did:key:z7QGKiOPddAnxlf1S2y08ul1yymcJvx2UEhvzdIgBtA9vXA",
+      "signature": "base64:s45D0GbVbAvKfM3WrDpqJg2uiGmSSYo6fgKzYlrH/Ar3st//MK/rkXXfs5tqeOzazkXrcKh1TRIRIyoU+wFRDw==",
+      "signedAt": "2026-09-12T14:30:00-04:00",
+      "domain": "geocontract.example",
+      "nonce": "base64:QkJCQkJCQkJCQkJCQkJCQg==",
+      "keyId": "k-1"
+    }
+  }
+}
