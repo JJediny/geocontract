@@ -1,0 +1,192 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json"
+  ],
+  "id": "federal/pic-nepa-data-standard",
+  "title": "PIC NEPA Data Standard v1.2",
+  "description": "The Permitting Innovation Center (PIC) NEPA Data & Technology Standard v1.2 — a structured schema for environmental-review data collected during reviews conducted under the National Environmental Policy Act (NEPA), 42 U.S.C. §§ 4321 et seq. Defines 13 entity types (project, process_instance, document, comment, engagement, case_event, gis_data, gis_data_element, user_role, decision_element, process_model, process_decision_payload, legal_structure) and a uniform set of six provenance properties added in v1.2.",
+  "license": "CC0-1.0",
+  "keywords": [
+    "nepa",
+    "data-standard",
+    "environmental-review",
+    "permitting",
+    "schema",
+    "federal"
+  ],
+  "providers": [
+    {
+      "name": "Permitting Innovation Center",
+      "url": "https://permitting.innovation.gov/",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "geocontract",
+      "url": "https://github.com/JJediny/geocontract",
+      "email": "permits@innovation.gov",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -125.0,
+          24.0,
+          -66.0,
+          50.0
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2026-08-24T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "Database id."
+    },
+    {
+      "name": "title",
+      "type": "varchar",
+      "description": "Project title."
+    },
+    {
+      "name": "description",
+      "type": "varchar",
+      "description": "Long-form description of the project."
+    },
+    {
+      "name": "leadAgency",
+      "type": "varchar",
+      "description": "Federal agency that supervises preparation of the environmental documents for the project."
+    },
+    {
+      "name": "participatingAgencies",
+      "type": "list",
+      "description": "Other involved agencies."
+    },
+    {
+      "name": "startDate",
+      "type": "date",
+      "description": "Environmental review initiation date (aggregated from process status)."
+    },
+    {
+      "name": "currentStatus",
+      "type": "varchar",
+      "description": "Current phase of the NEPA / permitting / other authorization process (aggregated from process status). Enum-like: pre-application, underway, paused, completed."
+    },
+    {
+      "name": "locationLat",
+      "type": "double",
+      "description": "Center/centroid of project (shortcut for plotting on a map; should attach a GIS data object as well)."
+    },
+    {
+      "name": "locationLon",
+      "type": "double",
+      "description": "Center/centroid of project longitude."
+    },
+    {
+      "name": "dataRecordVersion",
+      "type": "varchar",
+      "description": "Version of this data record (v1.2+)."
+    },
+    {
+      "name": "dataSourceAgency",
+      "type": "varchar",
+      "description": "Agency from which this data record was sent/retrieved/stored (may differ from record owner)."
+    },
+    {
+      "name": "dataSourceSystem",
+      "type": "varchar",
+      "description": "System from which this data record was sent/retrieved/stored."
+    },
+    {
+      "name": "lastUpdated",
+      "type": "timestamp",
+      "description": "Last update of the data record in the system."
+    },
+    {
+      "name": "recordOwnerAgency",
+      "type": "varchar",
+      "description": "Owner of the original data — the authoritative data source."
+    },
+    {
+      "name": "retrievedTimestamp",
+      "type": "timestamp",
+      "description": "Timestamp of a retrieval or transmission (e.g. responding to an API call)."
+    }
+  ],
+  "assets": {
+    "contract": {
+      "href": "./pic-standards.datacontract.yaml",
+      "type": "application/yaml",
+      "title": "ODCS v3.1.0 data contract (geocontract-pic-nepa-data-standard)",
+      "roles": [
+        "metadata"
+      ],
+      "file:size": 54164,
+      "file:checksum": "1220b1863399160118179d2adeb1d7e05ee48fda31646bfa3002e7862c626b20f47f"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "via",
+      "href": "https://permitting.innovation.gov/resources/data-standard/",
+      "type": "text/html",
+      "title": "Original source"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    }
+  ],
+  "updated": "2026-10-03T00:00:00Z",
+  "geocontract:contract_id": "geocontract-pic-nepa-data-standard",
+  "geocontract:contract_version": "1.2.0",
+  "geocontract:status": "active",
+  "geocontract:tenant": "us-federal-permitting-innovation-center",
+  "geocontract:domain": "environmental-review",
+  "geocontract:primary_entity": "Project",
+  "geocontract:mirror": true,
+  "language": {
+    "code": "en",
+    "name": "English"
+  }
+}

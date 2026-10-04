@@ -1,0 +1,178 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json"
+  ],
+  "id": "federal/nepa-exclusions",
+  "title": "NEPA Categorical Exclusions (CATEX) Catalogue",
+  "description": "The federal Categorical Exclusion (CATEX) catalogue published by the Permitting Innovation Center. CATEXs are classes of actions that normally do not require further environmental review under NEPA (42 U.S.C. §§ 4321 et seq.) because they have been found not to have a significant effect on the environment, individually or cumulatively. This contract governs the 2,105 records spanning 78 federal agency units (AFRH, CPSC, DC, DHS, …).",
+  "license": "CC0-1.0",
+  "keywords": [
+    "nepa",
+    "catex",
+    "categorical-exclusions",
+    "environmental-review",
+    "permitting",
+    "federal"
+  ],
+  "providers": [
+    {
+      "name": "Permitting Innovation Center",
+      "url": "https://permitting.innovation.gov/",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "geocontract",
+      "url": "https://github.com/JJediny/geocontract",
+      "email": "permits@innovation.gov",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -125.0,
+          24.0,
+          -66.0,
+          50.0
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2026-08-24T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "Database id (catalog-internal integer). Stable across releases; do not reuse."
+    },
+    {
+      "name": "structuredId",
+      "type": "varchar",
+      "description": "Hierarchical structured identifier, e.g. `AFRH--1-1-1`. Encodes the agency unit, section, and clause number."
+    },
+    {
+      "name": "unit",
+      "type": "varchar",
+      "description": "Agency unit code (e.g. `AFRH`, `CPSC`, `DHS`, `DHS - CBP`, `DOD - DA`). One catalogue release typically contains records for 78 distinct units."
+    },
+    {
+      "name": "longUnit",
+      "type": "varchar",
+      "description": "Long-form agency unit name (e.g. `Armed Forces Retirement Home`, `Federal Emergency Management Agency`)."
+    },
+    {
+      "name": "unitOrder",
+      "type": "varchar",
+      "description": "Display/sort order for the unit within the catalogue UI."
+    },
+    {
+      "name": "origin",
+      "type": "varchar",
+      "description": "Human-readable origin list (e.g. `Bureau of Indian Affairs's Categorical Exclusions`)."
+    },
+    {
+      "name": "originUrl",
+      "type": "varchar",
+      "description": "Canonical URL to the published CFR / eCFR source list (e.g. `https://www.ecfr.gov/current/title-38/chapter-II/part-200#Appendix-A-to-Part-200`). Natural join key with `Project.leadAgency` in the pic-standards subgraph."
+    },
+    {
+      "name": "context",
+      "type": "varchar",
+      "description": "Section heading under which the exclusion is catalogued (e.g. `A.3 CATEXs—Requires No Documentation`)."
+    },
+    {
+      "name": "additionalContext",
+      "type": "varchar",
+      "description": "Free-text body of the section heading describing the class of exclusions."
+    },
+    {
+      "name": "circumstances",
+      "type": "varchar",
+      "description": "Extraordinary-circumstances clause that must be considered before applying the exclusion. Often `Not Catalogued`."
+    },
+    {
+      "name": "exclusion",
+      "type": "varchar",
+      "description": "Verbatim exclusion text, including the leading letter/number clause (e.g. `(a) Granting a lease (i.e., outlease), an easement, license, permit (i.e., licenses to Federal entities), or other arrangements...`)."
+    }
+  ],
+  "assets": {
+    "contract": {
+      "href": "./nepa-exclusions.datacontract.yaml",
+      "type": "application/yaml",
+      "title": "ODCS v3.1.0 data contract (geocontract-nepa-exclusions)",
+      "roles": [
+        "metadata"
+      ],
+      "file:size": 13837,
+      "file:checksum": "12207ac619f90b9b0b14d83428f9246d6c1c096984519047668a9cc178dd92c8778d"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "via",
+      "href": "https://ce.permitting.innovation.gov/",
+      "type": "text/html",
+      "title": "Original source"
+    },
+    {
+      "rel": "related",
+      "href": "https://ce.permitting.innovation.gov/data/exclusions.json",
+      "type": "application/json",
+      "title": "Upstream raw payload"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    }
+  ],
+  "updated": "2026-10-03T00:00:00Z",
+  "geocontract:contract_id": "geocontract-nepa-exclusions",
+  "geocontract:contract_version": "2.0.0",
+  "geocontract:status": "active",
+  "geocontract:tenant": "us-federal-permitting-innovation-center",
+  "geocontract:domain": "environmental-review",
+  "geocontract:primary_entity": "Exclusion",
+  "geocontract:mirror": true,
+  "language": {
+    "code": "en",
+    "name": "English"
+  }
+}

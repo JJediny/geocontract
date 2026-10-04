@@ -1,0 +1,240 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json"
+  ],
+  "id": "citizen/groton-rhine-001",
+  "title": "Groton Rhine St. Façade Repair — Worked Example (v2)",
+  "description": "v2 canonical worked example for the citizen-permitting flow. A resident of Groton, CT (fictional) proposes repairing the masonry façade of a property at 42 Rhine Street. The action covers repointing of failed mortar joints, replacement of three cracked lintels, and reattachment of a decorative cornice.",
+  "license": "CC0-1.0",
+  "keywords": [
+    "citizen-initiated",
+    "proposed-action",
+    "housing-rehabilitation",
+    "facade-repair",
+    "groton",
+    "connecticut"
+  ],
+  "providers": [
+    {
+      "name": "geocontract",
+      "url": "https://github.com/JJediny/geocontract",
+      "email": "permits@innovation.gov",
+      "roles": [
+        "producer",
+        "licensor",
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -72.09,
+          41.34,
+          -72.08,
+          41.35
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2026-09-12T14:30:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "id",
+      "type": "varchar",
+      "description": "Globally unique proposal id (kebab-case, 3–63 chars)."
+    },
+    {
+      "name": "schemaVersion",
+      "type": "varchar",
+      "description": "Version of the proposed-action JSON Schema the contract was authored against."
+    },
+    {
+      "name": "createdAt",
+      "type": "timestamp",
+      "description": "ISO 8601 timestamp with timezone at which the proposal was authored."
+    },
+    {
+      "name": "jurisdiction",
+      "type": "varchar",
+      "description": "Municipality slug (`<country>-<state>-<name>`)."
+    },
+    {
+      "name": "parcelAuthority",
+      "type": "varchar",
+      "description": "URI to the authoritative parcel registry."
+    },
+    {
+      "name": "parcelId",
+      "type": "varchar",
+      "description": "Parcel identifier as issued by parcelAuthority."
+    },
+    {
+      "name": "authorityRecordVersion",
+      "type": "varchar",
+      "description": "Version of the parcel-authority snapshot this reference was drawn from."
+    },
+    {
+      "name": "authorityRetrievedAt",
+      "type": "timestamp",
+      "description": "When the parcel-authority record was retrieved."
+    },
+    {
+      "name": "geometryFormat",
+      "type": "varchar",
+      "description": "Format of the geometry (geojson | wkt | h3)."
+    },
+    {
+      "name": "crs",
+      "type": "varchar",
+      "description": "Coordinate reference system (e.g. `EPSG:4326`)."
+    },
+    {
+      "name": "snapshotHash",
+      "type": "varchar",
+      "description": "sha256 of (authorityRecordVersion + retrievedAt + geometryFormat + crs + geometry)."
+    },
+    {
+      "name": "parcelOwnershipStatus",
+      "type": "varchar",
+      "description": "PUBLIC field — sourced from the parcel authority. Separate from applicant.authorityProof.kind (which is RESTRICTED)."
+    },
+    {
+      "name": "address",
+      "type": "varchar",
+      "description": "Public street address."
+    },
+    {
+      "name": "activityCode",
+      "type": "varchar",
+      "description": "Activity code, validated against ontology/activity-concept-catalog.v1.0.json. Seeded by the federal CATEX catalogue (used as a vocabulary source only) and broadened by a small set of municipal-intake activities."
+    },
+    {
+      "name": "activityPreferredLabel",
+      "type": "varchar",
+      "description": "Cached human-readable label from the catalog (denormalised for offline readers)."
+    },
+    {
+      "name": "purpose",
+      "type": "varchar",
+      "description": "Free-text description of the proposed action (≤ 500 chars)."
+    },
+    {
+      "name": "estimatedCostUsd",
+      "type": "double",
+      "description": "Estimated total cost in USD."
+    },
+    {
+      "name": "lifecycleState",
+      "type": "varchar",
+      "description": "Current state in the FSM (draft|submitted|anchored|under_review|approved|rejected| amended|superseded|revoked|expired)."
+    },
+    {
+      "name": "decisionIssuer",
+      "type": "varchar",
+      "description": "Authority that issued the most recent municipal decision. Required iff lifecycleState ∈ {approved, rejected, revoked}."
+    },
+    {
+      "name": "decisionAt",
+      "type": "timestamp",
+      "description": "Timestamp of the most recent municipal decision."
+    },
+    {
+      "name": "decisionEvidence",
+      "type": "varchar",
+      "description": "Free-text justification, conditions, or municipal record reference."
+    },
+    {
+      "name": "supersedes",
+      "type": "varchar",
+      "description": "Content hash of the predecessor revision this one replaces."
+    },
+    {
+      "name": "revokedAt",
+      "type": "timestamp",
+      "description": "Set iff lifecycleState = revoked."
+    },
+    {
+      "name": "anchorContentHash",
+      "type": "varchar",
+      "description": "SHA-256 of canonicalised bytes of this revision (per the anchor service)."
+    },
+    {
+      "name": "anchorSubmissionId",
+      "type": "varchar",
+      "description": "Opaque id returned by the anchor service."
+    },
+    {
+      "name": "anchorAnchoredAt",
+      "type": "timestamp",
+      "description": "Timestamp from the anchor service."
+    },
+    {
+      "name": "anchorServiceRef",
+      "type": "varchar",
+      "description": "URI of the anchor service (for re-checking)."
+    }
+  ],
+  "assets": {
+    "contract": {
+      "href": "./groton-rhine-001.datacontract.yaml",
+      "type": "application/yaml",
+      "title": "ODCS v3.1.0 data contract (groton-rhine-001)",
+      "roles": [
+        "metadata"
+      ],
+      "file:size": 17391,
+      "file:checksum": "1220d471434ab67dba806702f0b52d6f69df5b08c1060beaecc1aafafb19ca0b95d0"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    }
+  ],
+  "updated": "2026-10-03T00:00:00Z",
+  "geocontract:contract_id": "groton-rhine-001",
+  "geocontract:contract_version": "0.2.0",
+  "geocontract:status": "draft",
+  "geocontract:tenant": "us-ct-groton",
+  "geocontract:domain": "housing-rehabilitation",
+  "geocontract:primary_entity": "Proposal",
+  "geocontract:mirror": false,
+  "language": {
+    "code": "en",
+    "name": "English"
+  }
+}

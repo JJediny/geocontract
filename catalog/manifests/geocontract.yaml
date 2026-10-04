@@ -1,0 +1,385 @@
+# geocontract catalog manifest, authored against Portolan spec v0.2.0.
+#
+# One manifest describes the whole catalog. scripts/build_catalog.py reads it
+# together with the ODCS contracts in contracts/ and builds catalog/.
+#
+#   mise run catalog-build     # regenerate catalog/ from this file + contracts/
+#   mise run catalog-check     # regenerate, then validate with rashid
+#
+# ── Why this file exists ─────────────────────────────────────────────────────
+#
+# The ODCS v3.1.0 schema sets `additionalProperties: false` and has no
+# `license` field. Portolan requires a license on every collection, and also
+# needs facts ODCS has no slot for: the area-of-interest bbox, the host
+# provider, and the `via` landing page. A catalog fact added to a contract YAML
+# therefore fails `mise run validate-odcs`.
+#
+# So the two standards get two homes, and each fact lives in exactly one:
+#
+#   contracts/*.datacontract.yaml   semantics: id, name, description, schema,
+#                                   tags, tenant, servers
+#   catalog/manifests/*.yaml        catalog facts: license, bbox, host, via,
+#                                   keywords, nested-catalog titles
+#
+# This follows the specification's own reference implementation, which states
+# that everything catalog-specific lives in the manifest and not in the
+# generator. See portolan-spec/examples/manifests/portolan-reference.yaml.
+#
+# Evidence for the rules below is in docs/portolan-conformance-notes.md. Each
+# finding is cited as F1 to F8.
+#
+# ── Provenance is derived, never declared ────────────────────────────────────
+#
+# A collection is a MIRROR when its producer differs from the host that serves
+# this copy (F3). rashid then requires a rel:'via' link, and that link must be
+# type text/html, so it points at a human landing page rather than at a raw
+# data endpoint (F4). A missing via link is an error, not a warning.
+#
+# Express the distinction through `producers`:
+#
+#   * Omit `producers` and the collection is official. The generator emits the
+#     catalog host holding producer, licensor, and host together.
+#   * Name an upstream `producers` entry without a host role and the collection
+#     is a mirror. The generator appends the catalog host with role host only,
+#     and then requires `provenance.via` and `provenance.updated`.
+#
+# The generator errors rather than guessing when a mirror omits provenance.
+#
+# ── Every via URL below was verified on 3 October 2026 ──────────────────────
+#
+#   https://ce.permitting.innovation.gov/                      200 text/html
+#   https://permitting.innovation.gov/resources/data-standard/ 200 text/html
+#   https://github.com/JJediny/geocontract                     200 text/html
+#
+# https://github.com/permits/pyper returns 404. The pic-standards contract
+# cites it as customProperties `geocontract.source`. It is deliberately not
+# used here as a via link. See the pic-standards entry below.
+#
+# ── Deterministic output ─────────────────────────────────────────────────────
+#
+# The build writes no timestamps of its own. `updated` comes from this file, so
+# rebuilding an unchanged manifest produces no diff. That keeps generated JSON
+# reviewable in git and makes `catalog-build --check` a meaningful CI gate.
+
+id: geocontract
+title: geocontract Data Contract Catalog
+description: >-
+  ODCS v3.1.0 data contracts for environmental review and citizen-initiated
+  permitting, published as a Portolan catalog. Each collection carries the
+  contract that governs one dataset, so a consumer can read the schema, the
+  quality rules, and the provenance before it queries any data. Federal
+  sources are mirrored from their producing agency. Citizen proposals are
+  originated here and published in their public projection only.
+schema_uri: https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json
+
+language:
+  code: en
+  name: English
+
+# The organisation that serves this copy. Listed last in every collection's
+# providers, per the Portolan requirement that exactly one host appears last.
+host:
+  name: geocontract
+  url: https://github.com/JJediny/geocontract
+  email: permits@innovation.gov
+
+# Nested-catalog titles, keyed by the first id segment of each collection.
+# Every level above a leaf is a catalog and needs catalog.json, README.md, and
+# AGENTS.md (PORTO-CORE-005).
+catalogs:
+  federal:
+    title: Federal Data Sources
+    description: >-
+      Data contracts for federal environmental-review datasets. Each collection
+      mirrors a catalogue or standard that a federal body produces, so the
+      producer and the host differ and every collection here carries via
+      provenance.
+  citizen:
+    title: Citizen-Initiated Proposals
+    description: >-
+      Data contracts authored by residents under the citizen-permitting flow.
+      geocontract originates these proposals, so the collections are official
+      rather than mirrored. Only the public projection is published. Applicant
+      identity, proof material, and raw parcel geometry stay in the restricted
+      projection and never enter this tree.
+
+collections:
+  # ── Federal CATEX catalogue ────────────────────────────────────────────────
+  - id: federal/nepa-exclusions
+    contract: contracts/nepa-exclusions.datacontract.yaml
+
+    # The entity whose properties become table:columns. Declaring table:columns
+    # is what tells the validator this collection is tabular rather than
+    # spatial, which removes the thumbnail requirement (F5). The contract has
+    # two entities; Exclusion is the record consumers query, and
+    # ExclusionsVersion is the two-field envelope around it.
+    primary_entity: Exclusion
+
+    license: CC0-1.0
+
+    # Area of interest, not a geometry footprint. The CATEX catalogue covers
+    # federal actions across the United States, so CONUS is the honest extent.
+    # Never a sentinel or an effectively infinite value: core.md rejects both.
+    bbox: [-125.0, 24.0, -66.0, 50.0]
+
+    keywords: [nepa, catex, categorical-exclusions, environmental-review, permitting, federal]
+
+    producers:
+      - name: Permitting Innovation Center
+        url: https://permitting.innovation.gov/
+        roles: [producer, licensor]
+
+    provenance:
+      # Landing page, type text/html (F4). The raw JSON endpoint below is a
+      # different URL and becomes the upstream_data link, not this one.
+      via: https://ce.permitting.innovation.gov/
+      updated: "2026-10-03T00:00:00Z"
+
+    # The machine-readable upstream, cited so a consumer can compare this copy
+    # against the original. Kept distinct from the text/html landing page.
+    upstream_data: https://ce.permitting.innovation.gov/data/exclusions.json
+
+    temporal: ["2026-08-24T00:00:00Z", null]
+
+    docs:
+      readme: |
+        The federal Categorical Exclusion catalogue, 2,105 records across 78
+        agency units. A CATEX is a class of action that normally needs no
+        further NEPA review because it has no significant effect on the
+        environment, individually or cumulatively.
+
+        This collection publishes the data contract that governs the catalogue.
+        The contract is the asset. No bulk data asset ships yet, so the
+        `table:columns` list describes the contract's `Exclusion` entity rather
+        than a queryable table. When a Parquet conversion of the catalogue
+        lands, those columns describe it unchanged.
+
+        ## Provenance
+
+        The Permitting Innovation Center produces the catalogue at
+        <https://ce.permitting.innovation.gov/>. geocontract hosts this copy and
+        did not produce the data, so this collection is a mirror. The raw
+        upstream payload is a single 4 MB JSON file with no per-record URL, so
+        consumers filter client-side or through the registered mesh-gateway
+        endpoint.
+
+        ## License
+
+        CC0-1.0. See <https://spdx.org/licenses/CC0-1.0.html>. United States
+        government works are public domain by statute; CC0-1.0 is recorded here
+        as the machine-readable equivalent so the catalog carries a valid SPDX
+        identifier.
+
+        ## Reading the catalogue
+
+        Query by agency unit to find the exclusions one agency relies on, or by
+        CFR citation to trace an exclusion back to its rule. Each record carries
+        the documented context and any extraordinary-circumstances clause that
+        limits it. Read the clause before treating an exclusion as applicable.
+      agents: |
+        The `contract` asset is the ODCS v3.1.0 YAML that governs this dataset.
+        Read it before querying. It names the two entities, `ExclusionsVersion`
+        and `Exclusion`, and the quality rules each field carries.
+
+        `table:columns` below describes the `Exclusion` entity from that
+        contract. This collection ships no Parquet asset yet, so there is no
+        table to query in place. The columns are the contract's schema, and
+        they will describe the data asset unchanged once one is published.
+
+        ## Quirks
+
+        - The upstream is one 4 MB JSON payload with no per-record URL. Fetch it
+          whole and filter locally, or use the mesh-gateway endpoint registered
+          in `endpoints-config.yaml`.
+        - Agency units are finer than agencies. 78 units publish into one
+          catalogue, so grouping by agency name alone merges records that
+          different units authored.
+        - Refresh is ad hoc per contributing agency. The `updated` stamp on this
+          collection is the last sync, not an upstream publication date.
+        - An extraordinary-circumstances clause narrows the exclusion it
+          attaches to. Treat the clause as part of the exclusion, not as a
+          footnote.
+
+  # ── PIC NEPA Data Standard ────────────────────────────────────────────────
+  - id: federal/pic-nepa-data-standard
+    contract: contracts/pic-standards.datacontract.yaml
+
+    # The standard defines 13 entities. One collection carries the contract
+    # that governs all 13, and Project is the entity the others hang from, so
+    # its properties become table:columns. The README lists all 13.
+    primary_entity: Project
+
+    license: CC0-1.0
+    bbox: [-125.0, 24.0, -66.0, 50.0]
+    keywords: [nepa, data-standard, environmental-review, permitting, schema, federal]
+
+    producers:
+      - name: Permitting Innovation Center
+        url: https://permitting.innovation.gov/
+        roles: [producer, licensor]
+
+    provenance:
+      via: https://permitting.innovation.gov/resources/data-standard/
+      updated: "2026-10-03T00:00:00Z"
+
+    # The contract's customProperties cite https://github.com/permits/pyper as
+    # geocontract.source. That URL returned 404 on 3 October 2026, so it is not
+    # cited here as provenance. The verified PIC landing page above is the via
+    # link instead. The dead URL stays in the contract untouched: correcting a
+    # provenance claim is a separate change with its own evidence, and this
+    # manifest does not get to silently rewrite it.
+    temporal: ["2026-08-24T00:00:00Z", null]
+
+    docs:
+      readme: |
+        The PIC NEPA Data and Technology Standard v1.2, a structured schema for
+        environmental-review data collected during review. Producers and
+        consumers agree on the entity shape so that records from different
+        agencies can be compared and federated.
+
+        The standard defines 13 entities. This collection publishes the data
+        contract that governs all of them:
+
+        `Project`, `ProcessInstance`, `Document`, `Comment`, `Engagement`,
+        `CaseEvent`, `GisData`, `GisDataElement`, `UserRole`,
+        `DecisionElement`, `ProcessModel`, `ProcessDecisionPayload`,
+        `LegalStructure`.
+
+        ## Provenance
+
+        The Permitting Innovation Center produces the standard at
+        <https://permitting.innovation.gov/resources/data-standard/>.
+        geocontract hosts this copy and did not produce the standard, so this
+        collection is a mirror.
+
+        The contract's own `customProperties` cite
+        `https://github.com/permits/pyper` as the source repository. That URL
+        returned 404 when checked on 3 October 2026, so the verified PIC
+        landing page is cited here instead. The contract is left as authored.
+
+        ## License
+
+        CC0-1.0. See <https://spdx.org/licenses/CC0-1.0.html>.
+
+        ## Scope note
+
+        v1.2 deliberately does not prescribe a wire format. Sample payloads are
+        published as JSON, YAML, OpenAPI, and SQL DDL, so the contract governs
+        the entity shape rather than one encoding of it. Top-level container
+        keys use the standard's own spelling, including `processe_instances`.
+      agents: |
+        The `contract` asset is the ODCS v3.1.0 YAML for all 13 entities of the
+        PIC NEPA Data Standard. Read it before modeling anything against the
+        standard.
+
+        `table:columns` below describes the `Project` entity only, because one
+        collection cannot carry 13 column sets. The other 12 entities are in the
+        contract's `schema[]` list. `GisData` and `GisDataElement` are the two
+        that carry spatial payload; a geospatial collection built from them
+        would be a separate collection with its own geometry and bbox.
+
+        ## Quirks
+
+        - The standard prescribes no wire format. Do not assume JSON. The
+          contract's `servers[]` lists both a local JSON sample set and a
+          Postgres deployment.
+        - Top-level container keys use the standard's spelling.
+          `processe_instances` is not a typo to correct; it is the key.
+        - Provenance properties travel on every record: `data_record_version`,
+          `data_source_agency`, `data_source_system`, `last_updated`, and
+          `record_owner`. The contract's `customProperties` lists them under
+          `pic-standards.v1.2ProvenanceProperties`. Preserve them through any
+          transform.
+        - `Project` is the entity the other 12 reference. Joining without it
+          loses the review context that gives a document or comment meaning.
+
+  # ── Citizen-initiated worked example ──────────────────────────────────────
+  - id: citizen/groton-rhine-001
+    contract: contracts/groton-rhine-001.datacontract.yaml
+    primary_entity: Proposal
+
+    license: CC0-1.0
+
+    # Coarsened on purpose. The proposal's own geometry is a parcel polygon at
+    # examples/groton-rhine-001.example.data.json:
+    #   POLYGON((-72.0821 41.3472, -72.0819 41.3472, -72.0819 41.3474,
+    #            -72.0821 41.3474, -72.0821 41.3472))
+    # The public projection strips raw parcel geometry, so publishing a
+    # parcel-precise bbox here would re-expose what the projection removed.
+    # This bbox is that polygon floored and ceiled to two decimals, a cell of
+    # roughly 1.1 km that contains the parcel without locating it. The
+    # restricted projection keeps the precise geometry.
+    bbox: [-72.09, 41.34, -72.08, 41.35]
+
+    keywords: [citizen-initiated, proposed-action, housing-rehabilitation, facade-repair, groton, connecticut]
+
+    # No `producers` entry: geocontract originates this proposal, so the
+    # generator emits the host holding producer, licensor, and host together
+    # and the collection is official rather than a mirror (F3).
+    updated: "2026-10-03T00:00:00Z"
+    temporal: ["2026-09-12T14:30:00Z", null]
+
+    docs:
+      readme: |
+        A worked example of the citizen-initiated permitting flow. A resident of
+        Groton, Connecticut proposes repairing the masonry facade of a property
+        on Rhine Street. The example is fictional and illustrative: the
+        applicant, the parcel, and the signatures are placeholders.
+
+        The collection publishes the ODCS-flatten projection of the v2 canonical
+        Proposal model. That projection is the public one. Applicant identity,
+        proof material, and raw parcel geometry are excluded from it by design
+        and stay in the restricted projection.
+
+        ## Provenance
+
+        geocontract originates this proposal, so the collection is official
+        rather than a mirror. The activity code comes from the hand-curated
+        ActivityConcept catalog at `ontology/activity-concept-catalog.v1.0.json`.
+
+        ## License
+
+        CC0-1.0. See <https://spdx.org/licenses/CC0-1.0.html>.
+
+        ## Location precision
+
+        The spatial extent is deliberately coarse. The proposal concerns one
+        parcel, and the public projection removes raw geometry, so the extent
+        here is a cell of roughly 1.1 km that contains the parcel without
+        locating it. The precise geometry is available only through the
+        restricted projection, which requires an authority token.
+      agents: |
+        The `contract` asset is the ODCS-flatten projection of a v2 canonical
+        Proposal. It is the PUBLIC projection. Read
+        `docs/plan-citizen-permitting-standard.md` section 5.8 for the split.
+
+        The restricted projection carries `applicant.*`, `proof.*`, and raw
+        parcel geometry. None of it is in this collection, and no tool in this
+        tree publishes it. `geocontract-harvest-citizen` refuses the restricted
+        projection without `--authority-token`.
+
+        ## Quirks
+
+        - The example is fictional. Do not treat the applicant, the parcel
+          identifier, or the signatures as real records.
+        - `accessClass` is `public` in the contract's `customProperties`. A
+          proposal whose `accessClass` is anything else must not be published
+          into this catalog.
+        - The bbox is coarsened to about 1.1 km. A spatial query at parcel
+          precision will not resolve against this collection. That is intended.
+        - `parcelAuthority` and `parcelId` are references to an external
+          authoritative registry, not the geometry itself. Resolve them at the
+          authority to get location.
+        - `geometryFormat` allows `geojson`, `wkt`, or `h3`. The worked example
+          uses `wkt`.
+
+# ── Contracts deliberately not cataloged ─────────────────────────────────────
+#
+# contracts/dcat-us-catalog.datacontract.yaml describes the catalog envelope in
+# the GSA DCAT-US 3.0.0 vocabulary. It is not a dataset, so it is not a
+# collection. Phase 5 generates the DCAT-US envelope FROM this catalog tree
+# instead, which removes the second hand-curated copy. See
+# docs/plan-portolan-catalog-integration.md section 11.
+#
+# contracts/odcs-v3.1.0-template.yaml is the primitive template every instance
+# record extends. It carries placeholder values and describes no dataset.

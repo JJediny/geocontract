@@ -111,6 +111,17 @@ prek-install = "prek install"
 
 # ── Portolan catalog tasks ──────────────────────────────────────────────────
 
+# Build the Portolan catalog from the manifest and contracts.
+# The generator is deterministic and writes no timestamps, so rebuilding
+# an unchanged manifest produces no diff.
+catalog-build = "uv run python scripts/build_catalog.py"
+
+# Build the catalog and validate it with rashid.
+# This is the full validation gate: build + Portolan conformance check.
+catalog-check = "uv run python scripts/build_catalog.py && uvx --from 'rashid>=0.1.8,<0.2.0' rashid check catalog/ --no-data --summary"
+
+# ── Portolan catalog tasks ──────────────────────────────────────────────────
+
 # Prove the pinned Portolan tools resolve and report their versions. Run this
 # after moving a pin in [env] above. Downloads on first use, then caches.
 portolan-pins = """
