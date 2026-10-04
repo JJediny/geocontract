@@ -11,6 +11,9 @@ Portolan catalog. Read it alongside the plan at
 `docs/plan-portolan-catalog-integration.md`, which records the design decisions
 and the conformance evidence behind them.
 
+For the step-by-step publish flow that turns `catalog/` into a live URL the
+portolan-sdi registry can pin, see `docs/publish-checklist.md`.
+
 ---
 
 ## Catalog structure
