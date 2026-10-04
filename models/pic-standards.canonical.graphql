@@ -286,60 +286,60 @@ scalar URI
 type Query {
     """Fetch a single NEPA project by database id."""
   project(
-    """Database id."""
-    id: ID!
+
+        """Database id."""    id: ID!
   ): Project
     """List NEPA projects, optionally filtered by status."""
   projects(
-    """Filter by current_status."""
-    status: String
+
+        """Filter by current_status."""    status: String
     limit: Int = 50
   ): [Project!]!
     """Fetch a single process instance by database id."""
-  processInstance(id: ID!): ProcessInstance
+  processInstance(    id: ID!): ProcessInstance
     """List process instances, optionally filtered by parent project."""
   processInstances(
-    """Filter by parent project."""
-    parentProjectId: ID
+
+        """Filter by parent project."""    parentProjectId: ID
     limit: Int = 50
   ): [ProcessInstance!]!
     """Fetch a single NEPA document by database id."""
-  document(id: ID!): Document
+  document(    id: ID!): Document
     """List documents."""
-  documents(limit: Int = 50): [Document!]!
+  documents(    limit: Int = 50): [Document!]!
     """All comments submitted on a particular document."""
-  commentsForDocument(parentDocumentId: ID!): [Comment!]!
+  commentsForDocument(    parentDocumentId: ID!): [Comment!]!
     """List engagements."""
-  engagements(parentProcessId: ID, limit: Int = 50): [Engagement!]!
+  engagements(    parentProcessId: ID,     limit: Int = 50): [Engagement!]!
     """List case events."""
   caseEvents(
-    """Filter by event type (e.g. NOI, ROD)."""
-    type: String
+
+        """Filter by event type (e.g. NOI, ROD)."""    type: String
     limit: Int = 50
   ): [CaseEvent!]!
     """List GIS data containers, optionally filtered by parent project."""
-  gisData(parentProjectId: ID): [GisData!]!
+  gisData(    parentProjectId: ID): [GisData!]!
     """List GIS data elements."""
-  gisDataElements(parentGis: ID!): [GisDataElement!]!
+  gisDataElements(    parentGis: ID!): [GisDataElement!]!
     """Fetch a single user role by database id."""
-  userRole(id: ID!): UserRole
+  userRole(    id: ID!): UserRole
     """List user roles."""
-  userRoles(limit: Int = 100): [UserRole!]!
+  userRoles(    limit: Int = 100): [UserRole!]!
     """Fetch a single decision element by database id."""
-  decisionElement(id: ID!): DecisionElement
+  decisionElement(    id: ID!): DecisionElement
     """List decision elements."""
-  decisionElements(limit: Int = 100): [DecisionElement!]!
+  decisionElements(    limit: Int = 100): [DecisionElement!]!
     """Fetch a single process model by database id."""
-  processModel(id: ID!): ProcessModel
+  processModel(    id: ID!): ProcessModel
     """List process models."""
-  processModels(limit: Int = 50): [ProcessModel!]!
+  processModels(    limit: Int = 50): [ProcessModel!]!
     """Fetch a single process decision payload by database id."""
-  processDecisionPayload(id: ID!): ProcessDecisionPayload
+  processDecisionPayload(    id: ID!): ProcessDecisionPayload
     """List process decision payloads."""
-  processDecisionPayloads(limit: Int = 50): [ProcessDecisionPayload!]!
+  processDecisionPayloads(    limit: Int = 50): [ProcessDecisionPayload!]!
     """Fetch a single legal structure by database id."""
-  legalStructure(id: ID!): LegalStructure
+  legalStructure(    id: ID!): LegalStructure
     """List legal structures."""
-  legalStructures(limit: Int = 50): [LegalStructure!]!
+  legalStructures(    limit: Int = 50): [LegalStructure!]!
 }
 

@@ -48,25 +48,25 @@ type NepaCategoricalExclusionsXGraphqlInteroperabilityTemplate @shareable {
 type Query {
     """Look up a single categorical exclusion by its database id."""
   exclusion(
-    """Database id of the exclusion."""
-    id: ID!
+
+        """Database id of the exclusion."""    id: ID!
   ): Exclusion
     """Look up a single categorical exclusion by its hierarchical structured id."""
   exclusionByStructuredId(
-    """Structured identifier (e.g. `AFRH--1-1-1`)."""
-    structuredId: String!
+
+        """Structured identifier (e.g. `AFRH--1-1-1`)."""    structuredId: String!
   ): Exclusion
     """List categorical exclusions, optionally filtered by agency unit."""
   exclusions(
-    """Filter by agency unit code (e.g. `AFRH`)."""
-    unit: String
-    """Maximum number of records to return."""
-    limit: Int = 100
+
+        """Filter by agency unit code (e.g. `AFRH`)."""    unit: String
+
+        """Maximum number of records to return."""    limit: Int = 100
   ): [Exclusion!]!
     """List all exclusions published under a given CFR origin URL."""
   exclusionsByOriginUrl(
-    """eCFR / CFR URL."""
-    originUrl: String!
+
+        """eCFR / CFR URL."""    originUrl: String!
   ): [Exclusion!]!
 }
 
