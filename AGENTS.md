@@ -154,6 +154,8 @@ re-deriving their workflows:
 | Register the catalog | `skills/register-catalog/` |
 | Report a problem in another catalog | `skills/report-catalog-issue/` |
 | Consume a catalog | `skills/reading-portolan/` |
+| Harvest external catalogs | `skills/federated-harvest/` |
+| Integrate citizen proposals | `skills/citizen-proposals/` |
 
 Read `docs/plan-portolan-catalog-integration.md` §14 for the phase-to-skill
 map.
