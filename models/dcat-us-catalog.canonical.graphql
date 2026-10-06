@@ -35,7 +35,7 @@ type DcatCatalog implements Node @key(fields: "id") @shareable {
   "Time periods covered by the catalog."
   temporal: [DcatPeriodOfTime]
   "ISO 639-1 language code(s) used for catalog metadata text."
-  language: String
+  language: [String]
   "License governing how the catalog can be used or reused."
   license: String
   "Rights statements about the catalog that are not covered by `license`."
@@ -172,7 +172,7 @@ type DcatDataset implements Node @key(fields: "id") @shareable {
   theme: [DcatConcept]
   spatial: [DcatLocation]
   temporal: [DcatPeriodOfTime]
-  language: String
+  language: [String]
   license: String
   rights: [String]
   accessRights: String
@@ -222,8 +222,8 @@ type Query {
   dcatCatalog: DcatCatalog
     """Look up a single catalogued dataset by its @id IRI."""
   dcatDataset(
-
-        """@id IRI of the dataset."""    id: ID!
+    """@id IRI of the dataset."""
+    id: ID!
   ): DcatDataset
     """List all catalogued datasets."""
   dcatDatasets: [DcatDataset!]!

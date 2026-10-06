@@ -70,7 +70,7 @@ hooks = [
     name = "Validate geocontract master schema contracts",
     language = "system",
     entry = "uv run geocontract-validate --master",
-    files = "contracts/.*\.(yaml|json)$",
+    files = 'contracts/.*\.(yaml|json)$',
     pass_filenames = true,
   },
 

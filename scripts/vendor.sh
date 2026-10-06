@@ -22,6 +22,16 @@ BIN_DIR="${TOOLS_DIR}/bin"
 mkdir -p "${BIN_DIR}"
 
 JXQL_REPO="${JXQL_REPO:-../json-schema-x-graphql}"
+# Pinned to commit 69100a1229a7823f242b637a81ab58a847394a3d, the
+# merge of PR #264 on json-schema-x-graphql main on 4 October 2026.
+# PR #264 fixed four classes of bug that affected our generated
+# GraphQL SDL: nullability unions collapsing to JSON; root-level
+# x-graphql-enums registry definitions silently dropped; lenient
+# root pointers ($ref: "/", $ref: "") rendering as bogus
+# `Externalplace`; and explicit x-graphql-type-name values being
+# PascalCase-mangled into different names. The tag `v2.0.2` predates
+# all four fixes; when a new tag cuts on main, replace this SHA
+# with it. Until then the SHA is the only stable ref for the fixes.
 JXQL_VERSION="${JXQL_VERSION:-0.4.0}"
 DATACONTRACT_VERSION="${DATACONTRACT_VERSION:-0.10.21}"
 DPRINT_VERSION="${DPRINT_VERSION:-0.47.5}"
@@ -53,16 +63,23 @@ install_jxql() {
   fi
 
   # No local checkout (e.g. CI runner). Clone at the recorded git ref
-  # (default: pinned tag) into a build scratch dir, build with cargo,
-  # and stash the binary. This is the path CI takes; local dev can
-  # keep using the sibling checkout.
+  # (default: pinned commit SHA) into a build scratch dir, build with
+  # cargo, and stash the binary. This is the path CI takes; local dev
+  # can keep using the sibling checkout. A 40-char SHA does not work
+  # with `git clone --branch`, so we detect that case and use a full
+  # clone + checkout instead.
   if command -v cargo >/dev/null 2>&1 && command -v git >/dev/null 2>&1; then
     local build_dir="${TOOLS_DIR}/jxql-src"
-    local jxql_ref="${JXQL_GIT_REF:-v2.0.2}"
+    local jxql_ref="${JXQL_GIT_REF:-69100a1229a7823f242b637a81ab58a847394a3d}"
     local jxql_url="${JXQL_GIT_URL:-https://github.com/json-schema-x-graphql/json-schema-x-graphql.git}"
     log "Cloning json-schema-x-graphql @ ${jxql_ref} and building jxql…"
     if [[ ! -d "${build_dir}" ]]; then
-      git clone --depth 1 --branch "${jxql_ref}" "${jxql_url}" "${build_dir}"
+      if [[ "${jxql_ref}" =~ ^[0-9a-f]{40}$ ]]; then
+        git clone "${jxql_url}" "${build_dir}"
+        (cd "${build_dir}" && git checkout "${jxql_ref}")
+      else
+        git clone --depth 1 --branch "${jxql_ref}" "${jxql_url}" "${build_dir}"
+      fi
     fi
     (
       cd "${build_dir}"
