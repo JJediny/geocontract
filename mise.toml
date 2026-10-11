@@ -218,3 +218,22 @@ harvest = "uv run python scripts/harvest.py"
 # Harvest contracts to Portolan mirror collections
 # Usage: mise run harvest-portolan <source1> <source2> ...
 harvest-portolan = "uv run python scripts/harvest.py --sink portolan"
+
+#
+# ── Codebase indexes (CocoIndex) ──────────────────────────────────────────
+#
+# `ccc` is cocoindex-code (`uv tool install 'cocoindex-code[full]'`). Each
+# submodule has its own project at <submodule>/.cocoindex_code/settings.yml;
+# the index DBs live there and must stay untracked in the submodule repos.
+# Global embedding config: ~/.cocoindex_code/global_settings.yml (local
+# sentence-transformers model, no API key). See docs/plan-geoparquet-compile.md §7.
+
+code-index-spec = { dir = "portolan-spec", run = "ccc index" }
+code-index-skills = { dir = "portolan-skills", run = "ccc index" }
+code-index-s2 = { dir = "s2-stac-geoparquet", run = "ccc index" }
+code-index-qgis = { dir = "portolan-registry-qgis", run = "ccc index" }
+code-index = { depends = ["code-index-spec", "code-index-skills", "code-index-s2", "code-index-qgis"] }
+
+# Search examples (run from inside the submodule directory):
+#   cd portolan-spec  && ccc search "bbox coarsening rule"
+#   cd portolan-skills && ccc search "federated harvest sink"
