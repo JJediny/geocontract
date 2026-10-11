@@ -88,12 +88,13 @@ def test_geometry_round_trips_to_source_bbox() -> None:
 
 
 def test_geo_metadata_shape() -> None:
-    """GeoParquet 1.1, primary geometry, covering declaration, WKB (§4)."""
+    """GeoParquet 2.0: primary geometry, geometry_types, covering (§4)."""
     geo, _ = _read(_tracked())
-    assert geo["version"] == "1.1.0"
+    assert geo["version"] == "2.0.0"
     assert geo["primary_column"] == "geometry"
     column = geo["columns"]["geometry"]
     assert column["encoding"] == "WKB"
+    assert column["geometry_types"] == ["Polygon"]
     assert column["covering"]["bbox"] == {
         "xmin": ["bbox", "xmin"],
         "ymin": ["bbox", "ymin"],
@@ -102,13 +103,21 @@ def test_geo_metadata_shape() -> None:
     }
 
 
-def test_crs_is_crs84_lon_lat() -> None:
-    """The CRS must be OGC:CRS84 (lon/lat), not EPSG:4326 WKT2 (lat/lon)."""
+def test_crs_is_crs84_projjson() -> None:
+    """The CRS must be OGC:CRS84 as PROJJSON (lon/lat), not a WKT2 string.
+
+    DuckDB 1.5 rejects the WKT2 form with "invalid CRS"; the QGIS plugin
+    maps the PROJJSON id to "OGC:CRS84".
+    """
     geo, _ = _read(_tracked())
-    wkt = geo["columns"]["geometry"]["crs"]
-    assert wkt == bg.crs_wkt2()
-    assert '"CRS84"' in wkt
-    assert wkt.startswith("GEODCRS") or wkt.startswith("GEOGCRS")
+    crs = geo["columns"]["geometry"]["crs"]
+    assert crs == bg.crs_projjson()
+    assert crs["id"] == {"authority": "OGC", "code": "CRS84"}
+    axes = [
+        axis["abbreviation"]
+        for axis in crs["coordinate_system"]["axis"]
+    ]
+    assert axes == ["Lon", "Lat"]
 
 
 def test_rows_sorted_by_id() -> None:
