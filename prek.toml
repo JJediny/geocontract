@@ -43,9 +43,12 @@ hooks = [
     id = "dprint",
     name = "dprint (JSON formatter, via mise exec)",
     language = "system",
-    entry = "mise exec -- dprint fmt",
+    entry = "mise exec -- dprint fmt --allow-no-files",
     types = ["json"],
     pass_filenames = true,
+    # dprint.json itself is excluded by its own excludes block, so a commit
+    # that stages only dprint.json + YAML/TOML hands dprint no formattable
+    # file, and it exits 14 without this flag.
   },
 ]
 

@@ -4,3 +4,9 @@
 [submodule "portolan-skills"]
 	path = portolan-skills
 	url = https://github.com/portolan-sdi/portolan-skills
+[submodule "s2-stac-geoparquet"]
+	path = s2-stac-geoparquet
+	url = https://github.com/taylor-geospatial/s2-stac-geoparquet
+[submodule "portolan-registry-qgis"]
+	path = portolan-registry-qgis
+	url = https://github.com/portolan-sdi/portolan-registry-qgis

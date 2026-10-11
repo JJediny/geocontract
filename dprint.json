@@ -11,6 +11,8 @@
     "examples/datacite4.3/**",
     "portolan-spec",
     "portolan-skills",
+    "s2-stac-geoparquet",
+    "portolan-registry-qgis",
     "**/dprint.json",
     ".tools",
     ".harvest",
