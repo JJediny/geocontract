@@ -32,6 +32,13 @@ dev = [
   "ruff>=0.7",
   # build_signed_example.py derives the W3C did:key for the test pubkey.
   "base58>=2.1.0",
+  # build_geoparquet.py: writes the STAC-GeoParquet portfolio file and
+  # generates the OGC:CRS84 WKT2 at build time instead of hardcoding it.
+  # geoarrow-pyarrow gives the geometry column its geoarrow.wkb Arrow
+  # extension type, which DuckDB 1.5 requires to read the file.
+  "pyarrow>=18",
+  "pyproj>=3.7",
+  "geoarrow-pyarrow>=0.2",
 ]
 
 [project.scripts]
