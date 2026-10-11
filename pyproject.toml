@@ -32,6 +32,10 @@ dev = [
   "ruff>=0.7",
   # build_signed_example.py derives the W3C did:key for the test pubkey.
   "base58>=2.1.0",
+  # build_geoparquet.py: writes the STAC-GeoParquet portfolio file and
+  # generates the OGC:CRS84 WKT2 at build time instead of hardcoding it.
+  "pyarrow>=18",
+  "pyproj>=3.7",
 ]
 
 [project.scripts]
