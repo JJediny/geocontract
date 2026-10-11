@@ -13,35 +13,45 @@ Resolves #46. The build side is docs/plan-geoparquet-compile.md.
 | Stage | Path | Notes |
 | --- | --- | --- |
 | Tracked | `examples/geocontracts.geoparquet` | Rebuilt and validated by CI, byte-stable |
-| Published | `<public_base>/examples/geocontracts.geoparquet` | `public_base` comes from `catalog.publish.yaml`; blocked on #30 |
+| Published | `<public_base>/geocontracts.geoparquet` | Blocked: publish syncs `catalog/` only today |
 
 The published URL is an http(s) URL. The QGIS plugin refuses
 object-store URIs such as `s3://` for "Add to map", so link the
 published file, never the bucket URI.
 
+Publishing needs two steps that both wait on issue #30: the
+`catalog.publish.yaml` placeholders, and a one-line extension to
+`tools/publish.py` that adds the portfolio file to the sync. Until
+then, the tracked file is the artifact to read.
+
 ## Read it with DuckDB
 
-Install nothing beyond DuckDB 1.5 or newer, then point it at the file.
-The queries below run against the tracked file from the repo root:
+DuckDB 1.5 or newer, plus its `spatial` extension. Point it at the
+file with `read_parquet` — the reader does not auto-detect the
+`.geoparquet` extension, so the explicit function is required. Every
+query below ran against the tracked file:
 
 ```sql
-INSTALL httpfs; LOAD httpfs;  -- only for the published URL, not local files
+INSTALL spatial; LOAD spatial;  -- once per session
+-- add INSTALL httpfs; LOAD httpfs; for the published URL
 
 -- Every contract in the portfolio, one row each.
-SELECT id, license, is_mirror, updated
-FROM 'examples/geocontracts.geoparquet'
+SELECT id, license, is_mirror, updated, st_geometrytype(geometry) AS geometry
+FROM read_parquet('examples/geocontracts.geoparquet')
 ORDER BY id;
 
 -- Contracts intersecting a place, reading only the row groups that
--- hold them. The covering struct drives the statistics pruning.
+-- hold them. The covering struct drives the statistics pruning. A
+-- CONUS-wide bbox intersects every place window; that is the data
+-- speaking, not a bug.
 SELECT id, title
-FROM 'examples/geocontracts.geoparquet'
+FROM read_parquet('examples/geocontracts.geoparquet')
 WHERE bbox.xmax >= -73.0 AND bbox.xmin <= -71.0
   AND bbox.ymax >= 41.0  AND bbox.ymin <= 42.0;
 
 -- The columns of one contract, as a table description.
 SELECT table_columns
-FROM 'examples/geocontracts.geoparquet'
+FROM read_parquet('examples/geocontracts.geoparquet')
 WHERE id = 'federal/nepa-exclusions';
 ```
 
@@ -69,8 +79,9 @@ schema. See docs/plan-geoparquet-compile.md §2.
 
 ## Schema reference
 
-The `geo` metadata declares GeoParquet 1.1, primary column `geometry`
-(WKB, OGC:CRS84, lon/lat), and the `bbox` covering struct. Row fields:
+The `geo` metadata declares GeoParquet 2.0, primary column `geometry`
+(WKB, geoarrow.wkb extension type, OGC:CRS84 as PROJJSON, lon/lat), and
+the `bbox` covering struct. Row fields:
 
 | Column | Type | Meaning |
 | --- | --- | --- |
