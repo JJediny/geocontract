@@ -264,18 +264,18 @@ def harvest_to_portolan(
     catalog_dir: Path,
 ) -> None:
     """Write harvest results as Portolan collections.
-    
+
     Routes citizen proposals to catalog/citizen/ as official collections,
     and other contracts to catalog/mirror/ as mirror collections.
     """
     from geocontract_tools.portolan_sink import (
+        ensure_citizen_catalog,
         ensure_mirror_catalog,
+        update_citizen_catalog,
         update_mirror_catalog,
         update_root_catalog,
-        write_mirror_collection,
         write_citizen_collection,
-        ensure_citizen_catalog,
-        update_citizen_catalog,
+        write_mirror_collection,
     )
 
     citizen_results = []
@@ -292,7 +292,6 @@ def harvest_to_portolan(
     if citizen_results:
         ensure_citizen_catalog(catalog_dir)
         for result in citizen_results:
-            slug = slugify(result.contract.get("id", "unknown"))
             source_info = {
                 "source_url": result.source.location,
                 "jurisdiction": _extract_custom_property(result.contract, "jurisdiction"),
@@ -319,7 +318,6 @@ def harvest_to_portolan(
     if mirror_results:
         ensure_mirror_catalog(catalog_dir)
         for result in mirror_results:
-            slug = slugify(result.contract.get("id", "unknown"))
             via_url = _extract_source_url(result.contract_data)
             source_info = {
                 "source_url": result.source.location,
@@ -346,13 +344,45 @@ def harvest_to_portolan(
         update_root_catalog(catalog_dir)
 
 
+def harvest_to_geoparquet(
+    results: Iterable[HarvestResult],
+    out_dir: Path,
+) -> Path:
+    """Write harvest results as rows of one STAC-GeoParquet file.
+
+    Plan §5 PR B (issue #45). Runs the Portolan mirror sink into an
+    untracked tree under out_dir, then compiles that tree with the same
+    row-builder as the generated portfolio — shared, not copied — so
+    harvested rows and generated rows share one schema. The tracked
+    catalog/ tree is never touched, and the output stays untracked
+    because a rebuild depends on the network.
+    """
+    from geocontract_tools import build_geoparquet
+
+    mirror_dir = out_dir / "portolan-mirror"
+    harvest_to_portolan(results, mirror_dir)
+
+    rows = build_geoparquet.load_rows_from(mirror_dir, root=out_dir)
+    out_path = out_dir / "harvested.geoparquet"
+    build_geoparquet.write_table(build_geoparquet.build_table(rows), out_path)
+
+    errors = build_geoparquet.validate_against(out_path, mirror_dir, root=out_dir)
+    if errors:
+        raise HarvestError("; ".join(errors))
+    print(
+        f"✓ Wrote {len(rows)} rows to {out_path}",
+        file=sys.stderr,
+    )
+    return out_path
+
+
 def _is_citizen_proposal(contract: dict) -> bool:
     """Check if a contract is a citizen-initiated proposal."""
     custom_props = contract.get("customProperties") or []
-    for prop in custom_props:
-        if prop.get("property") == "isCitizenInitiated" and prop.get("value") is True:
-            return True
-    return False
+    return any(
+        prop.get("property") == "isCitizenInitiated" and prop.get("value") is True
+        for prop in custom_props
+    )
 
 
 def _extract_custom_property(contract: dict, property_name: str) -> str | None:
@@ -375,7 +405,7 @@ def slugify(s: str) -> str:
 
 def _extract_source_url(contract_data: bytes) -> str | None:
     """Extract source URL from contract file comments.
-    
+
     Looks for lines like:
         # Source: https://example.com/data.json
     """
@@ -384,7 +414,7 @@ def _extract_source_url(contract_data: bytes) -> str | None:
         text = contract_data.decode("utf-8")
     except UnicodeDecodeError:
         return None
-    
+
     # Look for Source: comment
     match = re.search(r"^#\s*Source:\s*(.+)$", text, re.MULTILINE | re.IGNORECASE)
     if match:
@@ -392,7 +422,7 @@ def _extract_source_url(contract_data: bytes) -> str | None:
         # Validate it looks like a URL
         if url.startswith(("http://", "https://", "ftp://")):
             return url
-    
+
     return None
 
 
@@ -413,9 +443,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument(
         "--sink",
-        choices=["jsonl", "portolan"],
+        choices=["jsonl", "portolan", "geoparquet"],
         default="jsonl",
-        help="Output sink: 'jsonl' (default) writes records to .harvest/, 'portolan' writes mirror collections to catalog/mirror/",
+        help=(
+            "Output sink: 'jsonl' (default) writes records to .harvest/, "
+            "'portolan' writes mirror collections to catalog/mirror/, "
+            "'geoparquet' writes one STAC-GeoParquet file under --out"
+        ),
     )
     p.add_argument(
         "--catalog-dir",
@@ -430,6 +464,10 @@ def main(argv: list[str] | None = None) -> int:
         # Harvest and write directly to Portolan mirror collections
         results = harvest(sources, Path(args.out))
         harvest_to_portolan(results, Path(args.catalog_dir))
+    elif args.sink == "geoparquet":
+        # Harvest to one untracked STAC-GeoParquet file (plan §5 PR B)
+        results = harvest(sources, Path(args.out))
+        harvest_to_geoparquet(results, Path(args.out))
     else:
         # Default JSONL sink
         harvest(sources, Path(args.out))
