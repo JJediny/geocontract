@@ -76,6 +76,10 @@ The `geo` metadata declares GeoParquet 1.1, primary column `geometry`
 | --- | --- | --- |
 | `geometry` | binary (WKB polygon) | The bbox as a 5-point polygon |
 | `bbox` | struct(xmin, ymin, xmax, ymax) | Covering column; drives pruning |
+
+A collection that declares several bboxes (STAC allows it for disjoint
+areas) fails the build instead of truncating to the first one. No
+collection in the catalog emits multi-bbox today.
 | `id`, `title`, `description` | string | Collection identity |
 | `license` | string | SPDX expression for the data |
 | `keywords` | list<string> | Manifest keywords |

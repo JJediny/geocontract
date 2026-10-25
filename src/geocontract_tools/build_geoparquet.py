@@ -188,12 +188,33 @@ def _text(collection: dict, key: str) -> str | None:
     return value if isinstance(value, str) else None
 
 
+def source_bbox(collection: dict, collection_url: str) -> list[float]:
+    """The one bbox a collection's extent declares, checked strictly.
+
+    STAC allows a list of bboxes for collections spanning disjoint areas.
+    A portfolio row represents the collection by exactly one bbox, so a
+    multi-bbox source cannot be truncated to its first entry — that would
+    silently shrink the collection's claimed extent and pass validation,
+    since the file and the tree would agree on the wrong value. The build
+    fails instead (the repo's error-rather-than-guess rule); a MultiPolygon
+    union is the follow-up if a real multi-bbox collection ever appears.
+    """
+    boxes = collection.get("extent", {}).get("spatial", {}).get("bbox", [])
+    if len(boxes) != 1:
+        raise ValueError(
+            f"{collection_url}: extent.spatial.bbox has {len(boxes)} bboxes; "
+            "the portfolio row carries exactly one. Coalesce in the manifest "
+            "or teach the builder MultiPolygon first."
+        )
+    bbox = boxes[0]
+    if not isinstance(bbox, list) or len(bbox) != 4:
+        raise ValueError(f"{collection_url}: no 4-number bbox in extent.spatial.bbox")
+    return bbox
+
+
 def row_for(collection: dict, collection_url: str) -> dict[str, object]:
     """One row from one generated collection. Plan §3 is the schema."""
-    boxes = collection.get("extent", {}).get("spatial", {}).get("bbox", [])
-    if not boxes or not isinstance(boxes[0], list) or len(boxes[0]) != 4:
-        raise ValueError(f"{collection_url}: no 4-number bbox in extent.spatial.bbox")
-    bbox = boxes[0]
+    bbox = source_bbox(collection, collection_url)
     return {
         "geometry": wkb_polygon(bbox),
         "bbox": {"xmin": bbox[0], "ymin": bbox[1], "xmax": bbox[2], "ymax": bbox[3]},
@@ -277,17 +298,40 @@ def _parse_wkb_polygon(blob: bytes) -> list[tuple[float, float]]:
     return points
 
 
-def validate(path: Path) -> list[str]:
-    """Assert the written file against the source tree. Empty list = pass."""
+def validate_against(
+    path: Path, catalog_dir: Path, root: Path | None = None
+) -> list[str]:
+    """Assert the written file against a source tree. Empty list = pass.
+
+    `root` anchors the relative collection_url recorded in each row: paths
+    under it stay relative, anything else falls back to a posix path. The
+    tracked build passes the repo root; the harvester sink passes its own
+    out dir (plan §5 PR B).
+    """
+    anchor = root if root is not None else ROOT
     errors: list[str] = []
     collections: dict[str, dict] = {}
-    for source in sorted(CATALOG_DIR.rglob("collection.json")):
-        collections[source.relative_to(ROOT).as_posix()] = json.loads(source.read_text())
+    for source in sorted(catalog_dir.rglob("collection.json")):
+        try:
+            url = source.relative_to(anchor).as_posix()
+        except ValueError:
+            url = source.as_posix()
+        collections[url] = json.loads(source.read_text())
 
     table = pq.read_table(path)
     meta = table.schema.metadata or {}
     if b"geo" not in meta:
         return [f"{path}: no `geo` metadata key in the schema"]
+    # Tree-side guard, independent of rows: a multi-bbox source the builder
+    # rejects must fail validation even when no row for it exists yet —
+    # otherwise the missing-source check would be the only signal.
+    for url, source in sorted(collections.items()):
+        n = len(source.get("extent", {}).get("spatial", {}).get("bbox", []))
+        if n != 1:
+            errors.append(
+                f"{path}: source {url} has {n} bboxes in extent.spatial.bbox; "
+                "the portfolio row carries exactly one"
+            )
     geo = json.loads(meta[b"geo"])
     if geo.get("version") != GEO_VERSION:
         errors.append(f"{path}: geo.version {geo.get('version')!r} != {GEO_VERSION!r}")
@@ -325,20 +369,37 @@ def validate(path: Path) -> list[str]:
         if collection is None:
             errors.append(f"{path}: row {cid} cites unknown source {row['collection_url']}")
             continue
-        bbox = collection["extent"]["spatial"]["bbox"][0]
-        expected = {"xmin": bbox[0], "ymin": bbox[1], "xmax": bbox[2], "ymax": bbox[3]}
-        if row["bbox"] != expected:
-            errors.append(f"{path}: row {cid} covering {row['bbox']} != source {expected}")
-        points = _parse_wkb_polygon(row["geometry"])
-        ring = [(bbox[0], bbox[1]), (bbox[2], bbox[1]), (bbox[2], bbox[3]), (bbox[0], bbox[3]), (bbox[0], bbox[1])]
-        if points != ring:
-            errors.append(f"{path}: row {cid} geometry does not round-trip to the source bbox")
+        source = collection
+        boxes = source.get("extent", {}).get("spatial", {}).get("bbox", [])
+        if len(boxes) == 1 and isinstance(boxes[0], list) and len(boxes[0]) == 4:
+            bbox = boxes[0]
+            expected = {"xmin": bbox[0], "ymin": bbox[1], "xmax": bbox[2], "ymax": bbox[3]}
+            if row["bbox"] != expected:
+                errors.append(
+                    f"{path}: row {cid} covering {row['bbox']} != source {expected}"
+                )
+            ring = [
+                (bbox[0], bbox[1]),
+                (bbox[2], bbox[1]),
+                (bbox[2], bbox[3]),
+                (bbox[0], bbox[3]),
+                (bbox[0], bbox[1]),
+            ]
+            if _parse_wkb_polygon(row["geometry"]) != ring:
+                errors.append(
+                    f"{path}: row {cid} geometry does not round-trip to the source bbox"
+                )
         if collection.get("license") != row["license"]:
             errors.append(f"{path}: row {cid} license drift vs source")
     missing = set(collections) - seen
     if missing:
         errors.append(f"{path}: collections missing from the file: {sorted(missing)}")
     return errors
+
+
+def validate(path: Path) -> list[str]:
+    """Validate against the tracked catalog tree, the default gate."""
+    return validate_against(path, CATALOG_DIR)
 
 
 def main(argv: list[str] | None = None) -> int:

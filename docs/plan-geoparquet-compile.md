@@ -73,6 +73,14 @@ STAC fields the collections already carry.
 
 Notes:
 
+- **Multi-bbox sources fail the build.** STAC allows a list of bboxes for
+  disjoint areas; a row cannot represent that as one bbox without lying.
+  `source_bbox()` raises, and validation scans the tree for the same
+  condition even when no row exists yet. A MultiPolygon union is the
+  follow-up if a real multi-bbox collection appears. Nothing in the
+  catalog emits multi-bbox today: the manifest holds one bbox per
+  collection by design.
+
 - `table_columns` and `assets` stay JSON strings in v1. Issue #40 (STAC
   search extension for `table:columns`) may promote them to Parquet
   list types in v2; JSON strings keep the v1 schema stable and lossless.

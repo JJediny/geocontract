@@ -135,6 +135,55 @@ def test_rebuild_into_tmp_is_byte_stable(tmp_path: Path) -> None:
     ).hexdigest()
 
 
+def test_row_for_requires_bbox() -> None:
+    with pytest.raises(ValueError, match="no 4-number bbox"):
+        bg.row_for({"id": "x", "extent": {"spatial": {"bbox": [[]]}}}, "x.json")
+
+
+def test_row_for_rejects_multiple_bboxes() -> None:
+    """A disjoint-area source must fail the build, not truncate to its first
+    bbox and silently shrink the collection's claimed extent (plan §2)."""
+    collection = {
+        "id": "x",
+        "title": "t",
+        "description": "d",
+        "license": "CC0-1.0",
+        "updated": "2026-10-03T00:00:00Z",
+        "extent": {"spatial": {"bbox": [[-1.0, -1.0, 1.0, 1.0], [10.0, 10.0, 20.0, 20.0]]}},
+    }
+    with pytest.raises(ValueError, match="2 bboxes"):
+        bg.row_for(collection, "x.json")
+
+
+def test_validate_flags_multi_bbox_source(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Validation catches the case on the tree side too: the file and the
+    tree would otherwise agree on the wrong (first-only) value."""
+    fixture = tmp_path / "catalog"
+    fixture.mkdir()
+    multi = {
+        "id": "multi",
+        "title": "t",
+        "description": "d",
+        "license": "CC0-1.0",
+        "updated": "2026-10-03T00:00:00Z",
+        "assets": {},
+        "stac_extensions": [],
+        "extent": {"spatial": {"bbox": [[-1.0, -1.0, 1.0, 1.0], [10.0, 10.0, 20.0, 20.0]]}},
+    }
+    d = fixture / "multi"
+    d.mkdir()
+    (d / "collection.json").write_text(json.dumps(multi))
+
+    monkeypatch.setattr(bg, "CATALOG_DIR", fixture)
+    # no rows: the build rejects the source, so no file can carry it
+    path = tmp_path / "portfolio.geoparquet"
+    bg.write_table(bg.build_table([]), path)
+    errors = bg.validate_against(path, fixture, root=tmp_path)
+    assert any("2 bboxes" in e for e in errors), errors
+
+
 def test_validate_flags_stale_file(tmp_path: Path) -> None:
     """A file built from fewer rows must fail validation, not pass silently."""
     rows = bg.load_rows()
@@ -149,8 +198,3 @@ def test_wkb_polygon_matches_hand_computed() -> None:
     assert int.from_bytes(blob[1:5], "little") == 3  # Polygon
     assert bg._parse_wkb_polygon(blob)[0] == (-72.09, 41.34)
     assert bg._parse_wkb_polygon(blob)[-1] == bg._parse_wkb_polygon(blob)[0]
-
-
-def test_row_for_requires_bbox() -> None:
-    with pytest.raises(ValueError, match="no 4-number bbox"):
-        bg.row_for({"id": "x", "extent": {"spatial": {"bbox": [[]]}}}, "x.json")
