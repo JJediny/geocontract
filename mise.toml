@@ -231,6 +231,11 @@ harvest = "uv run python scripts/harvest.py"
 # Usage: mise run harvest-portolan <source1> <source2> ...
 harvest-portolan = "uv run python scripts/harvest.py --sink portolan"
 
+# Harvest contracts to one untracked STAC-GeoParquet file (plan §5 PR B).
+# Rows share the schema of examples/geocontracts.geoparquet; the output
+# lands under --out (.harvest by default) and never enters git.
+harvest-geoparquet = "uv run python scripts/harvest.py --sink geoparquet"
+
 #
 # ── Codebase indexes (CocoIndex) ──────────────────────────────────────────
 #

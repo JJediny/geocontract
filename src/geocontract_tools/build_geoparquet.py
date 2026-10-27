@@ -242,17 +242,33 @@ def row_for(collection: dict, collection_url: str) -> dict[str, object]:
     }
 
 
-def load_rows() -> list[dict[str, object]]:
-    """Every generated collection as a row, sorted by id for determinism."""
+def load_rows_from(catalog_dir: Path, root: Path | None = None) -> list[dict[str, object]]:
+    """Every generated collection under catalog_dir as a row, sorted by id.
+
+    `root` anchors the relative collection_url recorded in each row: paths
+    under it stay relative, anything else falls back to a posix path. The
+    tracked build passes the repo root; the harvester sink passes its own
+    out dir (plan §5 PR B).
+    """
+    anchor = root if root is not None else ROOT
     rows: list[dict[str, object]] = []
-    for path in sorted(CATALOG_DIR.rglob("collection.json")):
+    for path in sorted(catalog_dir.rglob("collection.json")):
         collection = json.loads(path.read_text())
-        rows.append(row_for(collection, path.relative_to(ROOT).as_posix()))
+        try:
+            url = path.relative_to(anchor).as_posix()
+        except ValueError:
+            url = path.as_posix()
+        rows.append(row_for(collection, url))
     rows.sort(key=lambda row: str(row["id"]))
     ids = [str(row["id"]) for row in rows]
     if len(set(ids)) != len(ids):
-        raise ValueError(f"duplicate collection ids in {CATALOG_DIR}: {sorted(ids)}")
+        raise ValueError(f"duplicate collection ids in {catalog_dir}: {sorted(ids)}")
     return rows
+
+
+def load_rows() -> list[dict[str, object]]:
+    """Rows for the tracked catalog tree, the build-geoparquet default."""
+    return load_rows_from(CATALOG_DIR)
 
 
 def build_table(rows: list[dict[str, object]]) -> pa.Table:

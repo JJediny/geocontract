@@ -6,7 +6,7 @@ Usage:
 
 Options:
     --out <dir>           Output directory for JSONL sink (default: .harvest)
-    --sink <type>         Output sink: jsonl (default) or portolan
+    --sink <type>         Output sink: jsonl (default), portolan, or geoparquet
     --catalog-dir <dir>   Catalog directory for portolan sink (default: catalog)
 
 Examples:
@@ -31,7 +31,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from geocontract_tools.harvester import main
+from geocontract_tools.harvester import main  # noqa: E402
 
 if __name__ == "__main__":
     sys.exit(main())
