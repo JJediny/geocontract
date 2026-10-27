@@ -1,0 +1,9 @@
+PREFIX gc: <https://geocontract.dev/ontology/activity-concept-catalog#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT (COUNT(DISTINCT ?concept) AS ?count)
+WHERE {
+  ?concept a gc:ActivityConcept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:lifecycleStatus "active" .
+}

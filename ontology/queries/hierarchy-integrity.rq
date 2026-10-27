@@ -1,0 +1,35 @@
+PREFIX gc: <https://geocontract.dev/ontology/activity-concept-catalog#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+ASK {
+  {
+    ?concept skos:broader ?parent .
+    FILTER NOT EXISTS { ?parent a gc:ActivityConcept }
+  }
+  UNION
+  {
+    ?concept skos:broader ?parent .
+    FILTER NOT EXISTS { ?parent skos:narrower ?concept }
+  }
+  UNION
+  {
+    ?concept skos:narrower ?child .
+    FILTER NOT EXISTS { ?child skos:broader ?concept }
+  }
+  UNION
+  {
+    ?concept skos:broader ?parent .
+    ?parent gc:lifecycleStatus ?status .
+    FILTER(?status != "active")
+  }
+  UNION
+  {
+    ?concept skos:broader+ ?concept .
+  }
+  UNION
+  {
+    ?first gc:activityCode ?code .
+    ?second gc:activityCode ?code .
+    FILTER(STR(?first) < STR(?second))
+  }
+}

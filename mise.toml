@@ -27,6 +27,7 @@ MISE_DISABLE_TOOL_VERSIONS_FILE = "1"
 RASHID_SPEC = "rashid>=0.1.8,<0.2.0"
 PORTOLAN_CLI_SPEC = "portolan-cli==0.8.0"
 PORTOLAN_SCHEMA_URI = "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json"
+OPEN_ONTOLOGIES_VERSION = "2.1.0"
 
 # ── Tool versions (install via `mise install`) ───────────────────────────────
 [tools]
@@ -115,6 +116,12 @@ datacontract-lint = "for f in contracts/nepa-exclusions.datacontract.yaml contra
 fmt = "dprint fmt"
 fmt-check = "dprint check"
 
+# Build and validate the activity SKOS ontology with Open Ontologies.
+# The installer uses the pinned release binary to avoid a slow RocksDB source build.
+ontology-install = "bash scripts/install_open_ontologies.sh"
+ontology-build = "uv run python scripts/build_ontology.py"
+ontology-check = { depends = ["ontology-install", "ontology-build"], run = "uv run python scripts/check_ontology.py" }
+
 # Run the Python test suite (validator unit tests).
 test = "uv run pytest scripts/tests/ -v"
 
@@ -123,7 +130,7 @@ test = "uv run pytest scripts/tests/ -v"
 # (e.g. `ci = ["validate-odcs", ...]`) is treated by mise as shell
 # commands to execute, not task references, and fails with
 # "validate-odcs: not found".
-ci = { depends = ["drift-check", "validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "catalog-check", "dcat-check", "datacite-check", "geoparquet-check"] }
+ci = { depends = ["drift-check", "validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "ontology-check", "catalog-check", "dcat-check", "datacite-check", "geoparquet-check"] }
 
 # Run the full v2 core pipeline against the committed worked
 # example (scripts/tests/test_pipeline_end_to_end.py). Catches

@@ -1,0 +1,8 @@
+PREFIX gc: <https://geocontract.dev/ontology/activity-concept-catalog#>
+
+SELECT ?concept ?code
+WHERE {
+  ?concept a gc:ActivityConcept ;
+    gc:activityCode ?code .
+}
+ORDER BY ?code

@@ -1,0 +1,10 @@
+PREFIX gc: <https://geocontract.dev/ontology/activity-concept-catalog#>
+PREFIX gca: <https://geocontract.dev/ontology/activity/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?code
+WHERE {
+  ?concept skos:broader+ gca:housing.rehabilitation ;
+    gc:activityCode ?code .
+}
+ORDER BY ?code

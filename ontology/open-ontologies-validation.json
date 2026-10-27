@@ -1,0 +1,302 @@
+{
+  "source": "ontology/activity-concept-catalog.v1.0.json",
+  "ontology": "ontology/activity-concept-catalog.v1.0.ttl",
+  "shapes": "ontology/activity-concept-catalog.shacl.ttl",
+  "ok": true,
+  "tool": {
+    "name": "open-ontologies",
+    "version": "2.1.0"
+  },
+  "validation": {
+    "ontology": {
+      "ok": true,
+      "statements": 248,
+      "triples": 248
+    },
+    "shapes": {
+      "ok": true,
+      "statements": 68,
+      "triples": 68
+    },
+    "load": {
+      "ok": true,
+      "path": "ontology/activity-concept-catalog.v1.0.ttl",
+      "triples_loaded": 248
+    },
+    "stats": {
+      "classes": 3,
+      "data_properties": 5,
+      "individuals": 18,
+      "object_properties": 0,
+      "properties": 5,
+      "triples": 248
+    },
+    "lint": {
+      "issue_count": 0,
+      "issues": [],
+      "suppressed_count": 0
+    },
+    "shacl": {
+      "conforms": true,
+      "focus_nodes": 17,
+      "focus_nodes_by_target": [
+        {
+          "focus_nodes": 17,
+          "shape": "https://geocontract.dev/ontology/activity-concept-catalog#ActivityConceptShape",
+          "target": "https://geocontract.dev/ontology/activity-concept-catalog#ActivityConcept",
+          "target_form": "class"
+        }
+      ],
+      "scope": {
+        "complete": true,
+        "default_graph": true,
+        "note": "every graph in the store, the default graph included. On a store that keeps several versions of an entity in several named graphs this union is a state that held at no instant.",
+        "selector": "whole-store",
+        "semantics_version": "temporal/2"
+      },
+      "unmatched_shapes": [],
+      "violation_count": 0,
+      "violations": []
+    }
+  },
+  "queries": [
+    {
+      "path": "ontology/queries/active-concepts.rq",
+      "question": "How many concepts have lifecycleStatus active?",
+      "passed": true,
+      "result": {
+        "results": [
+          {
+            "count": "\"17\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+          }
+        ],
+        "variables": [
+          "count"
+        ]
+      }
+    },
+    {
+      "path": "ontology/queries/catalog-coverage.rq",
+      "question": "Which concept IRIs and codes does the complete catalog contain?",
+      "passed": true,
+      "result": {
+        "results": [
+          {
+            "code": "\"civic.event\"",
+            "concept": "<https://geocontract.dev/ontology/activity/civic.event>"
+          },
+          {
+            "code": "\"civic.event.public_assembly\"",
+            "concept": "<https://geocontract.dev/ontology/activity/civic.event.public_assembly>"
+          },
+          {
+            "code": "\"civic.infrastructure\"",
+            "concept": "<https://geocontract.dev/ontology/activity/civic.infrastructure>"
+          },
+          {
+            "code": "\"civic.infrastructure.sidewalk\"",
+            "concept": "<https://geocontract.dev/ontology/activity/civic.infrastructure.sidewalk>"
+          },
+          {
+            "code": "\"housing.new\"",
+            "concept": "<https://geocontract.dev/ontology/activity/housing.new>"
+          },
+          {
+            "code": "\"housing.new.accessory_dwelling\"",
+            "concept": "<https://geocontract.dev/ontology/activity/housing.new.accessory_dwelling>"
+          },
+          {
+            "code": "\"housing.new.single_family\"",
+            "concept": "<https://geocontract.dev/ontology/activity/housing.new.single_family>"
+          },
+          {
+            "code": "\"housing.rehabilitation\"",
+            "concept": "<https://geocontract.dev/ontology/activity/housing.rehabilitation>"
+          },
+          {
+            "code": "\"housing.rehabilitation.facade\"",
+            "concept": "<https://geocontract.dev/ontology/activity/housing.rehabilitation.facade>"
+          },
+          {
+            "code": "\"housing.rehabilitation.facade.lintel_replacement\"",
+            "concept": "<https://geocontract.dev/ontology/activity/housing.rehabilitation.facade.lintel_replacement>"
+          },
+          {
+            "code": "\"housing.rehabilitation.facade.repointing\"",
+            "concept": "<https://geocontract.dev/ontology/activity/housing.rehabilitation.facade.repointing>"
+          },
+          {
+            "code": "\"housing.rehabilitation.foundation\"",
+            "concept": "<https://geocontract.dev/ontology/activity/housing.rehabilitation.foundation>"
+          },
+          {
+            "code": "\"housing.rehabilitation.roof\"",
+            "concept": "<https://geocontract.dev/ontology/activity/housing.rehabilitation.roof>"
+          },
+          {
+            "code": "\"housing.rehabilitation.systems\"",
+            "concept": "<https://geocontract.dev/ontology/activity/housing.rehabilitation.systems>"
+          },
+          {
+            "code": "\"landuse.zoning\"",
+            "concept": "<https://geocontract.dev/ontology/activity/landuse.zoning>"
+          },
+          {
+            "code": "\"landuse.zoning.variance\"",
+            "concept": "<https://geocontract.dev/ontology/activity/landuse.zoning.variance>"
+          },
+          {
+            "code": "\"other.unspecified\"",
+            "concept": "<https://geocontract.dev/ontology/activity/other.unspecified>"
+          }
+        ],
+        "variables": [
+          "concept",
+          "code"
+        ]
+      }
+    },
+    {
+      "path": "ontology/queries/facade-by-alias.rq",
+      "question": "Which concept has the alias 'facade repair'?",
+      "passed": true,
+      "result": {
+        "results": [
+          {
+            "code": "\"housing.rehabilitation.facade\"",
+            "label": "\"Building façade rehabilitation\""
+          }
+        ],
+        "variables": [
+          "code",
+          "label"
+        ]
+      }
+    },
+    {
+      "path": "ontology/queries/hierarchy-integrity.rq",
+      "question": "Does the hierarchy contain an integrity violation?",
+      "passed": true,
+      "result": {
+        "result": false
+      }
+    },
+    {
+      "path": "ontology/queries/non-descriptive-status.rq",
+      "question": "Does any concept claim a non-descriptive regulatory status?",
+      "passed": true,
+      "result": {
+        "result": false
+      }
+    },
+    {
+      "path": "ontology/queries/rehabilitation-descendants.rq",
+      "question": "Which concepts are descendants of housing.rehabilitation?",
+      "passed": true,
+      "result": {
+        "results": [
+          {
+            "code": "\"housing.rehabilitation.facade\""
+          },
+          {
+            "code": "\"housing.rehabilitation.facade.lintel_replacement\""
+          },
+          {
+            "code": "\"housing.rehabilitation.facade.repointing\""
+          },
+          {
+            "code": "\"housing.rehabilitation.foundation\""
+          },
+          {
+            "code": "\"housing.rehabilitation.roof\""
+          },
+          {
+            "code": "\"housing.rehabilitation.systems\""
+          }
+        ],
+        "variables": [
+          "code"
+        ]
+      }
+    }
+  ],
+  "negative_shacl": [
+    {
+      "fixture": "duplicate-code-property",
+      "conforms": false,
+      "violation_count": 1
+    },
+    {
+      "fixture": "invalid-code",
+      "conforms": false,
+      "violation_count": 1
+    },
+    {
+      "fixture": "invalid-concept-reference",
+      "conforms": false,
+      "violation_count": 1
+    },
+    {
+      "fixture": "invalid-date-datatype",
+      "conforms": false,
+      "violation_count": 1
+    },
+    {
+      "fixture": "invalid-source-iri",
+      "conforms": false,
+      "violation_count": 1
+    },
+    {
+      "fixture": "missing-label",
+      "conforms": false,
+      "violation_count": 1
+    }
+  ],
+  "negative_queries": [
+    {
+      "fixture": "duplicate-code",
+      "query": "hierarchy-integrity.rq",
+      "result": true
+    },
+    {
+      "fixture": "hierarchy-cycle",
+      "query": "hierarchy-integrity.rq",
+      "result": true
+    },
+    {
+      "fixture": "missing-broader-reciprocal",
+      "query": "hierarchy-integrity.rq",
+      "result": true
+    },
+    {
+      "fixture": "missing-narrower-reciprocal",
+      "query": "hierarchy-integrity.rq",
+      "result": true
+    },
+    {
+      "fixture": "non-active-broader",
+      "query": "hierarchy-integrity.rq",
+      "result": true
+    },
+    {
+      "fixture": "non-descriptive-status",
+      "query": "non-descriptive-status.rq",
+      "result": true
+    },
+    {
+      "fixture": "unresolved-broader",
+      "query": "hierarchy-integrity.rq",
+      "result": true
+    },
+    {
+      "fixture": "unresolved-narrower",
+      "query": "hierarchy-integrity.rq",
+      "result": true
+    }
+  ],
+  "snapshot": {
+    "label": "activity-v1.0.0",
+    "ok": true,
+    "triple_count": 248
+  }
+}

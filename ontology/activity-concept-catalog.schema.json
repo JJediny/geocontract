@@ -28,7 +28,7 @@
         "properties": {
           "code": {
             "type": "string",
-            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)*$",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+$",
             "description": "Dotted-lowercase code, e.g. `housing.rehabilitation.facade`."
           },
           "preferredLabel": { "type": "string", "minLength": 1 },
@@ -37,7 +37,12 @@
           "narrower": { "type": "array", "default": [], "items": { "type": "string" } },
           "aliases": { "type": "array", "default": [], "items": { "type": "string" } },
           "jurisdiction": { "type": ["string", "null"], "default": null },
-          "sourceCitation": { "type": ["string", "null"], "default": null },
+          "sourceCitation": {
+            "type": ["string", "null"],
+            "format": "uri",
+            "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:",
+            "default": null
+          },
           "lifecycleStatus": {
             "type": "string",
             "enum": ["active", "candidate", "retired", "superseded"],
