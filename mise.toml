@@ -88,6 +88,18 @@ validate-datacite = "uv run python scripts/validate_odcs.py --datacite examples/
 # catalog-check and dcat-check to avoid the same race condition.
 datacite-check = { depends = ["build-datacite", "validate-datacite", "dcat-check"] }
 
+# Rebuild the STAC-GeoParquet portfolio file (issue #44, plan §5 PR A).
+# One row per generated collection; reads catalog/**/collection.json only.
+# Needs the dev extras (pyarrow, pyproj) — run through `uv run` like the
+# other builders. `--validate-only` revalidates without rebuilding.
+build-geoparquet = "uv run python scripts/build_geoparquet.py"
+validate-geoparquet = "uv run python scripts/build_geoparquet.py --validate-only"
+
+# geoparquet-check reads catalog/, so it chains after datacite-check the
+# same way datacite-check chains after dcat-check: the catalog-family
+# gates share the catalog/ tree and must not race each other.
+geoparquet-check = { depends = ["build-geoparquet", "validate-geoparquet", "datacite-check"] }
+
 # Cross-validate the bare-ODCS contracts with the upstream datacontract CLI
 # (a second-line check; equivalent to `datacontract lint` on each YAML).
 # The dcat-us-catalog contract is EXCLUDED because it uses the
@@ -111,7 +123,7 @@ test = "uv run pytest scripts/tests/ -v"
 # (e.g. `ci = ["validate-odcs", ...]`) is treated by mise as shell
 # commands to execute, not task references, and fails with
 # "validate-odcs: not found".
-ci = { depends = ["drift-check", "validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "catalog-check", "dcat-check", "datacite-check"] }
+ci = { depends = ["drift-check", "validate-odcs", "datacontract-lint", "fmt-check", "test", "pipeline-test", "catalog-check", "dcat-check", "datacite-check", "geoparquet-check"] }
 
 # Run the full v2 core pipeline against the committed worked
 # example (scripts/tests/test_pipeline_end_to_end.py). Catches
