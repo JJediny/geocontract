@@ -10,3 +10,6 @@
 [submodule "portolan-registry-qgis"]
 	path = portolan-registry-qgis
 	url = https://github.com/portolan-sdi/portolan-registry-qgis
+[submodule "open-ontologies"]
+	path = open-ontologies
+	url = https://github.com/JJediny/open-ontologies

@@ -1,0 +1,7 @@
+PREFIX gc: <https://geocontract.dev/ontology/activity-concept-catalog#>
+
+ASK {
+  ?concept a gc:ActivityConcept ;
+    gc:regulatoryStatus ?status .
+  FILTER(?status != "descriptive_only")
+}

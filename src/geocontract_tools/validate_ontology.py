@@ -13,6 +13,7 @@ The catalog is hand-curated; this module only enforces membership.
 from __future__ import annotations
 
 import json
+from collections import Counter
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -33,7 +34,7 @@ class ActivityOntology:
         self._codes: set[str] = set(self._by_code)
 
     @classmethod
-    def load(cls, path: str | Path) -> "ActivityOntology":
+    def load(cls, path: str | Path) -> ActivityOntology:
         path = Path(path)
         with path.open(encoding="utf-8") as fh:
             catalog = json.load(fh)
@@ -41,19 +42,46 @@ class ActivityOntology:
         schema_path = path.with_name("activity-concept-catalog.schema.json")
         with schema_path.open(encoding="utf-8") as fh:
             schema = json.load(fh)
-        Draft202012Validator(schema).validate(catalog)
-        # Cross-check that broader / narrower references resolve.
-        for c in catalog["concepts"]:
+        Draft202012Validator(schema, format_checker=Draft202012Validator.FORMAT_CHECKER).validate(catalog)
+        concepts = catalog["concepts"]
+        codes = [c["code"] for c in concepts]
+        duplicates = sorted(code for code, count in Counter(codes).items() if count > 1)
+        if duplicates:
+            raise OntologyError(f"duplicate activity concept codes: {duplicates}")
+        by_code = {c["code"]: c for c in concepts}
+
+        # Keep both JSON hierarchy views complete and consistent. The RDF
+        # projection exposes the same relations as skos:broader/narrower.
+        for c in concepts:
             for ref in c.get("broader", []):
-                if ref not in {x["code"] for x in catalog["concepts"]}:
-                    raise OntologyError(
-                        f"concept {c['code']!r} has unresolved broader {ref!r}"
-                    )
+                if ref not in by_code:
+                    raise OntologyError(f"concept {c['code']!r} has unresolved broader {ref!r}")
+                if by_code[ref]["lifecycleStatus"] != "active":
+                    raise OntologyError(f"concept {c['code']!r} has non-active broader {ref!r}")
+                if c["code"] not in by_code[ref].get("narrower", []):
+                    raise OntologyError(f"concept {c['code']!r} is missing from narrower on broader {ref!r}")
             for ref in c.get("narrower", []):
-                if ref not in {x["code"] for x in catalog["concepts"]}:
-                    raise OntologyError(
-                        f"concept {c['code']!r} has unresolved narrower {ref!r}"
-                    )
+                if ref not in by_code:
+                    raise OntologyError(f"concept {c['code']!r} has unresolved narrower {ref!r}")
+                if c["code"] not in by_code[ref].get("broader", []):
+                    raise OntologyError(f"concept {c['code']!r} is missing from broader on narrower {ref!r}")
+
+        visited: set[str] = set()
+        visiting: set[str] = set()
+
+        def visit(code: str) -> None:
+            if code in visiting:
+                raise OntologyError(f"activity concept hierarchy contains a cycle at {code!r}")
+            if code in visited:
+                return
+            visiting.add(code)
+            for parent in by_code[code].get("broader", []):
+                visit(parent)
+            visiting.remove(code)
+            visited.add(code)
+
+        for code in by_code:
+            visit(code)
         return cls(catalog)
 
     @property

@@ -84,6 +84,16 @@ jobs:
       - name: Run the full validation suite
         run: mise run ci
 
+      # Ontology gate: the generated SKOS projection and validation report
+      # must match the curated JSON catalog, shapes, and queries.
+      - name: Check ontology artifacts are up to date
+        run: |
+          if [[ -n "$(git status --porcelain ontology/)" ]]; then
+            echo "Error: ontology/ is not up to date. Run 'mise run ontology-check' and commit the changes."
+            git status --porcelain ontology/
+            exit 1
+          fi
+
       # Catalog gates: the generated STAC tree must match its inputs
       # (contracts + manifest) and pass the Portolan validator.
       - name: Build catalog

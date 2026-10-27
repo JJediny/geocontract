@@ -117,6 +117,10 @@ Edit the contract or the manifest, then run `mise run catalog-build`.
 Never hand-edit generated JSON. The same rule already applies to
 `models/*.canonical.graphql`, which `mise run generate-graphql` produces.
 
+`ontology/activity-concept-catalog.v1.0.ttl` and
+`ontology/open-ontologies-validation.json` are also generated. Edit the JSON
+catalog or the SHACL/query inputs, then run `mise run ontology-check`.
+
 `README.md` and `AGENTS.md` inside `catalog/` are curated. The generator
 seeds them once and then leaves them alone.
 
@@ -158,7 +162,8 @@ re-deriving their workflows:
 | Integrate citizen proposals | `skills/citizen-proposals/` |
 
 Read `docs/plan-portolan-catalog-integration.md` §14 for the phase-to-skill
-map.
+map. For RDF/OWL work, follow `open-ontologies/SKILL.md`: generate, validate,
+load, check stats, lint, query, iterate, and persist.
 
 ### Pull requests in this repo
 

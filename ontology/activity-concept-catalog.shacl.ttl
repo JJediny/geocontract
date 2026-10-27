@@ -1,0 +1,72 @@
+@prefix gc: <https://geocontract.dev/ontology/activity-concept-catalog#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+gc:ActivityConceptShape a sh:NodeShape ;
+    sh:targetClass gc:ActivityConcept ;
+    sh:property [
+        sh:path gc:activityCode ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+$"
+    ] ;
+    sh:property [
+        sh:path skos:prefLabel ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string
+    ] ;
+    sh:property [
+        sh:path skos:definition ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string
+    ] ;
+    sh:property [
+        sh:path skos:inScheme ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:hasValue gc:activity-concept-catalog
+    ] ;
+    sh:property [
+        sh:path skos:altLabel ;
+        sh:datatype xsd:string
+    ] ;
+    sh:property [
+        sh:path skos:broader ;
+        sh:class gc:ActivityConcept
+    ] ;
+    sh:property [
+        sh:path skos:narrower ;
+        sh:class gc:ActivityConcept
+    ] ;
+    sh:property [
+        sh:path gc:jurisdictionCode ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string
+    ] ;
+    sh:property [
+        sh:path dcterms:source ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI
+    ] ;
+    sh:property [
+        sh:path gc:lifecycleStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ("active" "candidate" "retired" "superseded")
+    ] ;
+    sh:property [
+        sh:path gc:regulatoryStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ("descriptive_only" "jurisdictional_advisory" "deprecated")
+    ] ;
+    sh:property [
+        sh:path gc:deprecatedAfter ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:date
+    ] .

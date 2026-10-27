@@ -1,0 +1,254 @@
+@prefix gc: <https://geocontract.dev/ontology/activity-concept-catalog#> .
+@prefix gca: <https://geocontract.dev/ontology/activity/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://geocontract.dev/ontology/activity-concept-catalog> a owl:Ontology ;
+    rdfs:label "Geocontract activity concept ontology" ;
+    rdfs:comment "Hand-curated v1.0 catalog of ActivityConcept rows used to validate the `activity.code` field on a ProposedAction. The federal CATEX catalogue (https://ce.permitting.innovation.gov/data/exclusions.json) is consumed strictly as one source citation per row; this catalog does not endorse, exempt, or approve any activity for any specific proposal, parcel, applicant, or jurisdiction." ;
+    dcterms:issued "2026-09-12"^^xsd:date ;
+    dcterms:publisher "geocontract" ;
+    owl:versionInfo "1.0.0" .
+
+gc:ActivityConcept a owl:Class ;
+    rdfs:label "Activity concept" ;
+    rdfs:comment "A descriptive activity term that a proposal may reference. Membership does not grant regulatory approval." .
+
+gc:activityCode a owl:DatatypeProperty ;
+    rdfs:label "activity code" ;
+    rdfs:comment "The stable dotted code used by proposal.activity.code." ;
+    rdfs:domain gc:ActivityConcept ;
+    rdfs:range xsd:string .
+
+gc:jurisdictionCode a owl:DatatypeProperty ;
+    rdfs:label "jurisdiction code" ;
+    rdfs:comment "An optional jurisdictional scope for a concept." ;
+    rdfs:domain gc:ActivityConcept ;
+    rdfs:range xsd:string .
+
+gc:lifecycleStatus a owl:DatatypeProperty ;
+    rdfs:label "lifecycle status" ;
+    rdfs:comment "The curation state of this concept, independent of any proposal or permit decision." ;
+    rdfs:domain gc:ActivityConcept ;
+    rdfs:range xsd:string .
+
+gc:regulatoryStatus a owl:DatatypeProperty ;
+    rdfs:label "regulatory status" ;
+    rdfs:comment "A description of vocabulary status only. It never asserts approval, exemption, or endorsement." ;
+    rdfs:domain gc:ActivityConcept ;
+    rdfs:range xsd:string .
+
+gc:deprecatedAfter a owl:DatatypeProperty ;
+    rdfs:label "deprecated after" ;
+    rdfs:comment "The first date on which the concept is not valid for new proposals." ;
+    rdfs:domain gc:ActivityConcept ;
+    rdfs:range xsd:date .
+
+gc:activity-concept-catalog a skos:ConceptScheme ;
+    rdfs:label "Geocontract activity concept catalog" ;
+    rdfs:comment "Hand-curated v1.0 catalog of ActivityConcept rows used to validate the `activity.code` field on a ProposedAction. The federal CATEX catalogue (https://ce.permitting.innovation.gov/data/exclusions.json) is consumed strictly as one source citation per row; this catalog does not endorse, exempt, or approve any activity for any specific proposal, parcel, applicant, or jurisdiction." ;
+    dcterms:issued "2026-09-12"^^xsd:date ;
+    dcterms:publisher "geocontract" ;
+    owl:versionInfo "1.0.0" ;
+    skos:hasTopConcept gca:civic.event, gca:civic.infrastructure, gca:housing.new, gca:housing.rehabilitation, gca:landuse.zoning, gca:other.unspecified .
+
+gca:civic.event a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "civic.event" ;
+    skos:prefLabel "Civic event (umbrella)" ;
+    skos:definition "Umbrella category for civic events." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "events" ;
+    skos:narrower gca:civic.event.public_assembly ;
+    skos:topConceptOf gc:activity-concept-catalog .
+
+gca:civic.event.public_assembly a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "civic.event.public_assembly" ;
+    skos:prefLabel "Public assembly event" ;
+    skos:definition "An event open to the public, requiring temporary occupancy of a public space (park, plaza, street)." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "block party" ;
+    skos:altLabel "festival" ;
+    skos:altLabel "parade" ;
+    skos:broader gca:civic.event .
+
+gca:civic.infrastructure a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "civic.infrastructure" ;
+    skos:prefLabel "Civic infrastructure (umbrella)" ;
+    skos:definition "Umbrella category for public-facing infrastructure work." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "public works" ;
+    skos:narrower gca:civic.infrastructure.sidewalk ;
+    skos:topConceptOf gc:activity-concept-catalog .
+
+gca:civic.infrastructure.sidewalk a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "civic.infrastructure.sidewalk" ;
+    skos:prefLabel "Sidewalk installation or repair" ;
+    skos:definition "Construction, repair, or replacement of a pedestrian sidewalk on a public right-of-way or private property." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "sidewalk installation" ;
+    skos:altLabel "sidewalk repair" ;
+    skos:broader gca:civic.infrastructure .
+
+gca:housing.new a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "housing.new" ;
+    skos:prefLabel "New housing construction (umbrella)" ;
+    skos:definition "Umbrella category for new residential construction." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "new construction" ;
+    skos:narrower gca:housing.new.accessory_dwelling, gca:housing.new.single_family ;
+    skos:topConceptOf gc:activity-concept-catalog .
+
+gca:housing.new.accessory_dwelling a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "housing.new.accessory_dwelling" ;
+    skos:prefLabel "Accessory dwelling unit (ADU)" ;
+    skos:definition "Construction of a secondary dwelling (in-law suite, granny flat, backyard cottage) on a parcel with an existing primary residence." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "ADU" ;
+    skos:altLabel "backyard cottage" ;
+    skos:altLabel "granny flat" ;
+    skos:altLabel "in-law suite" ;
+    skos:broader gca:housing.new .
+
+gca:housing.new.single_family a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "housing.new.single_family" ;
+    skos:prefLabel "New single-family residence" ;
+    skos:definition "Construction of a new detached single-family dwelling on a previously undeveloped or demolished parcel." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "new build" ;
+    skos:altLabel "spec home" ;
+    skos:broader gca:housing.new .
+
+gca:housing.rehabilitation a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "housing.rehabilitation" ;
+    skos:prefLabel "Housing rehabilitation (umbrella)" ;
+    skos:definition "Umbrella category for any repair, restoration, or upgrade to an existing residential building that does not change its use or footprint." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "home repair" ;
+    skos:altLabel "property rehabilitation" ;
+    skos:narrower gca:housing.rehabilitation.facade, gca:housing.rehabilitation.foundation, gca:housing.rehabilitation.roof, gca:housing.rehabilitation.systems ;
+    skos:topConceptOf gc:activity-concept-catalog .
+
+gca:housing.rehabilitation.facade a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "housing.rehabilitation.facade" ;
+    skos:prefLabel "Building façade rehabilitation" ;
+    skos:definition "Repair, repoint, or replace the exterior façade of a residential building, including lintels, cornices, and decorative elements." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "facade repair" ;
+    skos:altLabel "lintel replacement" ;
+    skos:altLabel "masonry repointing" ;
+    dcterms:source <https://ce.permitting.innovation.gov/data/exclusions.json> ;
+    skos:broader gca:housing.rehabilitation ;
+    skos:narrower gca:housing.rehabilitation.facade.lintel_replacement, gca:housing.rehabilitation.facade.repointing .
+
+gca:housing.rehabilitation.facade.lintel_replacement a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "housing.rehabilitation.facade.lintel_replacement" ;
+    skos:prefLabel "Lintel replacement" ;
+    skos:definition "Replacement of steel or stone lintels above window or door openings in a residential building." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "header replacement" ;
+    skos:altLabel "lintel replacement" ;
+    skos:broader gca:housing.rehabilitation.facade .
+
+gca:housing.rehabilitation.facade.repointing a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "housing.rehabilitation.facade.repointing" ;
+    skos:prefLabel "Mortar repointing" ;
+    skos:definition "Replacement of failed mortar joints in masonry walls without altering the wall's structural fabric." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "repointing" ;
+    skos:altLabel "tuckpointing" ;
+    skos:broader gca:housing.rehabilitation.facade .
+
+gca:housing.rehabilitation.foundation a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "housing.rehabilitation.foundation" ;
+    skos:prefLabel "Foundation repair" ;
+    skos:definition "Repair or stabilisation of an existing building's foundation, including crack injection, underpinning, or footing replacement." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "foundation repair" ;
+    skos:altLabel "underpinning" ;
+    skos:broader gca:housing.rehabilitation .
+
+gca:housing.rehabilitation.roof a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "housing.rehabilitation.roof" ;
+    skos:prefLabel "Roof rehabilitation" ;
+    skos:definition "Repair or replacement of the roof covering, sheathing, flashing, gutters, or soffits of a residential building." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "reroof" ;
+    skos:altLabel "roof repair" ;
+    skos:altLabel "roofing" ;
+    dcterms:source <https://ce.permitting.innovation.gov/data/exclusions.json#catex.HUD.24CFR50.4> ;
+    skos:broader gca:housing.rehabilitation .
+
+gca:housing.rehabilitation.systems a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "housing.rehabilitation.systems" ;
+    skos:prefLabel "Building systems rehabilitation" ;
+    skos:definition "Repair or replacement of mechanical, electrical, plumbing, or HVAC systems within an existing residential building." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "HVAC replacement" ;
+    skos:altLabel "replumbing" ;
+    skos:altLabel "rewiring" ;
+    skos:broader gca:housing.rehabilitation .
+
+gca:landuse.zoning a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "landuse.zoning" ;
+    skos:prefLabel "Land-use zoning (umbrella)" ;
+    skos:definition "Umbrella category for land-use zoning matters." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "zoning" ;
+    skos:narrower gca:landuse.zoning.variance ;
+    skos:topConceptOf gc:activity-concept-catalog .
+
+gca:landuse.zoning.variance a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "landuse.zoning.variance" ;
+    skos:prefLabel "Zoning variance" ;
+    skos:definition "Request for relief from a specific zoning dimensional requirement (setback, height, lot coverage)." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "dimensional relief" ;
+    skos:altLabel "variance" ;
+    skos:broader gca:landuse.zoning .
+
+gca:other.unspecified a gc:ActivityConcept, skos:Concept ;
+    skos:inScheme gc:activity-concept-catalog ;
+    gc:activityCode "other.unspecified" ;
+    skos:prefLabel "Other (uncategorised)" ;
+    skos:definition "Catch-all for activities that do not fit any other catalog row. Partner reviewers should refine the proposal into a more specific row." ;
+    gc:lifecycleStatus "active" ;
+    gc:regulatoryStatus "descriptive_only" ;
+    skos:altLabel "misc" ;
+    skos:altLabel "other" ;
+    skos:topConceptOf gc:activity-concept-catalog .

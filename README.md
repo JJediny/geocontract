@@ -34,6 +34,9 @@ the PIC NEPA Data Standard.**
 | `examples/groton-rhine-002.example.data.yaml`              | YAML serialization of the full-coverage canonical Proposal.             |
 | `ontology/activity-concept-catalog.v1.0.json`             | Hand-curated activity ontology catalog (v2 §4.3).                       |
 | `ontology/activity-concept-catalog.schema.json`           | JSON-Schema for the catalog.                                            |
+| `ontology/activity-concept-catalog.v1.0.ttl`              | Generated SKOS projection; build with `mise run ontology-build`.        |
+| `ontology/activity-concept-catalog.shacl.ttl`             | SHACL constraints for every projected activity concept.                 |
+| `ontology/open-ontologies-validation.json`                | Generated Open Ontologies validation and competency-check evidence.     |
 | `src/geocontract_tools/canonicalize.py`                   | RFC 8785-style JCS canonicalisation (v2 §5.7).                         |
 | `src/geocontract_tools/validate_proof.py`                 | Detached proof envelope validator (v2 §5.7).                          |
 | `src/geocontract_tools/validate_ontology.py`              | ActivityConcept catalog membership validator (v2 §4.3).                 |
@@ -57,6 +60,7 @@ the PIC NEPA Data Standard.**
 | `prek.toml`                                                | Pre-commit / pre-push hook config.                                      |
 | `docs/design-harvester.md`                                 | Future-planning design notes for the federated harvester.              |
 | `docs/plan-citizen-permitting-standard.md`                 | Implementation plan v2 for the citizen-initiated Proposal flow.        |
+| `docs/plan-open-ontologies-integration.md`                 | Ontology implementation review and explicit acceptance criteria.       |
 | `docs/agent-review-response.md`                            | Reviewer feedback that prompted v1 → v2 revision.                       |
 | `external/exclusions.json`                                 | Snapshot of the federal CATEX catalogue (4 MB).                         |
 | `external/odcs-json-schema-v3.1.0.json`                    | Pinned copy of the ODCS v3.1.0 canonical JSON Schema.                   |
@@ -238,6 +242,7 @@ mise install           # install python, rust, node, dprint (datacontract runs v
 uv sync                # install Python deps
 prek install           # install pre-commit + pre-push hooks
 mise run vendor-jxql   # build jxql from ../json-schema-x-graphql into .tools/
+mise run ontology-install  # install the pinned Open Ontologies release binary
 ```
 
 ### Validate everything
@@ -247,7 +252,8 @@ mise run validate-odcs    # validate every contract against the canonical schema
 mise run fmt              # run dprint on JSON/YAML/Markdown/TOML
 mise run fmt-check        # CI variant of fmt (no writes)
 mise run test             # run pytest
-mise run ci               # all three
+mise run ontology-check   # build, load, lint, SHACL-validate, and query the SKOS ontology
+mise run ci               # run the full validation suite
 ```
 
 ### Validate a single contract
@@ -278,11 +284,12 @@ uv run geocontract-validate --shim contracts/shim/pic-standards.datacontract-shi
 | ---------------------- | ----------------- | ---------------------------------------- |
 | Python 3.13            | `mise.toml`       | uv, ruff, pytest                         |
 | uv                     | (system PATH)     | Python project + deps                    |
-| Rust 1.85              | `mise.toml`       | building `jxql` from source              |
+| Rust 1.88              | `mise.toml`       | building `jxql` from source              |
 | Node 22                | `mise.toml`       | pnpm                                     |
 | pnpm                   | (system PATH)     | installing dprint                        |
 | `datacontract-cli` 0.10.21 | `mise.toml` (run via `uvx`) | cross-validating YAML contracts          |
 | `npm:dprint` 0.47.5    | `mise.toml`       | formatting JSON/YAML/Markdown/TOML       |
+| Open Ontologies 2.1.0  | `mise.toml`       | RDF validation, SHACL, SPARQL, and MCP    |
 | `prek`                 | (system PATH)     | pre-commit hooks                         |
 | `pyyaml`, `jsonschema` | `pyproject.toml`  | the validator                            |
 

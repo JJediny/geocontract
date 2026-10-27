@@ -381,6 +381,12 @@ The validator enforces:
 - `deprecatedAfter` not in the past.
 - `regulatoryStatus ∈ { descriptive_only, jurisdictional_advisory, deprecated }`.
 
+The JSON catalog remains the source of truth. A deterministic SKOS projection,
+SHACL shapes, and SPARQL competency checks make the same catalog usable by
+RDF/OWL tools. `mise run ontology-check` validates that projection with Open
+Ontologies. This adds semantic tooling; it does not infer regulatory approval.
+See `docs/plan-open-ontologies-integration.md`.
+
 ### 4.4 NLP corpus / starred-projects scan (moved to §13.3)
 
 v1 §4.4's enrichment sources (including the user's starred

@@ -1,0 +1,1 @@
+{ "mcpServers": { "open-ontologies": { "command": ".tools/open-ontologies/bin/open-ontologies", "args": ["serve"] } } }

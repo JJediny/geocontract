@@ -7,6 +7,7 @@ from datetime import date
 from pathlib import Path
 
 import pytest
+from jsonschema import ValidationError
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -40,11 +41,6 @@ def test_unknown_code_rejected(ontology: ActivityOntology) -> None:
     with pytest.raises(OntologyError, match="not found"):
         ontology.validate_code("not.in.ontology")
 
-
-def test_underscore_does_not_match_dot_pattern(ontology: ActivityOntology) -> None:
-    """A single-segment code with no dots must be rejected."""
-    with pytest.raises(OntologyError):
-        ontology.validate_code("housing")
 
 
 def test_deprecated_code_rejected() -> None:
@@ -102,3 +98,105 @@ def test_no_token_codes_in_core(ontology: ActivityOntology) -> None:
         assert "token" not in code.lower()
         assert "fundrais" not in code.lower()
         assert "coin" not in code.lower()
+
+
+def _load_rows(tmp_path: Path, rows: list[dict]) -> ActivityOntology:
+    import json
+
+    catalog = json.loads(CATALOG_PATH.read_text())
+    catalog["concepts"] = rows
+    path = tmp_path / "catalog.json"
+    path.write_text(json.dumps(catalog))
+    schema = CATALOG_PATH.with_name("activity-concept-catalog.schema.json")
+    (tmp_path / schema.name).write_text(schema.read_text())
+    return ActivityOntology.load(path)
+
+
+def _row(code: str, *, broader: list[str] | None = None, narrower: list[str] | None = None, status: str = "active") -> dict:
+    return {
+        "code": code,
+        "preferredLabel": code,
+        "definition": f"Definition for {code}.",
+        "broader": broader or [],
+        "narrower": narrower or [],
+        "regulatoryStatus": "descriptive_only",
+        "lifecycleStatus": status,
+    }
+
+
+def test_duplicate_code_rejected(tmp_path: Path) -> None:
+    import json
+
+    rows = json.loads(CATALOG_PATH.read_text())["concepts"]
+    with pytest.raises(OntologyError, match="duplicate"):
+        _load_rows(tmp_path, rows + [rows[0]])
+
+
+def test_non_active_broader_rejected(tmp_path: Path) -> None:
+    rows = [
+        _row("test.parent", narrower=["test.child"], status="retired"),
+        _row("test.child", broader=["test.parent"]),
+    ]
+    with pytest.raises(OntologyError, match="non-active broader"):
+        _load_rows(tmp_path, rows)
+
+
+def test_asymmetric_hierarchy_rejected(tmp_path: Path) -> None:
+    rows = [_row("test.parent"), _row("test.child", broader=["test.parent"])]
+    with pytest.raises(OntologyError, match="missing from narrower"):
+        _load_rows(tmp_path, rows)
+
+
+def test_hierarchy_cycle_rejected(tmp_path: Path) -> None:
+    rows = [
+        _row("test.parent", broader=["test.child"], narrower=["test.child"]),
+        _row("test.child", broader=["test.parent"], narrower=["test.parent"]),
+    ]
+    with pytest.raises(OntologyError, match="cycle"):
+        _load_rows(tmp_path, rows)
+
+
+def test_malformed_deprecation_date_rejected_at_load(tmp_path: Path) -> None:
+    row = _row("test.child")
+    row["deprecatedAfter"] = "not-a-date"
+    with pytest.raises(ValidationError, match="deprecatedAfter"):
+        _load_rows(tmp_path, [row])
+
+
+def test_single_segment_code_rejected_at_load(tmp_path: Path) -> None:
+    with pytest.raises(ValidationError, match="code"):
+        _load_rows(tmp_path, [_row("housing")])
+
+
+def test_relative_source_citation_rejected_at_load(tmp_path: Path) -> None:
+    row = _row("test.child")
+    row["sourceCitation"] = "relative/path"
+    with pytest.raises(ValidationError, match="sourceCitation"):
+        _load_rows(tmp_path, [row])
+
+
+@pytest.mark.parametrize("status", ["candidate", "retired", "superseded"])
+def test_inactive_code_rejected(tmp_path: Path, status: str) -> None:
+    ont = _load_rows(tmp_path, [_row("test.child", status=status)])
+    with pytest.raises(OntologyError, match="not active"):
+        ont.validate_code("test.child")
+
+
+def test_deprecation_boundary_is_exclusive(tmp_path: Path) -> None:
+    row = _row("test.child")
+    row["deprecatedAfter"] = "2026-01-01"
+    ont = _load_rows(tmp_path, [row])
+    assert ont.validate_code("test.child", today=date(2025, 12, 31))["code"] == "test.child"
+    with pytest.raises(OntologyError, match="deprecated"):
+        ont.validate_code("test.child", today=date(2026, 1, 1))
+
+
+def test_unresolved_narrower_rejected(tmp_path: Path) -> None:
+    with pytest.raises(OntologyError, match="unresolved narrower"):
+        _load_rows(tmp_path, [_row("test.parent", narrower=["test.missing"])])
+
+
+def test_missing_broader_reciprocal_rejected(tmp_path: Path) -> None:
+    rows = [_row("test.parent", narrower=["test.child"]), _row("test.child")]
+    with pytest.raises(OntologyError, match="missing from broader"):
+        _load_rows(tmp_path, rows)
