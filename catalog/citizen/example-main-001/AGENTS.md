@@ -1,12 +1,12 @@
-# Agent Guidance, Groton Rhine St. Façade Repair — Worked Example (v2)
+# Agent Guidance, Main St. Façade Repair — Worked Example (v2)
 
 This is a citizen-initiated proposal originated by geocontract.
 
 ## Metadata
 
-- Contract ID: groton-rhine-001
+- Contract ID: example-main-001
 - Version: 0.2.0
-- Jurisdiction: us-ct-groton
+- Jurisdiction: us-ct-example
 - Access Class: public
 
 ## Data

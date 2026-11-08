@@ -29,7 +29,7 @@ contract YAML.
 
 Rows carry the **bbox as emitted in the generated STAC**, never a
 re-derived one from the contract or manifest. The manifest deliberately
-coarsens citizen-contract bboxes (`groton-rhine-001` is parcel-precise in
+coarsens citizen-contract bboxes (`example-main-001` is parcel-precise in
 its ODCS schema; the manifest comment says re-deriving would re-expose
 what the projection removed). The generator already applies the right
 coarsening. Re-deriving in the Parquet step would leak precise parcels.
@@ -152,7 +152,7 @@ static sidecar is ever built.
    chains after the catalog-family gates), then add `geoparquet-check`
    to the `ci` depends list.
 7. Tests: row-count parity, bbox round-trip for all six collections
-   (including the coarsened `groton-rhine-001`), metadata assertions,
+   (including the coarsened `example-main-001`), metadata assertions,
    byte-stable rebuild.
 
 ### PR B — `feat(harvest): --sink geoparquet`
@@ -173,7 +173,7 @@ static sidecar is ever built.
 Short guide: where the file lands after publish, how to filter it with
 duckdb/`httpfs` range reads (copy the s2-stac-geoparquet query pattern),
 and the bbox-provenance warning for downstream users of
-`groton-rhine-001`.
+`example-main-001`.
 
 ## 6. Relation to the open backlog
 

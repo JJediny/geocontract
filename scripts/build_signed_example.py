@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the full-coverage signed Proposal example.
 
-Produces ``examples/groton-rhine-002.example.data.json`` (a second
+Produces ``examples/example-main-002.example.data.json`` (a second
 worked example) with every supported field populated and a real
 Ed25519 detached proof envelope attached. The signature is over
 RFC 8785-style JCS of the proposal with ``proof`` excluded.
@@ -29,12 +29,12 @@ byte-identical JSON and YAML files because:
 from __future__ import annotations
 
 import base64
-import datetime as dt
 import hashlib
 import json
 import sys
 from pathlib import Path
 
+import base58  # test-only: not a runtime dependency of the validator
 import yaml
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
@@ -43,8 +43,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from geocontract_tools.canonicalize import (  # noqa: E402
-    canonicalize_proof_input,
     canonicalize_for_signing,
+    canonicalize_proof_input,
 )
 from geocontract_tools.validate_ontology import ActivityOntology  # noqa: E402
 
@@ -56,8 +56,6 @@ from geocontract_tools.validate_ontology import ActivityOntology  # noqa: E402
 #   did:key:z6Mkon3Necd6NkkyfoGoHxid2znGc59LU3K7mubaRcFbLfLX
 #
 # ⚠ TEST ONLY. Never use this keypair in production.
-import base58  # local import: the test-only build script pulls base58
-                # on demand. Not a runtime dependency of the validator.
 TEST_PRIV_SEED = b"\x01" * 32
 TEST_PUB_HEX = "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c"
 TEST_PRIV = Ed25519PrivateKey.from_private_bytes(TEST_PRIV_SEED)
@@ -65,8 +63,8 @@ TEST_PUB = TEST_PRIV.public_key().public_bytes_raw()
 assert TEST_PUB.hex() == TEST_PUB_HEX, "test keypair drift"
 TEST_DID = "did:key:z" + base58.b58encode(b"\xed\x01" + TEST_PUB).decode("ascii")
 
-OUTPUT_PATH = ROOT / "examples" / "groton-rhine-002.example.data.json"
-YAML_OUTPUT_PATH = ROOT / "examples" / "groton-rhine-002.example.data.yaml"
+OUTPUT_PATH = ROOT / "examples" / "example-main-002.example.data.json"
+YAML_OUTPUT_PATH = ROOT / "examples" / "example-main-002.example.data.yaml"
 
 
 def _b64(b: bytes) -> str:
@@ -77,16 +75,16 @@ def _build_proposal_body() -> dict:
     """Build the full-coverage Proposal body (no proof yet)."""
     now = "2026-09-12T14:30:00-04:00"  # FIXED for reproducibility
     return {
-        "id": "groton-rhine-002",
+        "id": "example-main-002",
         "schemaVersion": "2.0.0",
         "createdAt": now,
         # ── Applicant — RESTRICTED ───────────────────────────────────
         "applicant": {
-            "displayName": "Jane Groton-Resident",
+            "displayName": "Jane Example-Resident",
             "contactEmail": "jane@example.invalid",
             "residencyProof": {
                 "kind": "municipal_vc",
-                "credentialRef": "ipfs://bafy...groton-residency-vc",
+                "credentialRef": "ipfs://bafy...example-residency-vc",
                 "issuerDid": TEST_DID,  # re-use the test DID for the issuer placeholder
                 "validUntil": "2027-12-31",
             },
@@ -97,8 +95,8 @@ def _build_proposal_body() -> dict:
         },
         # ── Parcel — typed reference (plan §5.9) ────────────────────
         "parcel": {
-            "jurisdiction": "us-ct-groton",
-            "parcelAuthority": "https://permits.groton-ct.gov/parcels/",
+            "jurisdiction": "us-ct-example",
+            "parcelAuthority": "https://permits.example-ct.gov/parcels/",
             "authoritativeParcelId": "M:124 B:45 L:679",
             "authorityRecordVersion": "2026-09-01",
             "authorityRetrievedAt": now,
@@ -110,7 +108,7 @@ def _build_proposal_body() -> dict:
             ),
             "snapshotHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
             "ownershipStatus": "owner_verified",
-            "address": "44 Rhine Street, Groton, CT 06340",
+            "address": "44 Main Street, Example Town, CT 06400",
         },
         # ── Activity — ontology code (plan §4.3) ────────────────────
         "activity": {

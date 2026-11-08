@@ -1,11 +1,11 @@
-# ODCS v3.1.0 Data Contract — Groton Rhine St. Façade Repair (v2 Canonical)
+# ODCS v3.1.0 Data Contract — Main St. Façade Repair (v2 Canonical)
 #
 # Source: citizen-initiated worked example for the citizen-permitting flow.
 # Companion to: docs/plan-citizen-permitting-standard.md §3, §3.6, §5.
 #
 # Mirrors: geocontract/templates/proposed-action.template.schema.json (nested JSON)
 #          ontology/activity-concept-catalog.v1.0.json
-# Companion: contracts/shim/groton-rhine-001.datacontract-shim.json
+# Companion: contracts/shim/example-main-001.datacontract-shim.json
 #
 # This contract uses only ODCS v3.1.0 primitive fields — no geocontract
 # extensions. The schema below is the ODCS-FLATTEN projection of the
@@ -17,23 +17,23 @@
 
 apiVersion: v3.1.0
 kind: DataContract
-id: groton-rhine-001
-name: "Groton Rhine St. Façade Repair — Worked Example (v2)"
+id: example-main-001
+name: "Main St. Façade Repair — Worked Example (v2)"
 version: 0.2.0
 status: draft
-tenant: us-ct-groton
+tenant: us-ct-example
 domain: housing-rehabilitation
 
 description:
   purpose: |
     v2 canonical worked example for the citizen-permitting flow. A
-    resident of Groton, CT (fictional) proposes repairing the
-    masonry façade of a property at 42 Rhine Street. The action
+    resident of Example Town, CT (fictional) proposes repairing the
+    masonry façade of a property at 42 Main Street. The action
     covers repointing of failed mortar joints, replacement of
     three cracked lintels, and reattachment of a decorative cornice.
   usage: |
     Validates against the bare ODCS v3.1.0 schema. The companion
-    shim file (contracts/shim/groton-rhine-001.datacontract-shim.json)
+    shim file (contracts/shim/example-main-001.datacontract-shim.json)
     records the governance / quality / SLA / lineage metadata that
     is not represented in the ODCS body.
   limitations: |
@@ -47,7 +47,7 @@ description:
 tags:
   - geocontract
   - citizen-initiated
-  - groton
+  - example
   - housing-rehabilitation
   - facade-repair
   - proposed-action
@@ -56,9 +56,9 @@ tags:
 servers:
   # Citizen-initiated contracts typically do not have a public data
   # endpoint of their own. The YAML file is the canonical artifact.
-  - server: groton-rhine-001-yaml
+  - server: example-main-001-yaml
     type: local
-    path: "./groton-rhine-001.datacontract.yaml"
+    path: "./example-main-001.datacontract.yaml"
     format: yaml
     description: |
       Citizen-initiated proposal; no public server. The canonical
@@ -95,7 +95,7 @@ schema:
         criticalDataElement: true
         description: "Globally unique proposal id (kebab-case, 3–63 chars)."
         examples:
-          - "groton-rhine-001"
+          - "example-main-001"
         quality:
           - type: library
             dimension: uniqueness
@@ -147,7 +147,7 @@ schema:
         criticalDataElement: false
         description: "Municipality slug (`<country>-<state>-<name>`)."
         examples:
-          - "us-ct-groton"
+          - "us-ct-example"
 
       - name: parcelAuthority
         logicalType: string
@@ -161,7 +161,7 @@ schema:
         criticalDataElement: false
         description: "URI to the authoritative parcel registry."
         examples:
-          - "https://permits.groton-ct.gov/parcels/"
+          - "https://permits.example-ct.gov/parcels/"
 
       - name: parcelId
         logicalType: string
@@ -477,7 +477,7 @@ customProperties:
   - property: isCitizenInitiated
     value: true
   - property: jurisdiction
-    value: "us-ct-groton"
+    value: "us-ct-example"
   - property: schemaVersion
     value: "2.0.0"
   - property: accessClass

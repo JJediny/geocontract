@@ -1,6 +1,6 @@
 """Tests for the full-coverage signed Proposal example.
 
-Verifies that ``examples/groton-rhine-002.example.data.json``:
+Verifies that ``examples/example-main-002.example.data.json``:
 
 - validates against the JSON Schema template
 - has every required Proposal field populated
@@ -23,15 +23,15 @@ from jsonschema import Draft202012Validator
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from geocontract_tools.canonicalize import canonicalize_for_signing  # noqa: E402
-from geocontract_tools.validate_proof import verify_proof  # noqa: E402
 from geocontract_tools._schema_validation import make_format_checker  # noqa: E402
+from geocontract_tools.canonicalize import canonicalize_for_signing  # noqa: E402
+from geocontract_tools.validate_proof import ProofInvalid, verify_proof  # noqa: E402
 
 FORMAT_CHECKER = make_format_checker()
 
 TEMPLATE = ROOT / "templates" / "proposed-action.template.schema.json"
-EXAMPLE = ROOT / "examples" / "groton-rhine-002.example.data.json"
-YAML_EXAMPLE = ROOT / "examples" / "groton-rhine-002.example.data.yaml"
+EXAMPLE = ROOT / "examples" / "example-main-002.example.data.json"
+YAML_EXAMPLE = ROOT / "examples" / "example-main-002.example.data.yaml"
 
 TEST_PRIV_SEED = b"\x01" * 32
 TEST_PUB_HEX = "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c"
@@ -147,7 +147,7 @@ def test_example_signature_breaks_when_proposal_is_mutated(example: dict) -> Non
     """A single-byte change to a signed field must invalidate the signature."""
     proposal = json.loads(json.dumps(example["proposal"]))  # deep copy
     proposal["purpose"] = proposal["purpose"] + "."
-    with pytest.raises(Exception):  # ProofInvalid
+    with pytest.raises(ProofInvalid):
         verify_proof(proposal, did_resolver=_resolver_for_test_did)
 
 

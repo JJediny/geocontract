@@ -24,10 +24,10 @@ def test_canonicalize_is_deterministic() -> None:
         "id": "abc-001",
         "schemaVersion": "2.0.0",
         "createdAt": "2026-09-12T14:30:00Z",
-        "parcel": {"jurisdiction": "us-ct-groton"},
+        "parcel": {"jurisdiction": "us-ct-example"},
     }
     proposal_reordered = {
-        "parcel": {"jurisdiction": "us-ct-groton"},
+        "parcel": {"jurisdiction": "us-ct-example"},
         "createdAt": "2026-09-12T14:30:00Z",
         "id": "abc-001",
         "schemaVersion": "2.0.0",
@@ -71,12 +71,12 @@ def test_known_vector_stability() -> None:
     the new library and commit the new hex.
     """
     vector = {
-        "id": "groton-rhine-001",
+        "id": "example-main-001",
         "schemaVersion": "2.0.0",
         "createdAt": "2026-09-12T14:30:00-04:00",
         "parcel": {
-            "jurisdiction": "us-ct-groton",
-            "parcelAuthority": "https://permits.groton-ct.gov/parcels/",
+            "jurisdiction": "us-ct-example",
+            "parcelAuthority": "https://permits.example-ct.gov/parcels/",
             "authoritativeParcelId": "M:123 B:45 L:678",
             "geometryFormat": "wkt",
             "crs": "EPSG:4326",

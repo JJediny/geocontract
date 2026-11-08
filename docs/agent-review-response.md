@@ -26,8 +26,8 @@ can verify the v2 deltas trace back to specific findings.
 
 > The artifacts currently describe different shapes:
 > - `templates/proposed-action.template.schema.json` uses nested objects
-> - `examples/groton-rhine-001.example.data.json` follows that nested shape
-> - `contracts/groton-rhine-001.datacontract.yaml` flattens those fields
+> - `examples/example-main-001.example.data.json` follows that nested shape
+> - `contracts/example-main-001.datacontract.yaml` flattens those fields
 > - The shim refers to `#/$defs/ProposedAction`, but the JSON Schema does
 >   not define `ProposedAction` under `$defs`; it is inline under
 >   `properties.proposedAction`.
@@ -132,7 +132,7 @@ Generated GraphQL is parse + composition tested (§7.2).
 > The existing test suite does not include the new citizen contract
 > and shim in its parametrized lists. The shell glob in `mise run
 > validate-odcs` catches them, but the Python regression tests do
-> not. The new `examples/groton-rhine-001.example.data.json` is
+> not. The new `examples/example-main-001.example.data.json` is
 > also not validated against `templates/proposed-action.template.schema.json`.
 
 **v2 resolution:** §7.2 lists the new tests added to the suite.

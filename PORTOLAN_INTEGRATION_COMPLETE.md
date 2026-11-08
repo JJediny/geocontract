@@ -13,7 +13,7 @@ All 5 phases of the Portolan catalog integration have been successfully implemen
 
 ### ✅ Phase 1: Catalog Generation
 - Manifest-driven catalog generator
-- 3 collections: federal/nepa-exclusions, federal/pic-nepa-data-standard, citizen/groton-rhine-001
+- 3 collections: federal/nepa-exclusions, federal/pic-nepa-data-standard, citizen/example-main-001
 - Catalog validates: 0 errors, 0 warnings
 - 16 tests passing
 
@@ -59,7 +59,7 @@ geocontract/
 │   │   ├── nepa-exclusions/
 │   │   └── pic-nepa-data-standard/
 │   ├── citizen/                  # Community proposals (coarsened bbox)
-│   │   └── groton-rhine-001/
+│   │   └── example-main-001/
 │   └── mirror/                   # Harvested from external catalogs
 ├── contracts/                    # Source contracts (ODCS v3.1.0)
 ├── examples/                     # Parcel geometries for citizen proposals

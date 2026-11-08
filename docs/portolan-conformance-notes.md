@@ -128,7 +128,7 @@ Design consequence for geocontract:
 | Collection | Producer | Host | Kind | Needs `via` |
 | --- | --- | --- | --- | --- |
 | `standards/pic-standards` | geocontract | geocontract | official | no |
-| `citizen/groton-rhine-001` | geocontract | geocontract | official | no |
+| `citizen/example-main-001` | geocontract | geocontract | official | no |
 | `federal/nepa-exclusions` | Permitting Innovation Center | geocontract | mirror | **yes** |
 | `mirror/<harvested>` | upstream agency | geocontract | mirror | **yes** |
 

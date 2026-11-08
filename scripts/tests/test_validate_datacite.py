@@ -93,7 +93,7 @@ def test_malformed_publication_year_fails() -> None:
 
 def test_citizen_record_geo_is_coarsened() -> None:
     """The citizen record's geo box is the coarsened parcel bbox, never the raw parcel."""
-    maybe = RECORDS_DIR / "groton-rhine-001.json"
+    maybe = RECORDS_DIR / "example-main-001.json"
     doc = json.loads(maybe.read_text())
     box = doc["geoLocations"][0]["geoLocationBox"]
     for value in box.values():

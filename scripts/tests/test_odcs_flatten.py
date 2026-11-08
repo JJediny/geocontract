@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from geocontract_tools.odcs_flatten import flatten, unflatten  # noqa: E402
 
 REPO_ROOT = ROOT
-EXAMPLE_PATH = REPO_ROOT / "examples" / "groton-rhine-001.example.data.json"
+EXAMPLE_PATH = REPO_ROOT / "examples" / "example-main-001.example.data.json"
 
 
 def _example_proposal() -> dict:
@@ -27,7 +27,7 @@ def test_public_flatten_omits_restricted_fields() -> None:
     proposal = _example_proposal()
     row = flatten(proposal, projection="public")
     assert "id" in row
-    assert row["id"] == "groton-rhine-001"
+    assert row["id"] == "example-main-001"
     assert "activityCode" in row
     assert row["activityCode"] == "housing.rehabilitation.facade"
     # Restricted fields must be absent in public projection.
@@ -39,7 +39,7 @@ def test_public_flatten_omits_restricted_fields() -> None:
 def test_restricted_flatten_includes_restricted_fields() -> None:
     proposal = _example_proposal()
     row = flatten(proposal, projection="restricted")
-    assert row["applicantDisplayName"] == "Jane Groton-Resident"
+    assert row["applicantDisplayName"] == "Jane Example-Resident"
     assert row["geometry"] is not None
     # proof is null in the example, so the columns are null.
     assert row["proofSignature"] is None
@@ -75,7 +75,7 @@ def test_odcs_contract_property_names_match_mapping() -> None:
     """
     import yaml  # noqa: PLC0415
 
-    contract_path = REPO_ROOT / "contracts" / "groton-rhine-001.datacontract.yaml"
+    contract_path = REPO_ROOT / "contracts" / "example-main-001.datacontract.yaml"
     contract = yaml.safe_load(contract_path.read_text())
 
     proposal_props = contract["schema"][0]["properties"]
@@ -102,7 +102,7 @@ def test_odcs_contract_omits_restricted_fields() -> None:
     """
     import yaml  # noqa: PLC0415
 
-    contract_path = REPO_ROOT / "contracts" / "groton-rhine-001.datacontract.yaml"
+    contract_path = REPO_ROOT / "contracts" / "example-main-001.datacontract.yaml"
     contract = yaml.safe_load(contract_path.read_text())
     names = {p["name"] for p in contract["schema"][0]["properties"]}
 

@@ -130,7 +130,7 @@ catalog/
 ├── standards/
 │   └── pic-standards/         # 13-entity PIC NEPA Data Standard
 ├── citizen/
-│   └── groton-rhine-001/      # worked citizen Proposal (public projection)
+│   └── example-main-001/      # worked citizen Proposal (public projection)
 └── mirror/                    # harvested third-party contracts (§9)
     └── <harvested-slug>/
 ```
@@ -254,7 +254,7 @@ Deliverables:
 3. `mise` tasks: `catalog-build`, `catalog-check` (= build + `rashid
    check catalog/ --summary`).
 4. First three collections: `federal/nepa-exclusions`,
-   `standards/pic-standards`, `citizen/groton-rhine-001` — metadata
+   `standards/pic-standards`, `citizen/example-main-001` — metadata
    only. P0-1 proved this shape passes clean, so no Parquet conversion
    blocks publication. Data assets arrive in Phase 2/§9 harvesting or a
    later conversion task.
@@ -351,7 +351,7 @@ uv run pytest scripts/tests/test_harvester_portolan.py -v
 `isCitizenInitiated` custom property. Routing writes the collection to
 `catalog/citizen/<id>/`. The parcel bbox is extracted from the example
 data WKT and coarsened to two decimals before it reaches the
-`collection.json` ([72.09, 41.34, 72.08, 41.35] for groton-rhine-001).
+`collection.json` ([72.09, 41.34, 72.08, 41.35] for example-main-001).
 Mirror harvesting completes with all three sources; `mise run
 catalog-check` reports 0 errors, 0 warnings, and the 5 advisory
 PTL-PRO-002 infos (the upstreams do not publish STAC, so no `canonical`

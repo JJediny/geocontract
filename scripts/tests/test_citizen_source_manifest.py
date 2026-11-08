@@ -23,12 +23,11 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from geocontract_tools.citizen_source_manifest import (  # noqa: E402
     harvest_directory,
-    load_canonical,
 )
 
 REPO_ROOT = ROOT
-EXAMPLE = REPO_ROOT / "examples" / "groton-rhine-001.example.data.json"
-CONTRACT = REPO_ROOT / "contracts" / "groton-rhine-001.datacontract.yaml"
+EXAMPLE = REPO_ROOT / "examples" / "example-main-001.example.data.json"
+CONTRACT = REPO_ROOT / "contracts" / "example-main-001.datacontract.yaml"
 
 
 # ── Directory layout ────────────────────────────────────────────────────────
@@ -53,7 +52,7 @@ def test_manifest_shape(tmp_path: Path) -> None:
     assert len(manifest["sources"]) == 1
     src = manifest["sources"][0]
     assert src["status"] == "ok"
-    assert src["contract_id"] == "groton-rhine-001"
+    assert src["contract_id"] == "example-main-001"
     assert src["lifecycle_state"] == "draft"
     assert src["content_hash"].startswith("sha256:")
     assert src["source_hash"].startswith("sha256:")
@@ -66,7 +65,7 @@ def test_records_jsonl_shape(tmp_path: Path) -> None:
     lines = (out / "records.jsonl").read_text().strip().splitlines()
     assert len(lines) == 1
     obj = json.loads(lines[0])
-    assert obj["contract_id"] == "groton-rhine-001"
+    assert obj["contract_id"] == "example-main-001"
     assert obj["projection"] == "public"
 
 
@@ -158,7 +157,7 @@ def test_yaml_source_works(tmp_path: Path) -> None:
     out = tmp_path / "harvest"
     harvest_directory([CONTRACT], out_dir=out)
     manifest = json.loads((out / "manifest.json").read_text())
-    assert manifest["sources"][0]["contract_id"] == "groton-rhine-001"
+    assert manifest["sources"][0]["contract_id"] == "example-main-001"
     assert manifest["sources"][0]["contract_version"] == "0.2.0"
 
 
@@ -184,10 +183,10 @@ def test_portolan_sink_writes_citizen_collection(tmp_path: Path) -> None:
         fetched_at=fetched_at,
     )
 
-    citizen_dir = catalog_dir / "citizen" / "groton-rhine-001"
+    citizen_dir = catalog_dir / "citizen" / "example-main-001"
     assert citizen_dir.is_dir()
     collection = json.loads((citizen_dir / "collection.json").read_text())
-    assert collection["id"] == "citizen/groton-rhine-001"
+    assert collection["id"] == "citizen/example-main-001"
     assert collection["type"] == "Collection"
     # The citizen sub-catalog itself exists.
     assert (catalog_dir / "citizen" / "catalog.json").is_file()
@@ -239,8 +238,8 @@ def test_portolan_sink_cli(tmp_path: Path, capsys: pytest.CaptureFixture) -> Non
     # Directory sink artifacts.
     assert (out / "manifest.json").is_file()
     assert (out / "records.jsonl").is_file()
-    assert (out / "contracts" / "groton-rhine-001.datacontract.yaml").is_file()
+    assert (out / "contracts" / "example-main-001.datacontract.yaml").is_file()
 
     # Portolan sink artifacts.
-    assert (catalog_dir / "citizen" / "groton-rhine-001" / "collection.json").is_file()
+    assert (catalog_dir / "citizen" / "example-main-001" / "collection.json").is_file()
     assert (catalog_dir / "citizen" / "catalog.json").is_file()

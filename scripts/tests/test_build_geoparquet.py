@@ -54,7 +54,7 @@ def test_row_count_and_ids_match_collections() -> None:
 
 
 def test_bbox_round_trip_including_coarsened_citizen_bbox() -> None:
-    """Every covering struct equals its source bbox; groton-rhine-001 proves
+    """Every covering struct equals its source bbox; example-main-001 proves
     the coarsened bbox survived, not the parcel-precise one (plan §2)."""
     _, rows = _read(_tracked())
     collections = _collections()
@@ -67,7 +67,7 @@ def test_bbox_round_trip_including_coarsened_citizen_bbox() -> None:
             "xmax": bbox[2],
             "ymax": bbox[3],
         }
-    citizen = by_url["catalog/citizen/groton-rhine-001/collection.json"]
+    citizen = by_url["catalog/citizen/example-main-001/collection.json"]
     assert citizen["bbox"] == {"xmin": -72.09, "ymin": 41.34, "xmax": -72.08, "ymax": 41.35}
 
 

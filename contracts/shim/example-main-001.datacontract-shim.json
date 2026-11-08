@@ -2,17 +2,17 @@
   "version": "1.0",
   "schema": { "source": "../../templates/proposed-action.template.schema.json" },
   "contract": {
-    "name": "Groton Rhine St. Façade Repair — Worked Example (v2)",
-    "description": "Citizen-initiated Proposal on a Groton, CT parcel. Fictional worked example for the v2 citizen-permitting flow.",
+    "name": "Main St. Façade Repair — Worked Example (v2)",
+    "description": "Citizen-initiated Proposal on a Example Town, CT parcel. Fictional worked example for the v2 citizen-permitting flow.",
     "version": "0.2.0",
     "status": "draft",
     "domain": "housing-rehabilitation"
   },
   "ownership": {
     "team": "Geocontract (v2 prototype)",
-    "contact": "permits@groton-ct.gov",
-    "slack": "#groton-permitting",
-    "oncall": "groton-oncall",
+    "contact": "permits@example-ct.gov",
+    "slack": "#example-permitting",
+    "oncall": "example-oncall",
     "docs_url": "https://github.com/JJediny/geocontract/blob/main/docs/plan-citizen-permitting-standard.md"
   },
   "quality": [
@@ -128,8 +128,8 @@
     "granularity": "municipality-slug",
     "retention_days": null
   },
-  "cost": { "center": "groton-permitting", "budget_code": "GROTON-PHA-CORE", "estimated_annual_cost_usd": 0 },
-  "tags": ["geocontract", "citizen-initiated", "groton", "housing-rehabilitation", "proposed-action", "v2-prototype"],
+  "cost": { "center": "example-permitting", "budget_code": "EXAMPLE-PHA-CORE", "estimated_annual_cost_usd": 0 },
+  "tags": ["geocontract", "citizen-initiated", "example", "housing-rehabilitation", "proposed-action", "v2-prototype"],
   "entities": {
     "$defs/Proposal": { "classification": "public", "pii": false },
     "$defs/Applicant": { "classification": "restricted", "pii": true },

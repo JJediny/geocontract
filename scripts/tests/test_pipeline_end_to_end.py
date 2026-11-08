@@ -3,11 +3,11 @@
 Exercises the entire geocontract v2 pipeline against the committed
 worked example:
 
-  1. Validate ``examples/groton-rhine-001.example.data.json``
+  1. Validate ``examples/example-main-001.example.data.json``
      against ``templates/proposed-action.template.schema.json``.
   2. Verify the example's proof envelope (walletless / null-proof
      path) via ``verify_proof``.
-  3. Validate ``contracts/groton-rhine-001.datacontract.yaml``
+  3. Validate ``contracts/example-main-001.datacontract.yaml``
      against the canonical ODCS v3.1.0 master schema.
   4. Harvest the example through the citizen-source harvester and
      confirm the resulting JSONL record is well-formed.
@@ -42,19 +42,19 @@ from geocontract_tools._schema_validation import make_format_checker  # noqa: E4
 FORMAT_CHECKER = make_format_checker()
 
 from geocontract_tools.canonicalize import canonicalize_for_signing  # noqa: E402
+from geocontract_tools.citizen_source import harvest_one  # noqa: E402
+from geocontract_tools.citizen_source import to_jsonl as citizen_to_jsonl
+from geocontract_tools.citizen_source_manifest import harvest_directory  # noqa: E402
 from geocontract_tools.odcs_flatten import flatten, unflatten  # noqa: E402
 from geocontract_tools.public_projection import public_projection  # noqa: E402
 from geocontract_tools.validate_odcs import load_master_schema, validate_odcs_yaml  # noqa: E402
 from geocontract_tools.validate_ontology import ActivityOntology  # noqa: E402
 from geocontract_tools.validate_proof import verify_proof  # noqa: E402
 
-from geocontract_tools.citizen_source import harvest_one, to_jsonl as citizen_to_jsonl  # noqa: E402
-from geocontract_tools.citizen_source_manifest import harvest_directory  # noqa: E402
-
 REPO_ROOT = ROOT
 TEMPLATE = REPO_ROOT / "templates" / "proposed-action.template.schema.json"
-EXAMPLE = REPO_ROOT / "examples" / "groton-rhine-001.example.data.json"
-CONTRACT = REPO_ROOT / "contracts" / "groton-rhine-001.datacontract.yaml"
+EXAMPLE = REPO_ROOT / "examples" / "example-main-001.example.data.json"
+CONTRACT = REPO_ROOT / "contracts" / "example-main-001.datacontract.yaml"
 CATALOG = REPO_ROOT / "ontology" / "activity-concept-catalog.v1.0.json"
 
 
@@ -96,7 +96,7 @@ def test_step3_odcs_contract_validates() -> None:
 def test_step4_harvest_emits_jsonl() -> None:
     record = harvest_one(EXAMPLE, fetched_at="2026-09-13T00:00:00+00:00")
     obj = json.loads(citizen_to_jsonl([record]).strip())
-    assert obj["contract_id"] == "groton-rhine-001"
+    assert obj["contract_id"] == "example-main-001"
     assert obj["projection"] == "public"
     assert obj["content_hash"].startswith("sha256:")
 

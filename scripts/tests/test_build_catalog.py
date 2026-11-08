@@ -10,7 +10,6 @@ Verifies that the Portolan catalog generator:
 """
 from __future__ import annotations
 
-import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -144,9 +143,9 @@ def test_mirror_derivation_from_providers(manifest: dict, tmp_catalog: Path) -> 
     theme, doc = build_collection(nepa, manifest, tmp_catalog)
     assert doc["geocontract:mirror"] is True
 
-    # citizen/groton-rhine-001 has geocontract as producer, so it's official
-    groton = next(c for c in manifest["collections"] if c["id"] == "citizen/groton-rhine-001")
-    theme, doc = build_collection(groton, manifest, tmp_catalog)
+    # citizen/example-main-001 has geocontract as producer, so it's official
+    example = next(c for c in manifest["collections"] if c["id"] == "citizen/example-main-001")
+    theme, doc = build_collection(example, manifest, tmp_catalog)
     assert doc["geocontract:mirror"] is False
 
 
@@ -169,9 +168,8 @@ def test_mirror_requires_via_link() -> None:
             }
         ],
     }
-    with tempfile.TemporaryDirectory() as tmp:
-        with pytest.raises(BuildError, match="provenance.via"):
-            build_collection(manifest["collections"][0], manifest, Path(tmp))
+    with tempfile.TemporaryDirectory() as tmp, pytest.raises(BuildError, match="provenance.via"):
+        build_collection(manifest["collections"][0], manifest, Path(tmp))
 
 
 def test_bbox_validation() -> None:
@@ -220,9 +218,8 @@ def test_via_link_must_be_html() -> None:
             }
         ],
     }
-    with tempfile.TemporaryDirectory() as tmp:
-        with pytest.raises(BuildError, match="https"):
-            build_collection(manifest["collections"][0], manifest, Path(tmp))
+    with tempfile.TemporaryDirectory() as tmp, pytest.raises(BuildError, match="https"):
+        build_collection(manifest["collections"][0], manifest, Path(tmp))
 
 
 def test_upstream_stac_emits_canonical_link() -> None:
@@ -298,9 +295,8 @@ def test_upstream_stac_must_be_https() -> None:
             }
         ],
     }
-    with tempfile.TemporaryDirectory() as tmp:
-        with pytest.raises(BuildError, match="https"):
-            build_collection(manifest["collections"][0], manifest, Path(tmp))
+    with tempfile.TemporaryDirectory() as tmp, pytest.raises(BuildError, match="https"):
+        build_collection(manifest["collections"][0], manifest, Path(tmp))
 
 
 def test_proprietary_license_rejected() -> None:
@@ -320,9 +316,8 @@ def test_proprietary_license_rejected() -> None:
             }
         ],
     }
-    with tempfile.TemporaryDirectory() as tmp:
-        with pytest.raises(BuildError, match="proprietary"):
-            build_collection(manifest["collections"][0], manifest, Path(tmp))
+    with tempfile.TemporaryDirectory() as tmp, pytest.raises(BuildError, match="proprietary"):
+        build_collection(manifest["collections"][0], manifest, Path(tmp))
 
 
 def test_assets_contain_contract_yaml(manifest: dict, tmp_catalog: Path) -> None:
@@ -357,8 +352,8 @@ def test_table_columns_from_primary_entity(manifest: dict, tmp_catalog: Path) ->
 
 def test_official_collection_has_no_via_link(manifest: dict, tmp_catalog: Path) -> None:
     """An official collection (geocontract as producer) has no via link."""
-    groton = next(c for c in manifest["collections"] if c["id"] == "citizen/groton-rhine-001")
-    theme, doc = build_collection(groton, manifest, tmp_catalog)
+    example = next(c for c in manifest["collections"] if c["id"] == "citizen/example-main-001")
+    theme, doc = build_collection(example, manifest, tmp_catalog)
 
     via_links = [link for link in doc["links"] if link["rel"] == "via"]
     assert len(via_links) == 0
@@ -378,8 +373,8 @@ def test_mirror_collection_has_via_link(manifest: dict, tmp_catalog: Path) -> No
 
 def test_bbox_coarsened_for_citizen_proposal(manifest: dict, tmp_catalog: Path) -> None:
     """Citizen proposals have coarsened bbox to preserve privacy."""
-    groton = next(c for c in manifest["collections"] if c["id"] == "citizen/groton-rhine-001")
-    theme, doc = build_collection(groton, manifest, tmp_catalog)
+    example = next(c for c in manifest["collections"] if c["id"] == "citizen/example-main-001")
+    theme, doc = build_collection(example, manifest, tmp_catalog)
 
     bbox = doc["extent"]["spatial"]["bbox"][0]
     # The bbox is coarsened to ~1.1 km (2 decimal places)
@@ -415,6 +410,5 @@ def test_build_validates_required_fields() -> None:
             }
         ],
     }
-    with tempfile.TemporaryDirectory() as tmp:
-        with pytest.raises(BuildError, match="license"):
-            build_collection(manifest["collections"][0], manifest, Path(tmp))
+    with tempfile.TemporaryDirectory() as tmp, pytest.raises(BuildError, match="license"):
+        build_collection(manifest["collections"][0], manifest, Path(tmp))

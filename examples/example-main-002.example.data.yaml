@@ -1,22 +1,22 @@
 $schema: https://geocontract.dev/schemas/proposed-action.template.schema.json
 proposal:
-  id: groton-rhine-002
+  id: example-main-002
   schemaVersion: 2.0.0
   createdAt: '2026-09-12T14:30:00-04:00'
   applicant:
-    displayName: Jane Groton-Resident
+    displayName: Jane Example-Resident
     contactEmail: jane@example.invalid
     residencyProof:
       kind: municipal_vc
-      credentialRef: ipfs://bafy...groton-residency-vc
+      credentialRef: ipfs://bafy...example-residency-vc
       issuerDid: did:key:z6Mkon3Necd6NkkyfoGoHxid2znGc59LU3K7mubaRcFbLfLX
       validUntil: '2027-12-31'
     authorityProof:
       kind: owner
       credentialRef: town-clerk-deed-2026-08-15
   parcel:
-    jurisdiction: us-ct-groton
-    parcelAuthority: https://permits.groton-ct.gov/parcels/
+    jurisdiction: us-ct-example
+    parcelAuthority: https://permits.example-ct.gov/parcels/
     authoritativeParcelId: M:124 B:45 L:679
     authorityRecordVersion: '2026-09-01'
     authorityRetrievedAt: '2026-09-12T14:30:00-04:00'
@@ -26,7 +26,7 @@ proposal:
       41.3475, -72.0821 41.3473))
     snapshotHash: sha256:2222222222222222222222222222222222222222222222222222222222222222
     ownershipStatus: owner_verified
-    address: 44 Rhine Street, Groton, CT 06340
+    address: 44 Main Street, Example Town, CT 06400
   activity:
     code: housing.rehabilitation.facade.repointing
     preferredLabel: Mortar repointing
@@ -44,11 +44,11 @@ proposal:
   revisions: []
   anchorReceipt: null
   proof:
-    signedDigest: sha256:34fd0b51a18b8d7d8e7f48f7ee2ed5fe39789babb976bb9ad2b8ccee6acff770
+    signedDigest: sha256:6407c300c018395a98c2a393431b0d9ccbf13009f91cb765f91e8da809317146
     hashAlgorithm: sha-256
     signatureAlgorithm: ed25519
     signingKey: did:key:z6Mkon3Necd6NkkyfoGoHxid2znGc59LU3K7mubaRcFbLfLX
-    signature: base64:4FnpDdz6hNv+1FE7pTOULWUvBNUE3mVAv1IISC9j5cowHJgA9ds+ggzuOv2FVsJLO7lklIA5aXhVcl6nzFOkDw==
+    signature: base64:HJzRSClXrSBIUCKrzDifcJp8FmxKrqvDc/b25aPUxiiK4LYNATs2yqq2YbD/vddlesVhZ8TZOj6A264y/ozZDQ==
     signedAt: '2026-09-12T14:30:00-04:00'
     domain: geocontract.example
     nonce: base64:QkJCQkJCQkJCQkJCQkJCQg==
