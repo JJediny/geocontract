@@ -43,6 +43,7 @@ predecessor rather than a duplicated implementation.
 
 from __future__ import annotations
 
+import contextlib
 import datetime as dt
 import hashlib
 import json
@@ -60,11 +61,14 @@ from geocontract_tools.citizen_source import (
     load_canonical,
     to_jsonl,
 )
+from geocontract_tools.contract_utils import (
+    extract_custom_property,
+    is_citizen_proposal,
+)
 
 Projection = Literal["public", "restricted"]
 
 HARVESTER_VERSION = "geocontract-tools 0.1.0"
-
 
 
 @dataclass(frozen=True)
@@ -81,7 +85,6 @@ class SourceOutcome:
     lifecycle_state: str | None
     status: Literal["ok", "error"]
     error: str | None = None
-
 
 
 # ── Manifest + directory layout ─────────────────────────────────────────────
@@ -113,17 +116,14 @@ def harvest_directory(
     records: list[HarvestRecord] = []
     outcomes: list[SourceOutcome] = []
     copied_names: set[str] = set()
-    timestamp = fetched_at or dt.datetime.now(dt.timezone.utc).isoformat()
+    timestamp = fetched_at or dt.datetime.now(dt.UTC).isoformat()
 
     for src in sources:
         try:
-            proposal = load_canonical(src)
-            contract_version: str | None = None
+            load_canonical(src)  # validates the source; result unused here
             if src.suffix.lower() in {".yaml", ".yml"}:
-                try:
-                    contract_version = yaml.safe_load(src.read_text()).get("version")
-                except Exception:  # noqa: BLE001
-                    contract_version = None
+                with contextlib.suppress(Exception):
+                    yaml.safe_load(src.read_text()).get("version")
 
             # A basename collision would make the self-contained copy
             # ambiguous and could silently replace an earlier source.
@@ -217,7 +217,7 @@ def _portolan_sink(
         write_citizen_collection,
     )
 
-    timestamp = fetched_at or dt.datetime.now(dt.timezone.utc).isoformat()
+    timestamp = fetched_at or dt.datetime.now(dt.UTC).isoformat()
 
     ensure_citizen_catalog(catalog_dir)
     for src in sources:
@@ -237,7 +237,7 @@ def _portolan_sink(
         # have it, falling back to the proposal if not (a JSON Proposal
         # file carries the same facts under its own keys).
         contract = _read_odcs_contract(src) if src.suffix.lower() in {".yaml", ".yml"} else proposal
-        if not _is_citizen_proposal(contract):
+        if not is_citizen_proposal(contract):
             print(
                 f"⚠ skipping non-citizen source for portolan sink: {src}",
                 file=sys.stderr,
@@ -246,8 +246,8 @@ def _portolan_sink(
 
         source_info = {
             "source_url": str(src.resolve()),
-            "jurisdiction": _extract_custom_property(contract, "jurisdiction"),
-            "access_class": _extract_custom_property(contract, "accessClass"),
+            "jurisdiction": extract_custom_property(contract, "jurisdiction"),
+            "access_class": extract_custom_property(contract, "accessClass"),
         }
 
         # write_citizen_collection reads .contract (dict), .source_data
@@ -302,22 +302,6 @@ class _CitizenSinkResult:
         self.contract = contract
         self.source_data = source_data
         self.source_info = source_info
-
-
-def _is_citizen_proposal(contract: dict) -> bool:
-    """Citizen proposals carry customProperties: { property: isCitizenInitiated, value: true }."""
-    for prop in contract.get("customProperties") or []:
-        if prop.get("property") == "isCitizenInitiated" and prop.get("value") is True:
-            return True
-    return False
-
-
-def _extract_custom_property(contract: dict, property_name: str) -> str | None:
-    for prop in contract.get("customProperties") or []:
-        if prop.get("property") == property_name:
-            value = prop.get("value")
-            return str(value) if value is not None else None
-    return None
 
 
 def main(argv: list[str] | None = None) -> int:

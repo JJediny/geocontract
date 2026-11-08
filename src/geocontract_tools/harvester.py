@@ -37,6 +37,11 @@ except ImportError:
     boto3 = None
     ClientError = None
 
+from geocontract_tools.contract_utils import (
+    extract_custom_property,
+    is_citizen_proposal,
+)
+
 
 @dataclass(frozen=True)
 class HarvestSource:
@@ -283,7 +288,7 @@ def harvest_to_portolan(
 
     # Separate citizen proposals from mirrors
     for result in results:
-        if _is_citizen_proposal(result.contract):
+        if is_citizen_proposal(result.contract):
             citizen_results.append(result)
         else:
             mirror_results.append(result)
@@ -294,8 +299,8 @@ def harvest_to_portolan(
         for result in citizen_results:
             source_info = {
                 "source_url": result.source.location,
-                "jurisdiction": _extract_custom_property(result.contract, "jurisdiction"),
-                "access_class": _extract_custom_property(result.contract, "accessClass"),
+                "jurisdiction": extract_custom_property(result.contract, "jurisdiction"),
+                "access_class": extract_custom_property(result.contract, "accessClass"),
             }
 
             class SinkResult:
@@ -374,24 +379,6 @@ def harvest_to_geoparquet(
         file=sys.stderr,
     )
     return out_path
-
-
-def _is_citizen_proposal(contract: dict) -> bool:
-    """Check if a contract is a citizen-initiated proposal."""
-    custom_props = contract.get("customProperties") or []
-    return any(
-        prop.get("property") == "isCitizenInitiated" and prop.get("value") is True
-        for prop in custom_props
-    )
-
-
-def _extract_custom_property(contract: dict, property_name: str) -> str | None:
-    """Extract a value from customProperties by property name."""
-    custom_props = contract.get("customProperties") or []
-    for prop in custom_props:
-        if prop.get("property") == property_name:
-            return str(prop.get("value", ""))
-    return None
 
 
 def slugify(s: str) -> str:
