@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 import pytest
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, ValidationError
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -18,7 +18,7 @@ FORMAT_CHECKER = make_format_checker()
 
 REPO_ROOT = ROOT
 TEMPLATE_PATH = REPO_ROOT / "templates" / "proposed-action.template.schema.json"
-EXAMPLE_PATH = REPO_ROOT / "examples" / "groton-rhine-001.example.data.json"
+EXAMPLE_PATH = REPO_ROOT / "examples" / "example-main-001.example.data.json"
 
 
 @pytest.fixture(scope="module")
@@ -61,21 +61,21 @@ def test_unknown_activity_code_rejected(schema: dict, example: dict) -> None:
 def test_unknown_property_rejected_at_root(schema: dict, example: dict) -> None:
     bad = json.loads(json.dumps(example))
     bad["proposal"]["surprise"] = "field"
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         Draft202012Validator(schema, format_checker=FORMAT_CHECKER).validate(bad)
 
 
 def test_lifecycle_state_enum_enforced(schema: dict, example: dict) -> None:
     bad = json.loads(json.dumps(example))
     bad["proposal"]["lifecycle"]["state"] = "made-up-state"
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         Draft202012Validator(schema, format_checker=FORMAT_CHECKER).validate(bad)
 
 
 def test_geometry_without_crs_rejected(schema: dict, example: dict) -> None:
     bad = json.loads(json.dumps(example))
     del bad["proposal"]["parcel"]["crs"]
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         Draft202012Validator(schema, format_checker=FORMAT_CHECKER).validate(bad)
 
 
@@ -93,21 +93,21 @@ def test_proof_signature_algorithm_pinned(schema: dict, example: dict) -> None:
         "nonce": "base64:" + "A" * 16,
         "keyId": "k-1",
     }
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         Draft202012Validator(schema, format_checker=FORMAT_CHECKER).validate(bad)
 
 
 def test_id_pattern_enforced(schema: dict, example: dict) -> None:
     bad = json.loads(json.dumps(example))
     bad["proposal"]["id"] = "UPPERCASE-AND_UNDERSCORE"
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         Draft202012Validator(schema, format_checker=FORMAT_CHECKER).validate(bad)
 
 
 def test_jurisdiction_pattern_enforced(schema: dict, example: dict) -> None:
     bad = json.loads(json.dumps(example))
-    bad["proposal"]["parcel"]["jurisdiction"] = "Groton, CT"
-    with pytest.raises(Exception):
+    bad["proposal"]["parcel"]["jurisdiction"] = "Example Town, CT"
+    with pytest.raises(ValidationError):
         Draft202012Validator(schema, format_checker=FORMAT_CHECKER).validate(bad)
 
 # ── format enforcement (Q12 follow-up) ───────────────────────────────────────
@@ -121,7 +121,7 @@ def test_jurisdiction_pattern_enforced(schema: dict, example: dict) -> None:
 def test_date_time_format_rejects_naive_timestamp(schema: dict, example: dict) -> None:
     bad = json.loads(json.dumps(example))
     bad["proposal"]["createdAt"] = "2026-09-12T14:30:00"  # no timezone
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         Draft202012Validator(schema, format_checker=FORMAT_CHECKER).validate(bad)
 
 
@@ -134,14 +134,14 @@ def test_date_time_format_accepts_z_suffix(schema: dict, example: dict) -> None:
 def test_uri_format_rejects_bare_path(schema: dict, example: dict) -> None:
     bad = json.loads(json.dumps(example))
     bad["proposal"]["parcel"]["parcelAuthority"] = "/relative/path"
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         Draft202012Validator(schema, format_checker=FORMAT_CHECKER).validate(bad)
 
 
 def test_email_format_rejects_non_email(schema: dict, example: dict) -> None:
     bad = json.loads(json.dumps(example))
     bad["proposal"]["applicant"]["contactEmail"] = "not-an-email"
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         Draft202012Validator(schema, format_checker=FORMAT_CHECKER).validate(bad)
 
 

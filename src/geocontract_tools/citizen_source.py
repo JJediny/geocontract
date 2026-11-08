@@ -2,8 +2,8 @@
 
 Reads a citizen-initiated Proposal from one of:
 
-  - a nested-JSON file (e.g. ``examples/groton-rhine-001.example.data.json``)
-  - an ODCS-flatten contract YAML (e.g. ``contracts/groton-rhine-001.datacontract.yaml``)
+  - a nested-JSON file (e.g. ``examples/example-main-001.example.data.json``)
+  - an ODCS-flatten contract YAML (e.g. ``contracts/example-main-001.datacontract.yaml``)
 
 and emits a **JSONL** stream with one record per Proposal. The default
 projection is **public** (plan §5.8); the **restricted** projection is
@@ -55,7 +55,6 @@ import yaml
 
 from geocontract_tools.canonicalize import canonicalize_for_signing
 from geocontract_tools.public_projection import public_projection
-
 
 Projection = Literal["public", "restricted"]
 
@@ -140,10 +139,7 @@ def _examples_to_proposal(props: list[dict[str, Any]]) -> dict[str, Any]:
         if ex is None or name is None:
             continue
         physical = p.get("physicalName") or ""
-        if physical.startswith("proposal."):
-            dotted = physical[len("proposal.") :]
-        else:
-            dotted = physical
+        dotted = physical[len("proposal.") :] if physical.startswith("proposal.") else physical
         parts = dotted.split(".") if dotted else [name]
         cur = proposal
         for part in parts[:-1]:
@@ -263,7 +259,7 @@ def harvest_one(
         proposal=proposal,
         source=str(path),
         contract_version=contract_version,
-        fetched_at=fetched_at or dt.datetime.now(dt.timezone.utc).isoformat(),
+        fetched_at=fetched_at or dt.datetime.now(dt.UTC).isoformat(),
         projection=projection,
     )
 

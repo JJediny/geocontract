@@ -26,12 +26,12 @@ the PIC NEPA Data Standard.**
 | **`contracts/nepa-exclusions.datacontract.yaml`**          | **ODCS instance record for the CATEX catalogue.**                       |
 | **`contracts/pic-standards.datacontract.yaml`**            | **ODCS instance record for the PIC NEPA Data Standard (13 entities).** |
 | **`contracts/dcat-us-catalog.datacontract.yaml`**          | **ODCS instance record for the DCAT-US 3.0.0 federated catalog.**      |
-| **`contracts/groton-rhine-001.datacontract.yaml`**         | **ODCS-flatten projection of a v2 citizen-initiated Proposal** (worked example; see `docs/plan-citizen-permitting-standard.md` §3.6). |
+| **`contracts/example-main-001.datacontract.yaml`**         | **ODCS-flatten projection of a v2 citizen-initiated Proposal** (worked example; see `docs/plan-citizen-permitting-standard.md` §3.6). |
 | `contracts/shim/*.datacontract-shim.json`                  | Companion shims matching the Rust `DataContractShim` struct.          |
 | `contracts/examples/odcs-v3.1.0-template.minimal.json`     | Minimal JSON example (ODCS-required fields only).                      |
-| `examples/groton-rhine-001.example.data.json`              | v2 nested-JSON canonical Proposal example.                            |
-| `examples/groton-rhine-002.example.data.json`              | Full-coverage signed v2 Proposal example (test key only).               |
-| `examples/groton-rhine-002.example.data.yaml`              | YAML serialization of the full-coverage canonical Proposal.             |
+| `examples/example-main-001.example.data.json`              | v2 nested-JSON canonical Proposal example.                            |
+| `examples/example-main-002.example.data.json`              | Full-coverage signed v2 Proposal example (test key only).               |
+| `examples/example-main-002.example.data.yaml`              | YAML serialization of the full-coverage canonical Proposal.             |
 | `ontology/activity-concept-catalog.v1.0.json`             | Hand-curated activity ontology catalog (v2 §4.3).                       |
 | `ontology/activity-concept-catalog.schema.json`           | JSON-Schema for the catalog.                                            |
 | `ontology/activity-concept-catalog.v1.0.ttl`              | Generated SKOS projection; build with `mise run ontology-build`.        |
@@ -103,10 +103,10 @@ the same way the federal CATEX and PIC contracts do.
 |--------------------------------------|---------------------------------------------------------------------|
 | Nested-JSON canonical model          | `templates/proposed-action.template.schema.json`                     |
 | Hand-curated activity ontology       | `ontology/activity-concept-catalog.v1.0.json` (+ JSON-Schema)       |
-| Worked example (minimal)             | `examples/groton-rhine-001.example.data.json`                        |
-| Worked example (full coverage, signed)| `examples/groton-rhine-002.example.data.json`                        |
-| ODCS-flatten projection              | `contracts/groton-rhine-001.datacontract.yaml`                       |
-| Companion `DataContractShim`         | `contracts/shim/groton-rhine-001.datacontract-shim.json`            |
+| Worked example (minimal)             | `examples/example-main-001.example.data.json`                        |
+| Worked example (full coverage, signed)| `examples/example-main-002.example.data.json`                        |
+| ODCS-flatten projection              | `contracts/example-main-001.datacontract.yaml`                       |
+| Companion `DataContractShim`         | `contracts/shim/example-main-001.datacontract-shim.json`            |
 | Generated GraphQL SDL                | `models/proposed-action.canonical.graphql`                           |
 | RFC 8785 JCS canonicalisation        | `src/geocontract_tools/canonicalize.py`                              |
 | Detached proof envelope validator    | `src/geocontract_tools/validate_proof.py`                            |
@@ -124,18 +124,18 @@ the same way the federal CATEX and PIC contracts do.
 mise run build-signed-example
 
 # Harvest one or more Proposal files into a JSONL stream:
-mise run harvest-citizen -- examples/groton-rhine-001.example.data.json
+mise run harvest-citizen -- examples/example-main-001.example.data.json
 
 # Harvest into a directory (manifest + records.jsonl + contracts/):
-mise run harvest-citizen-dir -- examples/groton-rhine-001.example.data.json \
-                              contracts/groton-rhine-001.datacontract.yaml \
+mise run harvest-citizen-dir -- examples/example-main-001.example.data.json \
+                              contracts/example-main-001.datacontract.yaml \
                               --out /tmp/harvest
 
 # Run the cross-module pipeline test:
 mise run pipeline-test
 ```
 
-> **Note on the `groton-rhine-002` example.** The example uses a
+> **Note on the `example-main-002` example.** The example uses a
 > single documented test keypair for *both* the proposal signature
 > (`proof.signingKey`) and the placeholder residency-VC issuer
 > (`applicant.residencyProof.issuerDid`). In a real submission these

@@ -61,7 +61,7 @@ collection and "Add to map" draws every contract bbox.
 ## Provenance warning — read before you use a bbox
 
 Every row's `geometry` and `bbox` come from the generated collection,
-never from the contract schema. For `citizen/groton-rhine-001` this is
+never from the contract schema. For `citizen/example-main-001` this is
 deliberate: the manifest coarsens the parcel-precise bbox because the
 contract's public projection removed parcel detail. Treat that row's
 geometry as approximate, and never re-derive a bbox from a contract

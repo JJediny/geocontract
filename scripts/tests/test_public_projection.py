@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from geocontract_tools.public_projection import public_projection  # noqa: E402
 
 REPO_ROOT = ROOT
-EXAMPLE_PATH = REPO_ROOT / "examples" / "groton-rhine-001.example.data.json"
+EXAMPLE_PATH = REPO_ROOT / "examples" / "example-main-001.example.data.json"
 
 
 def _example_proposal() -> dict:

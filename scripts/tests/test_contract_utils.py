@@ -11,7 +11,7 @@ def test_is_citizen_proposal_true() -> None:
     contract = {
         "customProperties": [
             {"property": "isCitizenInitiated", "value": True},
-            {"property": "jurisdiction", "value": "Groton, CT"},
+            {"property": "jurisdiction", "value": "Example Town, CT"},
         ]
     }
     assert is_citizen_proposal(contract) is True
@@ -21,7 +21,7 @@ def test_is_citizen_proposal_false() -> None:
     """Contract without isCitizenInitiated is not detected."""
     contract = {
         "customProperties": [
-            {"property": "jurisdiction", "value": "Groton, CT"},
+            {"property": "jurisdiction", "value": "Example Town, CT"},
         ]
     }
     assert is_citizen_proposal(contract) is False
@@ -47,11 +47,11 @@ def test_extract_custom_property_found() -> None:
     """Extract existing custom property."""
     contract = {
         "customProperties": [
-            {"property": "jurisdiction", "value": "Groton, CT"},
+            {"property": "jurisdiction", "value": "Example Town, CT"},
             {"property": "accessClass", "value": "public"},
         ]
     }
-    assert extract_custom_property(contract, "jurisdiction") == "Groton, CT"
+    assert extract_custom_property(contract, "jurisdiction") == "Example Town, CT"
     assert extract_custom_property(contract, "accessClass") == "public"
 
 
@@ -59,7 +59,7 @@ def test_extract_custom_property_not_found() -> None:
     """Missing property returns None."""
     contract = {
         "customProperties": [
-            {"property": "jurisdiction", "value": "Groton, CT"},
+            {"property": "jurisdiction", "value": "Example Town, CT"},
         ]
     }
     assert extract_custom_property(contract, "accessClass") is None

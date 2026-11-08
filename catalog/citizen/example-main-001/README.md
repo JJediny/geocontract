@@ -1,8 +1,8 @@
-# Groton Rhine St. Façade Repair — Worked Example (v2)
+# Main St. Façade Repair — Worked Example (v2)
 
 A worked example of the citizen-initiated permitting flow. A resident of
-Groton, Connecticut proposes repairing the masonry facade of a property
-on Rhine Street. The example is fictional and illustrative: the
+Example Town, Connecticut proposes repairing the masonry facade of a property
+on Main Street. The example is fictional and illustrative: the
 applicant, the parcel, and the signatures are placeholders.
 
 The collection publishes the ODCS-flatten projection of the v2 canonical

@@ -20,9 +20,9 @@
     },
     {
       "rel": "child",
-      "href": "./groton-rhine-001/collection.json",
+      "href": "./example-main-001/collection.json",
       "type": "application/json",
-      "title": "Groton Rhine St. Façade Repair — Worked Example (v2)"
+      "title": "Main St. Façade Repair — Worked Example (v2)"
     },
     {
       "rel": "agents",

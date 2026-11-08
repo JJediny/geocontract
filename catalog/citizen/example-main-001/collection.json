@@ -6,16 +6,16 @@
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
     "https://stac-extensions.github.io/table/v1.2.0/schema.json"
   ],
-  "id": "citizen/groton-rhine-001",
-  "title": "Groton Rhine St. Façade Repair — Worked Example (v2)",
-  "description": "v2 canonical worked example for the citizen-permitting flow. A resident of Groton, CT (fictional) proposes repairing the masonry façade of a property at 42 Rhine Street. The action covers repointing of failed mortar joints, replacement of three cracked lintels, and reattachment of a decorative cornice.",
+  "id": "citizen/example-main-001",
+  "title": "Main St. Façade Repair — Worked Example (v2)",
+  "description": "v2 canonical worked example for the citizen-permitting flow. A resident of Example Town, CT (fictional) proposes repairing the masonry façade of a property at 42 Main Street. The action covers repointing of failed mortar joints, replacement of three cracked lintels, and reattachment of a decorative cornice.",
   "license": "CC0-1.0",
   "keywords": [
     "citizen-initiated",
     "proposed-action",
     "housing-rehabilitation",
     "facade-repair",
-    "groton",
+    "example",
     "connecticut"
   ],
   "providers": [
@@ -189,14 +189,14 @@
   ],
   "assets": {
     "contract": {
-      "href": "./groton-rhine-001.datacontract.yaml",
+      "href": "./example-main-001.datacontract.yaml",
       "type": "application/yaml",
-      "title": "ODCS v3.1.0 data contract (groton-rhine-001)",
+      "title": "ODCS v3.1.0 data contract (example-main-001)",
       "roles": [
         "metadata"
       ],
-      "file:size": 17391,
-      "file:checksum": "1220d471434ab67dba806702f0b52d6f69df5b08c1060beaecc1aafafb19ca0b95d0"
+      "file:size": 17386,
+      "file:checksum": "1220b7b7efd5e68420fbbc2b3f7911f29f1992aa1795abff06db757fb4c4425edb71"
     }
   },
   "links": [
@@ -226,10 +226,10 @@
     }
   ],
   "updated": "2026-10-03T00:00:00Z",
-  "geocontract:contract_id": "groton-rhine-001",
+  "geocontract:contract_id": "example-main-001",
   "geocontract:contract_version": "0.2.0",
   "geocontract:status": "draft",
-  "geocontract:tenant": "us-ct-groton",
+  "geocontract:tenant": "us-ct-example",
   "geocontract:domain": "housing-rehabilitation",
   "geocontract:primary_entity": "Proposal",
   "geocontract:mirror": false,

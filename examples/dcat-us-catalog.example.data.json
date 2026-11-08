@@ -28,11 +28,11 @@
     "citizen-initiated",
     "data-standard",
     "dcat-us",
+    "example",
     "exclusions",
     "facade-repair",
     "federal",
     "federal-register",
-    "groton",
     "housing-rehabilitation",
     "interoperability",
     "nepa",
@@ -114,17 +114,17 @@
   ],
   "record": [
     {
-      "@id": "https://geocontract.dev/catalogs/us-federal-geocontract/records/groton-rhine-001-0.2.0",
+      "@id": "https://geocontract.dev/catalogs/us-federal-geocontract/records/example-main-001-0.2.0",
       "@type": "CatalogRecord",
-      "title": "Record for Groton Rhine St. Façade Repair — Worked Example (v2) v0.2.0",
+      "title": "Record for Main St. Façade Repair — Worked Example (v2) v0.2.0",
       "description": [
-        "Catalogued registration of the groton-rhine-001 contract v0.2.0."
+        "Catalogued registration of the example-main-001 contract v0.2.0."
       ],
       "issued": [
         "2026-09-12"
       ],
       "modified": "2026-10-03",
-      "primaryTopic": "https://geocontract.dev/catalogs/us-federal-geocontract/datasets/groton-rhine-001"
+      "primaryTopic": "https://geocontract.dev/catalogs/us-federal-geocontract/datasets/example-main-001"
     },
     {
       "@id": "https://geocontract.dev/catalogs/us-federal-geocontract/records/geocontract-nepa-exclusions-2.0.0",
@@ -168,11 +168,11 @@
   ],
   "dataset": [
     {
-      "@id": "https://geocontract.dev/catalogs/us-federal-geocontract/datasets/groton-rhine-001",
+      "@id": "https://geocontract.dev/catalogs/us-federal-geocontract/datasets/example-main-001",
       "@type": "Dataset",
-      "title": "Groton Rhine St. Façade Repair — Worked Example (v2)",
-      "description": "v2 canonical worked example for the citizen-permitting flow. A resident of Groton, CT (fictional) proposes repairing the masonry façade of a property at 42 Rhine Street. The action covers repointing of failed mortar joints, replacement of three cracked lintels, and reattachment of a decorative cornice. Validates against the bare ODCS v3.1.0 schema. The companion shim file (contracts/shim/groton-rhine-001.datacontract-shim.json) records the governance / quality / SLA / lineage metadata that is not represented in the ODCS body. Fictional. Illustrative only. The applicant, parcel, signature, and signatures are placeholders. The activity-code comes from the hand-curated ActivityConcept catalog v1.0 (ontology/activity-concept-catalog.v1.0.json). Anchoring is not approval; this contract's lifecycle.state is `draft` and the anchorReceipt is null.",
-      "identifier": "groton-rhine-001",
+      "title": "Main St. Façade Repair — Worked Example (v2)",
+      "description": "v2 canonical worked example for the citizen-permitting flow. A resident of Example Town, CT (fictional) proposes repairing the masonry façade of a property at 42 Main Street. The action covers repointing of failed mortar joints, replacement of three cracked lintels, and reattachment of a decorative cornice. Validates against the bare ODCS v3.1.0 schema. The companion shim file (contracts/shim/example-main-001.datacontract-shim.json) records the governance / quality / SLA / lineage metadata that is not represented in the ODCS body. Fictional. Illustrative only. The applicant, parcel, signature, and signatures are placeholders. The activity-code comes from the hand-curated ActivityConcept catalog v1.0 (ontology/activity-concept-catalog.v1.0.json). Anchoring is not approval; this contract's lifecycle.state is `draft` and the anchorReceipt is null.",
+      "identifier": "example-main-001",
       "issued": "2026-09-12",
       "modified": "2026-10-03",
       "publisher": {
@@ -186,8 +186,8 @@
       },
       "keyword": [
         "citizen-initiated",
+        "example",
         "facade-repair",
-        "groton",
         "housing-rehabilitation",
         "proposed-action",
         "v2-prototype"
@@ -208,16 +208,16 @@
       },
       "distribution": [
         {
-          "@id": "https://geocontract.dev/catalogs/us-federal-geocontract/dist/groton-rhine-001.datacontract",
+          "@id": "https://geocontract.dev/catalogs/us-federal-geocontract/dist/example-main-001.datacontract",
           "@type": "Distribution",
           "title": "ODCS v3.1.0 contract (YAML)",
-          "accessURL": "https://github.com/JJediny/geocontract/blob/main/contracts/groton-rhine-001.datacontract.yaml",
-          "downloadURL": "https://raw.githubusercontent.com/JJediny/geocontract/main/contracts/groton-rhine-001.datacontract.yaml",
+          "accessURL": "https://github.com/JJediny/geocontract/blob/main/contracts/example-main-001.datacontract.yaml",
+          "downloadURL": "https://raw.githubusercontent.com/JJediny/geocontract/main/contracts/example-main-001.datacontract.yaml",
           "mediaType": "application/yaml",
           "format": "YAML"
         },
         {
-          "@id": "https://geocontract.dev/catalogs/us-federal-geocontract/dist/groton-rhine-001.source",
+          "@id": "https://geocontract.dev/catalogs/us-federal-geocontract/dist/example-main-001.source",
           "@type": "Distribution",
           "title": "Upstream source (as published by the producer)",
           "accessURL": "https://github.com/JJediny/geocontract/blob/main/templates/proposed-action.template.schema.json",

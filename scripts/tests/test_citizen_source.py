@@ -22,8 +22,8 @@ from geocontract_tools.citizen_source import (  # noqa: E402
 )
 
 REPO_ROOT = ROOT
-EXAMPLE_PATH = REPO_ROOT / "examples" / "groton-rhine-001.example.data.json"
-CONTRACT_PATH = REPO_ROOT / "contracts" / "groton-rhine-001.datacontract.yaml"
+EXAMPLE_PATH = REPO_ROOT / "examples" / "example-main-001.example.data.json"
+CONTRACT_PATH = REPO_ROOT / "contracts" / "example-main-001.datacontract.yaml"
 
 
 # ── Loaders ──────────────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ CONTRACT_PATH = REPO_ROOT / "contracts" / "groton-rhine-001.datacontract.yaml"
 
 def test_load_canonical_from_nested_json() -> None:
     proposal = load_canonical(EXAMPLE_PATH)
-    assert proposal["id"] == "groton-rhine-001"
+    assert proposal["id"] == "example-main-001"
     assert proposal["activity"]["code"] == "housing.rehabilitation.facade"
     assert proposal["lifecycle"]["state"] == "draft"
 
@@ -41,7 +41,7 @@ def test_load_canonical_from_canonical_yaml(tmp_path: Path) -> None:
     path = tmp_path / "proposal.yaml"
     path.write_text(yaml.safe_dump(document, sort_keys=False))
     proposal = load_canonical(path)
-    assert proposal["id"] == "groton-rhine-001"
+    assert proposal["id"] == "example-main-001"
     assert proposal["parcel"]["authoritativeParcelId"] == "M:123 B:45 L:678"
 
 
@@ -49,7 +49,7 @@ def test_load_canonical_from_odcs_yaml() -> None:
     proposal = load_canonical(CONTRACT_PATH)
     # The ODCS YAML stores values in `examples[]`; the rebuild
     # recovers the public-projection canonical keys.
-    assert proposal["id"] == "groton-rhine-001"
+    assert proposal["id"] == "example-main-001"
     assert proposal["activity"]["code"] == "housing.rehabilitation.facade"
     assert proposal["lifecycle"]["state"] == "draft"
 
@@ -68,18 +68,18 @@ def test_cli_emits_jsonl(capsys: pytest.CaptureFixture[str]) -> None:
     assert main([str(EXAMPLE_PATH)]) == 0
     output = capsys.readouterr().out
     record = json.loads(output)
-    assert record["contract_id"] == "groton-rhine-001"
+    assert record["contract_id"] == "example-main-001"
     assert record["projection"] == "public"
 
 
 def test_harvest_one_public_projection() -> None:
     record = harvest_one(EXAMPLE_PATH, projection="public")
     assert isinstance(record, HarvestRecord)
-    assert record.contract_id == "groton-rhine-001"
+    assert record.contract_id == "example-main-001"
     assert record.projection == "public"
     assert record.lifecycle_state == "draft"
     assert record.activity_code == "housing.rehabilitation.facade"
-    assert record.jurisdiction == "us-ct-groton"
+    assert record.jurisdiction == "us-ct-example"
     assert record.content_hash.startswith("sha256:")
     assert len(record.content_hash) == len("sha256:") + 64
 
@@ -121,7 +121,7 @@ def test_harvest_one_picks_up_no_contract_version_for_json() -> None:
 
 def test_harvest_one_records_source_path() -> None:
     record = harvest_one(EXAMPLE_PATH)
-    assert record.source.endswith("groton-rhine-001.example.data.json")
+    assert record.source.endswith("example-main-001.example.data.json")
 
 
 def test_harvest_one_records_fetched_at_utc() -> None:
@@ -138,7 +138,7 @@ def test_to_jsonl_produces_one_line_per_record() -> None:
     lines = out.strip().splitlines()
     assert len(lines) == 1
     obj = json.loads(lines[0])
-    assert obj["contract_id"] == "groton-rhine-001"
+    assert obj["contract_id"] == "example-main-001"
     assert obj["projection"] == "public"
 
 

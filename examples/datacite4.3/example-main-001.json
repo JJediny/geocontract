@@ -1,7 +1,7 @@
 {
   "identifiers": [
     {
-      "identifier": "https://raw.githubusercontent.com/JJediny/geocontract/main/contracts/groton-rhine-001.datacontract.yaml",
+      "identifier": "https://raw.githubusercontent.com/JJediny/geocontract/main/contracts/example-main-001.datacontract.yaml",
       "identifierType": "URL"
     }
   ],
@@ -13,7 +13,7 @@
   ],
   "titles": [
     {
-      "title": "Groton Rhine St. Façade Repair — Worked Example (v2)"
+      "title": "Main St. Façade Repair — Worked Example (v2)"
     }
   ],
   "publisher": "geocontract",
@@ -27,10 +27,10 @@
       "subject": "citizen-initiated"
     },
     {
-      "subject": "facade-repair"
+      "subject": "example"
     },
     {
-      "subject": "groton"
+      "subject": "facade-repair"
     },
     {
       "subject": "housing-rehabilitation"
@@ -68,7 +68,7 @@
   ],
   "descriptions": [
     {
-      "description": "v2 canonical worked example for the citizen-permitting flow. A resident of Groton, CT (fictional) proposes repairing the masonry façade of a property at 42 Rhine Street. The action covers repointing of failed mortar joints, replacement of three cracked lintels, and reattachment of a decorative cornice. Validates against the bare ODCS v3.1.0 schema. The companion shim file (contracts/shim/groton-rhine-001.datacontract-shim.json) records the governance / quality / SLA / lineage metadata that is not represented in the ODCS body. Fictional. Illustrative only. The applicant, parcel, signature, and signatures are placeholders. The activity-code comes from the hand-curated ActivityConcept catalog v1.0 (ontology/activity-concept-catalog.v1.0.json). Anchoring is not approval; this contract's lifecycle.state is `draft` and the anchorReceipt is null.",
+      "description": "v2 canonical worked example for the citizen-permitting flow. A resident of Example Town, CT (fictional) proposes repairing the masonry façade of a property at 42 Main Street. The action covers repointing of failed mortar joints, replacement of three cracked lintels, and reattachment of a decorative cornice. Validates against the bare ODCS v3.1.0 schema. The companion shim file (contracts/shim/example-main-001.datacontract-shim.json) records the governance / quality / SLA / lineage metadata that is not represented in the ODCS body. Fictional. Illustrative only. The applicant, parcel, signature, and signatures are placeholders. The activity-code comes from the hand-curated ActivityConcept catalog v1.0 (ontology/activity-concept-catalog.v1.0.json). Anchoring is not approval; this contract's lifecycle.state is `draft` and the anchorReceipt is null.",
       "descriptionType": "Abstract"
     }
   ],

@@ -57,8 +57,8 @@ The geocontract repo produces ODCS v3.1.0 contracts for federal
 catalogue records (exclusions lists, NEPA data standards, DCAT-US
 federated catalogs). The producer is always an agency. The user
 wants the same machinery to support a bottom-up, citizen-initiated
-flow where any resident of a municipality (worked example: Groton,
-CT, via the Groton Housing Authority) drafts a minimal
+flow where any resident of a municipality (worked example: Example
+Town, CT, via the Example Town Housing Authority) drafts a minimal
 `*.geocontract.yaml` describing a *proposed action* on a *denoted
 parcel*. Per the agent review of the v1 prototype, this v2 plan:
 
@@ -365,7 +365,7 @@ committed to the repo. Each row has:
   "broader": ["housing.rehabilitation"],
   "narrower": [],
   "aliases": ["facade repair", "masonry repointing"],
-  "jurisdiction": "us-ct-groton",          // default = null = any
+  "jurisdiction": "us-ct-example",          // default = null = any
   "sourceCitation": "https://ce.permitting.innovation.gov/data/exclusions.json#…",
   "lifecycleStatus": "active",
   "deprecatedAfter": null,
@@ -598,8 +598,8 @@ field.
 - Add `ontology/activity-concept-catalog.v1.0.json` (hand-curated).
 - Update `templates/proposed-action.template.schema.json` to the
   nested-JSON canonical model with detached proof envelope.
-- Update `contracts/groton-rhine-001.datacontract.yaml` and
-  `examples/groton-rhine-001.example.data.json` to match.
+- Update `contracts/example-main-001.datacontract.yaml` and
+  `examples/example-main-001.example.data.json` to match.
 - **PR #7** — plan + scope reframe.
 - **PR #8** — schema + worked example + ontology catalog + tests.
 - **PR #9** — harvester v2 citizen-source (additive JSONL fields,
@@ -656,7 +656,7 @@ field.
 | Permanent retention of restricted fields | Medium | Severe | Public projection only; restricted follows partner retention. |
 | VC issuer (municipal clerk) unwilling or unavailable | Medium | High | Walletless path (§5.7); manual KYC fallback. |
 | Ontology drift / silent deprecation | High | Medium | `lifecycleStatus` + `deprecatedAfter`; catalog membership tests. |
-| Jurisdictional mismatch (Groton ordinances ≠ other towns) | High | Medium | `ActivityConcept.jurisdiction` field; jurisdictional catalog per partner. |
+| Jurisdictional mismatch (Example Town ordinances ≠ other towns) | High | Medium | `ActivityConcept.jurisdiction` field; jurisdictional catalog per partner. |
 | Securities / consumer-protection risk on tokens | High | Severe | Removed from core (§13.1); separately governed if at all. |
 | Wallet requirement excludes low-income filers | Medium | High | Walletless path (§5.7). |
 | Canonicalisation ambiguity (informal "canonical YAML") | Medium | High | RFC 8785-style JCS; test vectors (§5.7). |
@@ -700,8 +700,8 @@ deferred to the anchor service operator (§13.2).
 is one optional path; manual KYC + utility-bill upload is the
 fallback. The partner's choice.
 
-**Q5 — Worked example scope.** v1 Groton example stays **fictional
-only** in v2. The Groton Housing Authority is **not** a deployment
+**Q5 — Worked example scope.** v1 example stays **fictional
+only** in v2. The Example Town Housing Authority is **not** a deployment
 partner; the example is illustrative. Pilot partner selection is
 gated on §2.3.
 

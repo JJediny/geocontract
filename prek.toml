@@ -66,14 +66,28 @@ hooks = [
     pass_filenames = true,
   },
 
-  # Validate every ODCS YAML and shim JSON against the geocontract master
-  # schema (ODCS v3.1.0 + embeddedSchemas extension).
+  # Validate every ODCS YAML against the geocontract master schema
+  # (ODCS v3.1.0 + embeddedSchemas extension). Shim JSON is validated
+  # separately below: a shim is not a master-schema contract, so passing
+  # it to --master fails by design.
   {
     id = "validate-odcs",
     name = "Validate geocontract master schema contracts",
     language = "system",
     entry = "uv run geocontract-validate --master",
     files = 'contracts/.*\.(yaml|json)$',
+    exclude = 'contracts/shim/.*',
+    pass_filenames = true,
+  },
+
+  # Validate every shim JSON against the ODCS shim schema, mirroring the
+  # two-command `mise run validate-odcs` task.
+  {
+    id = "validate-odcs-shim",
+    name = "Validate geocontract ODCS shims",
+    language = "system",
+    entry = "uv run geocontract-validate --shim",
+    files = 'contracts/shim/.*\.json$',
     pass_filenames = true,
   },
 

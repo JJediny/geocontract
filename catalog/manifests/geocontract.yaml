@@ -294,14 +294,14 @@ collections:
           loses the review context that gives a document or comment meaning.
 
   # ── Citizen-initiated worked example ──────────────────────────────────────
-  - id: citizen/groton-rhine-001
-    contract: contracts/groton-rhine-001.datacontract.yaml
+  - id: citizen/example-main-001
+    contract: contracts/example-main-001.datacontract.yaml
     primary_entity: Proposal
 
     license: CC0-1.0
 
     # Coarsened on purpose. The proposal's own geometry is a parcel polygon at
-    # examples/groton-rhine-001.example.data.json:
+    # examples/example-main-001.example.data.json:
     #   POLYGON((-72.0821 41.3472, -72.0819 41.3472, -72.0819 41.3474,
     #            -72.0821 41.3474, -72.0821 41.3472))
     # The public projection strips raw parcel geometry, so publishing a
@@ -311,7 +311,7 @@ collections:
     # restricted projection keeps the precise geometry.
     bbox: [-72.09, 41.34, -72.08, 41.35]
 
-    keywords: [citizen-initiated, proposed-action, housing-rehabilitation, facade-repair, groton, connecticut]
+    keywords: [citizen-initiated, proposed-action, housing-rehabilitation, facade-repair, example, connecticut]
 
     # No `producers` entry: geocontract originates this proposal, so the
     # generator emits the host holding producer, licensor, and host together
@@ -322,8 +322,8 @@ collections:
     docs:
       readme: |
         A worked example of the citizen-initiated permitting flow. A resident of
-        Groton, Connecticut proposes repairing the masonry facade of a property
-        on Rhine Street. The example is fictional and illustrative: the
+        Example Town, Connecticut proposes repairing the masonry facade of a property
+        on Main Street. The example is fictional and illustrative: the
         applicant, the parcel, and the signatures are placeholders.
 
         The collection publishes the ODCS-flatten projection of the v2 canonical

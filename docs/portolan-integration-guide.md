@@ -26,7 +26,7 @@ catalog/
 │   ├── nepa-exclusions/   # collection.json, README.md, AGENTS.md
 │   └── pic-nepa-data-standard/  # 13-entity PIC NEPA Data Standard
 ├── citizen/
-│   └── groton-rhine-001/  # citizen proposal — public projection only
+│   └── example-main-001/  # citizen proposal — public projection only
 └── mirror/
     └── <harvested-slug>/  # third-party contracts harvested via portolan sink
 ```
@@ -135,7 +135,7 @@ Two rules apply automatically:
 
 ```bash
 # Verify the coarsened bbox
-cat catalog/citizen/groton-rhine-001/collection.json | jq '.extent.spatial.bbox'
+cat catalog/citizen/example-main-001/collection.json | jq '.extent.spatial.bbox'
 ```
 
 ### Mirroring external catalogs
